@@ -1,0 +1,28 @@
+meas-service:
+  s3:
+    bucket-name: testbucket
+
+cloud:
+  aws:
+    region:
+      static: eu-west-1
+    stack:
+      auto: false
+    credentials:
+      accessKey: 123
+      secretKey: 456
+
+# DB properties are to be provided via environment variables by Docker Compose
+db:
+  url: jdbc:postgresql://localhost:5432/measurementservice
+  username: measurementservice
+  password: measurementservice
+
+logging:
+  file:
+    measurementservice.log
+
+spring:
+  jackson:
+    serialization:
+      indent_output: true
