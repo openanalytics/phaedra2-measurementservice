@@ -1,11 +1,14 @@
 package eu.openanalytics.phaedra.measservice.api;
 
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -57,6 +60,13 @@ public class MeasController {
 		return ResponseEntity.of(measService.findMeasById(measId));
 	}
 	
+	@RequestMapping(value="/meas/between/{date1}/{date2}", method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<List<Measurement>> getMeasurementsBetween(
+			@PathVariable @DateTimeFormat(pattern = "dd-MM-yyyy") Date date1,
+			@PathVariable @DateTimeFormat(pattern = "dd-MM-yyyy") Date date2) {
+		return ResponseEntity.ok(measService.findMeasByCreatedOnRange(date1, date2));
+	}
+	
 	@RequestMapping(value="/meas/{measId}", method=RequestMethod.DELETE)
 	public ResponseEntity<Void> deleteMeasurement(@PathVariable long measId) {
 		if (!measService.measExists(measId)) return ResponseEntity.notFound().build();
@@ -69,4 +79,9 @@ public class MeasController {
 		return ResponseEntity.of(Optional.ofNullable(measService.getWellData(measId)));
 	}
 	
+	@RequestMapping(value="/meas/{measId}/welldata/{column}", method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<float[]> getWellData(@PathVariable long measId, @PathVariable String column) {
+		return ResponseEntity.of(Optional.ofNullable(measService.getWellData(measId, column)));
+	}
+
 }

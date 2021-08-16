@@ -1,5 +1,7 @@
 package eu.openanalytics.phaedra.measservice.service;
 
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -32,6 +34,7 @@ public interface MeasService {
 	public void setMeasImageData(long measId, String channel, byte[][] imageData);
 	
 	public Optional<Measurement> findMeasById(long measId);
+	public List<Measurement> findMeasByCreatedOnRange(Date date1, Date date2);
 	
 	public boolean measExists(long measId);
 	

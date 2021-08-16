@@ -1,6 +1,7 @@
 package eu.openanalytics.phaedra.measservice.service;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -31,6 +32,27 @@ public class MeasServiceImpl implements MeasService {
 	}
 
 	@Override
+	public Optional<Measurement> findMeasById(long measId) {
+		return measRepo.findById(measId);
+	}
+
+	@Override
+	public List<Measurement> findMeasByCreatedOnRange(Date date1, Date date2) {
+		return measRepo.findByCreatedOnRange(date1, date2);
+	}
+	
+	@Override
+	public boolean measExists(long measId) {
+		return measRepo.existsById(measId);
+	}
+
+	@Override
+	public void deleteMeas(long measId) {
+		measDataRepo.deleteWellData(measId);
+		measRepo.deleteById(measId);
+	}
+
+	@Override
 	public void setMeasWellData(long measId, Map<String, float[]> wellData) {
 		Measurement meas = findMeasById(measId).orElse(null);
 		
@@ -51,35 +73,7 @@ public class MeasServiceImpl implements MeasService {
 		
 		measDataRepo.setWellData(measId, wellData);
 	}
-
-	@Override
-	public void setMeasSubWellData(long measId, String column, float[][] subWellData) {
-		// TODO Auto-generated method stub
-		throw new NotImplementedException("This method is not yet implemented");
-	}
-
-	@Override
-	public void setMeasImageData(long measId, String channel, byte[][] imageData) {
-		// TODO Auto-generated method stub
-		throw new NotImplementedException("This method is not yet implemented");
-	}
-
-	@Override
-	public Optional<Measurement> findMeasById(long measId) {
-		return measRepo.findById(measId);
-	}
-
-	@Override
-	public boolean measExists(long measId) {
-		return measRepo.existsById(measId);
-	}
-
-	@Override
-	public void deleteMeas(long measId) {
-		measDataRepo.deleteWellData(measId);
-		measRepo.deleteById(measId);
-	}
-
+	
 	@Override
 	public float[] getWellData(long measId, String column) {
 		return measDataRepo.getWellData(measId, column);
@@ -88,6 +82,12 @@ public class MeasServiceImpl implements MeasService {
 	@Override
 	public Map<String, float[]> getWellData(long measId) {
 		return measDataRepo.getWellData(measId);
+	}
+
+	@Override
+	public void setMeasSubWellData(long measId, String column, float[][] subWellData) {
+		// TODO Auto-generated method stub
+		throw new NotImplementedException("This method is not yet implemented");
 	}
 
 	@Override
@@ -101,6 +101,12 @@ public class MeasServiceImpl implements MeasService {
 	}
 
 	@Override
+	public void setMeasImageData(long measId, String channel, byte[][] imageData) {
+		// TODO Auto-generated method stub
+		throw new NotImplementedException("This method is not yet implemented");
+	}
+	
+	@Override
 	public byte[] getImageData(long measId, int wellNr, int channelNr) {
 		return measDataRepo.getImageData(measId, wellNr, channelNr);
 	}
@@ -109,6 +115,11 @@ public class MeasServiceImpl implements MeasService {
 	public Map<Integer, byte[]> getImageData(long measId, int wellNr) {
 		return measDataRepo.getImageData(measId, wellNr);
 	}
+
+	/**
+	 * Non-public
+	 * **********
+	 */
 
 	private void validateMeas(Measurement meas, boolean isNewMeas) {
 		if (isNewMeas) Assert.isTrue(meas.getId() == 0, "New measurement must have ID equal to 0");
