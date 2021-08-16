@@ -6,15 +6,17 @@
 	<artifactId>phaedra2-measurementservice</artifactId>
 	<name>MeasurementService</name>
 	<packaging>jar</packaging>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.2-SNAPSHOT</version>
 
 	<parent>
 		<groupId>eu.openanalytics.phaedra</groupId>
 		<artifactId>phaedra2-parent</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>../phaedra2-parent</relativePath>
 	</parent>
 
 	<dependencies>
+		<!-- AWS Starter + Autoconfigure -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-aws</artifactId>
@@ -23,18 +25,32 @@
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-aws-autoconfigure</artifactId>
 		</dependency>
+		<!-- Postgres DB backend -->
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-		</dependency>
+		<!-- Apache Commons -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 		</dependency>
 	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>com.spotify</groupId>
+				<artifactId>dockerfile-maven-plugin</artifactId>
+				<configuration>
+					<repository>openanalytics/phaedra2-measservice</repository>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 
 </project>

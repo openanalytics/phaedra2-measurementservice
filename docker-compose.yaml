@@ -1,0 +1,33 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:13
+    hostname: measservice-db
+    container_name: measservice-db
+    networks:
+      - phaedra2
+    environment:
+      - POSTGRES_DB=measservice
+      - POSTGRES_USER=measservice
+      - POSTGRES_PASSWORD=measservice
+    volumes:
+      - ./sql/populate_database.sh:/docker-entrypoint-initdb.d/populate_database.sh:ro
+      - ./sql/1-create-tables.sql:/opt/1-create-tables.sql:ro
+  app:
+    image: openanalytics/phaedra2-measservice
+    hostname: measservice-app
+    container_name: measservice-app
+    networks:
+      - phaedra2
+    ports:
+      - 8080:8080
+    depends_on:
+      - db
+    environment:
+      - DB_URL=jdbc:postgresql://measservice-db:5432/measservice
+      - DB_USERNAME=measservice
+      - DB_PASSWORD=measservice
+
+networks:
+  phaedra2:

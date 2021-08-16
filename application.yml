@@ -1,6 +1,9 @@
 meas-service:
   s3:
     bucket-name: testbucket
+  db:
+    schema: measservice
+    welldata-table: welldata
 
 cloud:
   aws:
@@ -12,15 +15,13 @@ cloud:
       accessKey: 123
       secretKey: 456
 
-# DB properties are to be provided via environment variables by Docker Compose
-db:
-  url: jdbc:postgresql://localhost:5432/measurementservice
-  username: measurementservice
-  password: measurementservice
+server:
+  error:
+    include-message: always
 
 logging:
   file:
-    measurementservice.log
+    meas-service.log
 
 spring:
   jackson:

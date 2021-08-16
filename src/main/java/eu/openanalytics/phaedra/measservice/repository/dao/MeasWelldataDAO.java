@@ -28,10 +28,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class MeasWelldataDAO {
 
-	@Value("${meas-service.welldata.db.schema:phaedra}")
+	@Value("${meas-service.db.schema:measservice}")
 	private String schemaName;
 	
-	@Value("${meas-service.welldata.db.table:welldata}")
+	@Value("${meas-service.db.welldata-table:welldata}")
 	private String tableName;
 	
 	@Autowired

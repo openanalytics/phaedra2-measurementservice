@@ -4,6 +4,8 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
 
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
@@ -24,33 +26,42 @@ public class MeasServiceImpl implements MeasService {
 	@Override
 	public Measurement createNewMeas(Measurement measInfo) {
 		measInfo.setCreatedOn(new Date());
-//		TODO measInfo.setCreatedBy("creator");
 		validateMeas(measInfo, true);
 		return measRepo.save(measInfo);
 	}
 
 	@Override
 	public void setMeasWellData(long measId, Map<String, float[]> wellData) {
-		// TODO Auto-generated method stub
+		Measurement meas = findMeasById(measId).orElse(null);
 		
+		if (meas == null) 
+			throw new IllegalArgumentException(String.format("Cannot save welldata: measurement with ID %d does not exist", measId));
+		if (!ArrayUtils.isEmpty(meas.getWellColumns())) 
+			throw new IllegalArgumentException(String.format("Cannot save welldata: measurement with ID %d already contains well data", measId));
+		
+		int wellCount = meas.getRows() * meas.getColumns();
+		for (String column: wellData.keySet()) {
+			float[] values = wellData.get(column);
+			int valueCount = values.length;
+			if (valueCount != wellCount)
+				throw new IllegalArgumentException(String.format(
+						"Cannot save welldata for measurement %d: column %s has an unexpected count (expected: %d, actual: %d)",
+						measId, column, wellCount, valueCount));
+		}
+		
+		measDataRepo.setWellData(measId, wellData);
 	}
 
 	@Override
 	public void setMeasSubWellData(long measId, String column, float[][] subWellData) {
 		// TODO Auto-generated method stub
-		
+		throw new NotImplementedException("This method is not yet implemented");
 	}
 
 	@Override
 	public void setMeasImageData(long measId, String channel, byte[][] imageData) {
 		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void finalizeCreation(long measId) {
-		// TODO Auto-generated method stub
-		
+		throw new NotImplementedException("This method is not yet implemented");
 	}
 
 	@Override
@@ -65,6 +76,7 @@ public class MeasServiceImpl implements MeasService {
 
 	@Override
 	public void deleteMeas(long measId) {
+		measDataRepo.deleteWellData(measId);
 		measRepo.deleteById(measId);
 	}
 

@@ -12,24 +12,24 @@ public interface MeasService {
 
 	/**
 	 * Create a new persistent measurement object.
-	 * Note that measurement cannot be updated, the initial information must be completed.
+	 * Note that measurement cannot be updated, the initial information must be complete.
 	 * 
-	 * @param measInfo The information of the new measurement. The id must be zero.
-	 * @return The input measurement object, with a generated id added to it.
+	 * @param measInfo The information of the new measurement. The ID must be zero.
+	 * @return The input measurement object, with a generated ID added to it.
 	 */
 	public Measurement createNewMeas(Measurement measInfo);
 	
+	/**
+	 * Add well data to a measurement. Note that this can be done only once:
+	 * if a measurement already contains well data, an exception will be thrown.
+	 * 
+	 * @param measId The ID of the measurement to add well data to.
+	 * @param wellData The well data to add to the measurement.
+	 */
 	public void setMeasWellData(long measId, Map<String, float[]> wellData);
+	
 	public void setMeasSubWellData(long measId, String column, float[][] subWellData);
 	public void setMeasImageData(long measId, String channel, byte[][] imageData);
-	
-	/**
-	 * Finish the creation of a measurement.
-	 * After this method has been called, data can no longer be added to a measurement.
-	 * 
-	 * @param measId The id of the measurement to finalize.
-	 */
-	public void finalizeCreation(long measId);
 	
 	public Optional<Measurement> findMeasById(long measId);
 	
@@ -38,7 +38,7 @@ public interface MeasService {
 	/**
 	 * Request the deletion of a measurement.
 	 * 
-	 * @param measId The id of the measurement to delete.
+	 * @param measId The ID of the measurement to delete.
 	 */
 	public void deleteMeas(long measId);
 	

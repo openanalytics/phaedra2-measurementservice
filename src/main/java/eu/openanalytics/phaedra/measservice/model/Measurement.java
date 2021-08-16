@@ -4,7 +4,13 @@ import java.util.Date;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+@Table("measurement")
+@JsonInclude(Include.NON_NULL)
 public class Measurement {
 
     @Id

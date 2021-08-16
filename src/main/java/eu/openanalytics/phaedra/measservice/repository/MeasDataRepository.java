@@ -50,6 +50,10 @@ public class MeasDataRepository {
 		welldataDAO.deleteData(measId);
 	}
 	
+	public void setWellData(long measId, Map<String, float[]> wellData) {
+		welldataDAO.saveData(measId, wellData);
+	}
+	
 	/*
 	 * Subwell data storage approach
 	 * *****************************
