@@ -17,5 +17,6 @@ create table measservice.measurement (
 create table measservice.welldata (
 	meas_id					bigint not null references measurement(id) on delete cascade,
 	column_name				text not null,
-	values					float[]
+	values					float[],
+	primary key (meas_id, column_name)
 );

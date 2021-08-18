@@ -32,7 +32,7 @@ public class MeasController {
 	@RequestMapping(value="/meas", method=RequestMethod.POST, produces=MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<?> createMeasurement(@RequestBody NewMeasurementDTO newMeasDTO, HttpServletRequest request) {
 		
-		//TODO Identify user from HTTP request
+		//TODO Identify user from auth info in HTTP request
 		if (request.getUserPrincipal() == null || request.getUserPrincipal().getName() == null) {
 			newMeasDTO.setCreatedBy("Anonymous");
 		} else {
@@ -84,4 +84,13 @@ public class MeasController {
 		return ResponseEntity.of(Optional.ofNullable(measService.getWellData(measId, column)));
 	}
 
+	@RequestMapping(value="/meas/{measId}/subwelldata/{column}", method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Map<Integer, float[]>> getSubwellData(@PathVariable long measId, @PathVariable String column) {
+		return ResponseEntity.of(Optional.ofNullable(measService.getSubWellData(measId, column)));
+	}
+	
+	@RequestMapping(value="/meas/{measId}/subwelldata/{column}/{wellNr}", method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<float[]> getSubwellData(@PathVariable long measId, @PathVariable String column, @PathVariable int wellNr) {
+		return ResponseEntity.of(Optional.ofNullable(measService.getSubWellData(measId, wellNr, column)));
+	}
 }

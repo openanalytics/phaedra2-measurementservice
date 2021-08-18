@@ -72,6 +72,10 @@ public class MeasServiceImpl implements MeasService {
 		}
 		
 		measDataRepo.setWellData(measId, wellData);
+		
+		String[] wellColumns = wellData.keySet().stream().sorted().toArray(i -> new String[i]);
+		meas.setWellColumns(wellColumns);
+		measRepo.save(meas);
 	}
 	
 	@Override
@@ -86,7 +90,7 @@ public class MeasServiceImpl implements MeasService {
 
 	@Override
 	public void setMeasSubWellData(long measId, String column, float[][] subWellData) {
-		// TODO Auto-generated method stub
+		// TODO Implement subwell data storage
 		throw new NotImplementedException("This method is not yet implemented");
 	}
 
@@ -102,7 +106,7 @@ public class MeasServiceImpl implements MeasService {
 
 	@Override
 	public void setMeasImageData(long measId, String channel, byte[][] imageData) {
-		// TODO Auto-generated method stub
+		// TODO Implement image data storage
 		throw new NotImplementedException("This method is not yet implemented");
 	}
 	

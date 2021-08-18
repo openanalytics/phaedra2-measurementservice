@@ -19,25 +19,7 @@ public class MeasDataRepository {
 	
 	@Autowired
 	private MeasObjectStoreDAO objectStoreDAO;
-	
-	/*
-	 * Well data storage approach
-	 * **************************
-	 * 
-	 * Wide column storage:
-	 * 		- Row key: measId
-	 * 		- Column key: featureName
-	 * 		- Column value: float[]
-	 * 
-	 * Summary:
-	 * - One row per meas
-	 * - Thousands of rows
-	 * - Thousands of columns
-	 * - Several KB per value
-	 * - Thus, several MB per row
-	 * - Thus, several MB per plate
-	 */
-	
+		
 	public float[] getWellData(long measId, String column) {
 		return welldataDAO.getData(measId, column);
 	}
@@ -95,8 +77,7 @@ public class MeasDataRepository {
 	}
 	
 	public void deleteSubWellData(long measId) {
-		//TODO
-//		objectStoreDAO.deleteMeasObject(measId, null);
+		
 	}
 
 	/*

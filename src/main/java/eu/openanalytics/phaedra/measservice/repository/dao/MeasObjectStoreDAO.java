@@ -16,7 +16,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
 
-import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
@@ -28,7 +29,7 @@ import com.amazonaws.services.s3.transfer.Upload;
 public class MeasObjectStoreDAO {
 
 	@Autowired
-	private AmazonS3Client s3Client;
+	private AmazonS3 s3Client;
 	
 	private TransferManager transferMgr;
 	
@@ -46,6 +47,10 @@ public class MeasObjectStoreDAO {
 	
 	@PostConstruct
 	public void init() {
+		if (!s3Client.doesBucketExistV2(bucketName)) {
+			s3Client.createBucket(bucketName);
+		}
+		
 		transferMgr = TransferManagerBuilder
 				.standard()
 				.withS3Client(s3Client)
@@ -60,6 +65,8 @@ public class MeasObjectStoreDAO {
 			S3ObjectInputStream input = object.getObjectContent();
 		) {
 			return deserializeObjectFromStream(input);
+		} catch (AmazonS3Exception e) {
+			throw new IOException(e);
 		}
 	}
 

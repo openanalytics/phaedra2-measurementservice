@@ -1,7 +1,13 @@
 meas-service:
   s3:
-    bucket-name: testbucket
+    endpoint: ${S3_ENDPOINT}
+    username: ${S3_USERNAME}
+    password: ${S3_PASSWORD}
+    bucket-name: measdata
   db:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     schema: measservice
     welldata-table: welldata
 
@@ -11,9 +17,6 @@ cloud:
       static: eu-west-1
     stack:
       auto: false
-    credentials:
-      accessKey: 123
-      secretKey: 456
 
 server:
   error:

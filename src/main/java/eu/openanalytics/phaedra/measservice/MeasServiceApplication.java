@@ -9,6 +9,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.util.StringUtils;
 
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -17,19 +22,24 @@ import eu.openanalytics.phaedra.util.jdbc.JDBCUtils;
 @SpringBootApplication
 public class MeasServiceApplication {
 
-	private static final String PROP_DB_URL = "db.url";
-	private static final String PROP_DB_USERNAME = "db.username";
-	private static final String PROP_DB_PASSWORD = "db.password";
+	private static final String PROP_DB_URL = "meas-service.db.url";
+	private static final String PROP_DB_USERNAME = "meas-service.db.username";
+	private static final String PROP_DB_PASSWORD = "meas-service.db.password";
 	private static final String PROP_DB_SCHEMA = "meas-service.db.schema";
+
+	private static final String PROP_S3_ENDPOINT = "meas-service.s3.endpoint";
+	private static final String PROP_S3_REGION = "meas-service.s3.region";
+	private static final String PROP_S3_USERNAME = "meas-service.s3.username";
+	private static final String PROP_S3_PASSWORD = "meas-service.s3.password";
 	
 	@Autowired
 	private Environment environment;
-	
+
 	public static void main(String[] args) {
 		SpringApplication app = new SpringApplication(MeasServiceApplication.class);
 		app.run(args);
 	}
-	
+
 	@Bean
 	public DataSource dataSource() {
 		String url = environment.getProperty(PROP_DB_URL);
@@ -40,7 +50,7 @@ public class MeasServiceApplication {
 		if (driverClassName == null) {
 			throw new RuntimeException("Unsupported database type: " + url);
 		}
-		
+
 		HikariConfig config = new HikariConfig();
 		config.setAutoCommit(false);
 		config.setMaximumPoolSize(20);
@@ -49,13 +59,26 @@ public class MeasServiceApplication {
 		config.setDriverClassName(driverClassName);
 		config.setUsername(environment.getProperty(PROP_DB_USERNAME));
 		config.setPassword(environment.getProperty(PROP_DB_PASSWORD));
-		
+
 		String schema = environment.getProperty(PROP_DB_SCHEMA);
 		if (!StringUtils.isEmpty(schema)) {
 			config.setConnectionInitSql("set search_path to " + schema);
 		}
-		
+
 		return new HikariDataSource(config);
 	}
 
+	@Bean
+	public AmazonS3 amazonS3() {
+		String endpoint = environment.getProperty(PROP_S3_ENDPOINT, "https://s3.amazonaws.com");
+		String region = environment.getProperty(PROP_S3_REGION, "eu-west-1");
+		String username = environment.getProperty(PROP_S3_USERNAME);
+		String password = environment.getProperty(PROP_S3_PASSWORD);
+		
+		return AmazonS3ClientBuilder.standard()
+				.withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(endpoint, region))
+				.withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(username, password)))
+				.enablePathStyleAccess()
+				.build();
+	}
 }
