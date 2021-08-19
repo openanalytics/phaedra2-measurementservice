@@ -80,6 +80,7 @@ public class MeasServiceImpl implements MeasService {
 	
 	@Override
 	public float[] getWellData(long measId, String column) {
+		if (!measExists(measId)) return null;
 		return measDataRepo.getWellData(measId, column);
 	}
 
@@ -90,8 +91,7 @@ public class MeasServiceImpl implements MeasService {
 
 	@Override
 	public void setMeasSubWellData(long measId, String column, float[][] subWellData) {
-		// TODO Implement subwell data storage
-		throw new NotImplementedException("This method is not yet implemented");
+		measDataRepo.putSubWellData(measId, column, subWellData);
 	}
 
 	@Override

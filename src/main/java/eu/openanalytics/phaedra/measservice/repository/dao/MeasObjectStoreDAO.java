@@ -8,6 +8,9 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.annotation.PostConstruct;
 
@@ -18,9 +21,13 @@ import org.springframework.util.StreamUtils;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
+import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.ListObjectsV2Request;
+import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import com.amazonaws.services.s3.transfer.Upload;
@@ -55,6 +62,25 @@ public class MeasObjectStoreDAO {
 				.standard()
 				.withS3Client(s3Client)
 				.build();
+	}
+	
+	public String[] listMeasObjects(long measId, String prefix) throws IOException {
+		String s3Prefix = makeS3Key(measId, prefix);
+		List<S3ObjectSummary> objects = new ArrayList<>();
+
+		String continuationToken = null;
+		do {
+			ListObjectsV2Request req = new ListObjectsV2Request();
+			req.setBucketName(bucketName);
+			req.setPrefix(s3Prefix);
+			if (continuationToken != null) req.setContinuationToken(continuationToken);
+			
+			ListObjectsV2Result results = s3Client.listObjectsV2(req);
+			objects.addAll(results.getObjectSummaries());
+			continuationToken = (results.isTruncated()) ? results.getContinuationToken() : null;
+		} while (continuationToken != null);
+		
+		return objects.stream().map(o -> o.getKey()).toArray(i -> new String[i]);
 	}
 	
 	public Object getMeasObject(long measId, String key) throws IOException {
@@ -109,6 +135,15 @@ public class MeasObjectStoreDAO {
 		s3Client.deleteObject(bucketName, s3key);
 	}
 
+	public void deleteMeasObjects(long measId, String[] keys) throws IOException {
+		// Split the keys into groups of 1000 (the max of DeleteObjectsRequest).
+		List<String[]> keySets = splitArray(keys, 1000);
+		keySets.stream().parallel().forEach(ks -> {
+			DeleteObjectsRequest req = new DeleteObjectsRequest(bucketName).withKeys(ks);
+			s3Client.deleteObjects(req);
+		});
+	}
+
 	/**
 	 * Non-public
 	 * **********
@@ -150,5 +185,24 @@ public class MeasObjectStoreDAO {
 			throw new RuntimeException(e);
 		}
 		return object;
+	}
+
+	private <T> List<T[]> splitArray(T[] items, int maxSubArraySize) {
+		List<T[]> result = new ArrayList<T[]>();
+		if (items == null || items.length == 0) {
+			return result;
+		}
+
+		int from = 0;
+		int to = 0;
+		int slicedItems = 0;
+		while (slicedItems < items.length) {
+			to = from + Math.min(maxSubArraySize, items.length - to);
+			T[] slice = Arrays.copyOfRange(items, from, to);
+			result.add(slice);
+			slicedItems += slice.length;
+			from = to;
+		}
+		return result;
 	}
 }
