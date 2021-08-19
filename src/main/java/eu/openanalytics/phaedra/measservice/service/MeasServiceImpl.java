@@ -153,7 +153,7 @@ public class MeasServiceImpl implements MeasService {
 		measDataRepo.putImageData(measId, wellNr, imageData);
 		
 		if (meas.getImageChannels() == null) {
-			meas.setSubWellColumns(channelNames);
+			meas.setImageChannels(channelNames);
 			measRepo.save(meas);
 		}
 	}

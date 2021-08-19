@@ -141,7 +141,7 @@ public class MeasDataRepository {
 	}
 	
 	public void putImageData(long measId, int wellNr, String channel, byte[] data) {
-		String key = String.format("%s.%d.%s", PREFIX_SW_DATA, wellNr, channel); 
+		String key = String.format("%s.%d.%s", PREFIX_IMAGE_DATA, wellNr, channel); 
 		try {
 			objectStoreDAO.putMeasObject(measId, key, data);
 		} catch (IOException e) {

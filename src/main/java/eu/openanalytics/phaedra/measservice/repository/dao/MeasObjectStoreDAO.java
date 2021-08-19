@@ -80,7 +80,7 @@ public class MeasObjectStoreDAO {
 			continuationToken = (results.isTruncated()) ? results.getContinuationToken() : null;
 		} while (continuationToken != null);
 		
-		return objects.stream().map(o -> o.getKey()).toArray(i -> new String[i]);
+		return objects.stream().map(o -> unmakeS3Key(o.getKey())).toArray(i -> new String[i]);
 	}
 	
 	public boolean measObjectExists(long measId, String key) throws IOException {
@@ -141,8 +141,9 @@ public class MeasObjectStoreDAO {
 	}
 
 	public void deleteMeasObjects(long measId, String[] keys) throws IOException {
+		String[] s3Keys = Arrays.stream(keys).map(k -> makeS3Key(measId, k)).toArray(i -> new String[i]);
 		// Split the keys into groups of 1000 (the max of DeleteObjectsRequest).
-		List<String[]> keySets = splitArray(keys, 1000);
+		List<String[]> keySets = splitArray(s3Keys, 1000);
 		keySets.stream().parallel().forEach(ks -> {
 			DeleteObjectsRequest req = new DeleteObjectsRequest(bucketName).withKeys(ks);
 			s3Client.deleteObjects(req);
@@ -161,6 +162,10 @@ public class MeasObjectStoreDAO {
 		sb.append("/");
 		sb.append(objectKey);
 		return sb.toString();
+	}
+	
+	private String unmakeS3Key(String s3Key) {
+		return s3Key.substring(s3Key.indexOf('/') + 1);
 	}
 	
 	private String reverse(long measId) {
