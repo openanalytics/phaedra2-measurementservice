@@ -29,6 +29,11 @@ public class MeasController {
 	@Autowired
 	private MeasService measService;
 	
+	/**
+	 * Measurements
+	 * ************
+	 */
+
 	@RequestMapping(value="/meas", method=RequestMethod.POST, produces=MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<?> createMeasurement(@RequestBody NewMeasurementDTO newMeasDTO, HttpServletRequest request) {
 		
@@ -74,6 +79,11 @@ public class MeasController {
 		return ResponseEntity.noContent().build();
 	}
 	
+	/**
+	 * WellData
+	 * ********
+	 */
+	
 	@RequestMapping(value="/meas/{measId}/welldata", method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
 	public ResponseEntity<Map<String, float[]>> getWellData(@PathVariable long measId) {
 		return ResponseEntity.of(Optional.ofNullable(measService.getWellData(measId)));
@@ -84,13 +94,24 @@ public class MeasController {
 		return ResponseEntity.of(Optional.ofNullable(measService.getWellData(measId, column)));
 	}
 
+	/**
+	 * SubWellData
+	 * ***********
+	 */
+	
+	@RequestMapping(value="/meas/{measId}/subwelldata/{column}", method=RequestMethod.POST, produces=MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Void> setSubWellData(@PathVariable long measId, @PathVariable String column, @RequestBody Map<Integer, float[]> dataMap) {
+		measService.setMeasSubWellData(measId, column, dataMap);
+		return ResponseEntity.created(null).build();
+	}
+	
 	@RequestMapping(value="/meas/{measId}/subwelldata/{column}", method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Map<Integer, float[]>> getSubwellData(@PathVariable long measId, @PathVariable String column) {
+	public ResponseEntity<Map<Integer, float[]>> getSubWellData(@PathVariable long measId, @PathVariable String column) {
 		return ResponseEntity.of(Optional.ofNullable(measService.getSubWellData(measId, column)));
 	}
 	
 	@RequestMapping(value="/meas/{measId}/subwelldata/{column}/{wellNr}", method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<float[]> getSubwellData(@PathVariable long measId, @PathVariable String column, @PathVariable int wellNr) {
+	public ResponseEntity<float[]> getSubWellData(@PathVariable long measId, @PathVariable String column, @PathVariable int wellNr) {
 		return ResponseEntity.of(Optional.ofNullable(measService.getSubWellData(measId, wellNr, column)));
 	}
 }

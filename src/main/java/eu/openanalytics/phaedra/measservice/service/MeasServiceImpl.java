@@ -1,5 +1,6 @@
 package eu.openanalytics.phaedra.measservice.service;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -48,8 +49,11 @@ public class MeasServiceImpl implements MeasService {
 
 	@Override
 	public void deleteMeas(long measId) {
-		measDataRepo.deleteWellData(measId);
+		//TODO Deletion should be queued in an async fashion.
 		measRepo.deleteById(measId);
+		measDataRepo.deleteWellData(measId);
+		measDataRepo.deleteSubWellData(measId);
+		measDataRepo.deleteImageData(measId);
 	}
 
 	@Override
@@ -90,8 +94,33 @@ public class MeasServiceImpl implements MeasService {
 	}
 
 	@Override
-	public void setMeasSubWellData(long measId, String column, float[][] subWellData) {
+	public void setMeasSubWellData(long measId, String column, Map<Integer, float[]> subWellData) {
+		Measurement meas = findMeasById(measId).orElse(null);
+		
+		if (meas == null) {
+			throw new IllegalArgumentException(String.format("Cannot save subwelldata: measurement with ID %d does not exist", measId));
+		}
+		if (ArrayUtils.contains(meas.getSubWellColumns(), column)) {
+			throw new IllegalArgumentException(
+					String.format("Cannot save subwelldata: measurement with ID %d already contains subwelldata for column %s", measId, column));
+		}
+		if (subWellData == null || subWellData.isEmpty()) {
+			throw new IllegalArgumentException(String.format("Cannot save subwelldata: no data provided"));
+		}
+		
+		int wellCount = meas.getRows() * meas.getColumns();
+		if (subWellData.size() != wellCount) {
+			throw new IllegalArgumentException(
+					String.format("Cannot save subwelldata: data array has unexpected size (expected: %d, actual: %d)", wellCount, subWellData.size()));
+		}
+		
 		measDataRepo.putSubWellData(measId, column, subWellData);
+
+		// Register the new column in the measurement.
+		String[] subWellColumns = ArrayUtils.add(meas.getSubWellColumns(), column);
+		subWellColumns = Arrays.stream(subWellColumns).sorted().toArray(i -> new String[i]);
+		meas.setSubWellColumns(subWellColumns);
+		measRepo.save(meas);
 	}
 
 	@Override

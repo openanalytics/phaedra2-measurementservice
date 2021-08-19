@@ -79,17 +79,38 @@ public interface MeasService {
 	 */
 	public Map<String, float[]> getWellData(long measId);
 	
-	/* SubWell-level data */
+	/**
+	 * Add subwell data to a measurement. Not that this can be done only once
+	 * for each given column name.
+	 * 
+	 * @param measId The ID of the measurement to add subwell data to.
+	 * @param column The name of the column to set data for.
+	 * @param subWellData The map of data, containing a float[] for each well number.
+	 */
+	public void setMeasSubWellData(long measId, String column, Map<Integer, float[]> subWellData);
 	
-	public void setMeasSubWellData(long measId, String column, float[][] subWellData);
-	
+	/**
+	 * Retrieve the subwelldata for a measurement for a given well number and column name.
+	 * 
+	 * @param measId The ID of the measurement to get subwelldata for.
+	 * @param wellNr The well number to get subwelldata for.
+	 * @param column The name of the column to get subwelldata for.
+	 * @return The subwelldata, may be null.
+	 */
 	public float[] getSubWellData(long measId, int wellNr, String column);
+	
+	/**
+	 * Retrieve the subwelldata for a measurement for a given column name.
+	 * 
+	 * @param measId The ID of the measurement to get subwelldata for.
+	 * @param column The name of the column to get subwelldata for.
+	 * @return The subwelldata, may be empty.
+	 */
 	public Map<Integer, float[]> getSubWellData(long measId, String column);
 	
 	/* Image data */
 	
 	public void setMeasImageData(long measId, String channel, byte[][] imageData);
-	
 	public byte[] getImageData(long measId, int wellNr, int channelNr);
 	public Map<Integer, byte[]> getImageData(long measId, int wellNr);
 	

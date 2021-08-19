@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.RecoverableDataAccessException;
@@ -56,9 +55,9 @@ public class MeasDataRepository {
 	 * - Thus, several GB per meas
 	 */
 	
-	public void putSubWellData(long measId, String column, float[][] data) {
-		IntStream.range(0, data.length).parallel().forEach(i -> {
-			putSubWellData(measId, i + 1, column, data[i]);
+	public void putSubWellData(long measId, String column, Map<Integer, float[]> data) {
+		data.keySet().parallelStream().forEach(i -> {
+			putSubWellData(measId, i + 1, column, data.get(i));
 		});
 	}
 	
