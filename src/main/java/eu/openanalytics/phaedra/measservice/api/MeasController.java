@@ -114,4 +114,25 @@ public class MeasController {
 	public ResponseEntity<float[]> getSubWellData(@PathVariable long measId, @PathVariable String column, @PathVariable int wellNr) {
 		return ResponseEntity.of(Optional.ofNullable(measService.getSubWellData(measId, wellNr, column)));
 	}
+
+	/**
+	 * ImageData
+	 * *********
+	 */
+	
+	@RequestMapping(value="/meas/{measId}/imagedata/{wellNr}", method=RequestMethod.POST, produces=MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Void> setImageData(@PathVariable long measId, @PathVariable int wellNr, @RequestBody Map<String, byte[]> dataMap) {
+		measService.setMeasImageData(measId, wellNr, dataMap);
+		return ResponseEntity.created(null).build();
+	}
+	
+	@RequestMapping(value="/meas/{measId}/imagedata/{wellNr}", method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<Map<String, byte[]>> getImageData(@PathVariable long measId, @PathVariable int wellNr) {
+		return ResponseEntity.of(Optional.ofNullable(measService.getImageData(measId, wellNr)));
+	}
+	
+	@RequestMapping(value="/meas/{measId}/imagedata/{wellNr}/{channel}", method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<byte[]> getImageData(@PathVariable long measId, @PathVariable int wellNr, @PathVariable String channel) {
+		return ResponseEntity.of(Optional.ofNullable(measService.getImageData(measId, wellNr, channel)));
+	}
 }

@@ -83,6 +83,11 @@ public class MeasObjectStoreDAO {
 		return objects.stream().map(o -> o.getKey()).toArray(i -> new String[i]);
 	}
 	
+	public boolean measObjectExists(long measId, String key) throws IOException {
+		String s3key = makeS3Key(measId, key);
+		return s3Client.doesObjectExist(bucketName, s3key);
+	}
+	
 	public Object getMeasObject(long measId, String key) throws IOException {
 		String s3key = makeS3Key(measId, key);
 		GetObjectRequest request = new GetObjectRequest(bucketName, s3key);

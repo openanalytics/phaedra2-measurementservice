@@ -16,6 +16,9 @@ import eu.openanalytics.phaedra.measservice.repository.dao.MeasWelldataDAO;
 @Repository
 public class MeasDataRepository {
 
+	private static final String PREFIX_SW_DATA = "subwelldata";
+	private static final String PREFIX_IMAGE_DATA = "imagedata";
+	
 	@Autowired
 	private MeasWelldataDAO welldataDAO;
 	
@@ -62,7 +65,7 @@ public class MeasDataRepository {
 	}
 	
 	public void putSubWellData(long measId, int wellNr, String column, float[] data) {
-		String key = String.format("subwelldata.%s.%d", column, wellNr); 
+		String key = String.format("%s.%s.%d", PREFIX_SW_DATA, column, wellNr); 
 		try {
 			objectStoreDAO.putMeasObject(measId, key, data);
 		} catch (IOException e) {
@@ -72,10 +75,10 @@ public class MeasDataRepository {
 	}
 	
 	public float[] getSubWellData(long measId, int wellNr, String column) {
-		String key = String.format("subwelldata.%s.%d", column, wellNr);
+		String key = String.format("%s.%s.%d", PREFIX_SW_DATA, column, wellNr);
 		try {
-			float[] swData = (float[]) objectStoreDAO.getMeasObject(measId, key);
-			return swData;
+			if (!objectStoreDAO.measObjectExists(measId, key)) return null;
+			return (float[]) objectStoreDAO.getMeasObject(measId, key);
 		} catch (IOException e) {
 			throw new RecoverableDataAccessException(
 					String.format("Failed to retrieve subwell data for measurement %d, well %d, column %s", measId, wellNr, column), e);
@@ -83,10 +86,11 @@ public class MeasDataRepository {
 	}
 	
 	public Map<Integer, float[]> getSubWellData(long measId, String column) {
-		String prefix = String.format("subwelldata.%s", column);
+		String prefix = String.format("%s.%s", PREFIX_SW_DATA, column);
 		try {
 			// Find all available subkeys (expected: 1 key per well)
 			String[] keys = objectStoreDAO.listMeasObjects(measId, prefix);
+			if (keys.length == 0) return null;
 			
 			return Arrays.stream(keys).parallel().map(k -> {
 				try {
@@ -105,10 +109,9 @@ public class MeasDataRepository {
 	}
 	
 	public void deleteSubWellData(long measId) {
-		String prefix = "subwelldata";
 		try {
 			// Find all available subkeys (expected: 1 key per well per column)
-			String[] keys = objectStoreDAO.listMeasObjects(measId, prefix);
+			String[] keys = objectStoreDAO.listMeasObjects(measId, PREFIX_SW_DATA);
 			objectStoreDAO.deleteMeasObjects(measId, keys);
 		} catch (IOException e) {
 			throw new RecoverableDataAccessException(String.format("Failed to delete subwell data for measurement %d", measId), e);
@@ -119,27 +122,76 @@ public class MeasDataRepository {
 	 * Image data storage approach
 	 * ***************************
 	 * 
-	 * Simple object storage:
-	 * 		- Key: measId + wellNr + channelNr
-	 * 		- One byte array per well image channel
+	 * One object per well per channel.
+	 * 
+	 * Key: "imagedata.<wellNr>.<channel>"
+	 * Value: byte[]
 	 * 
 	 * Summary:
-	 * 		- A few MB per array
-	 * 		- A few arrays per well
-	 * 		- Thousands of arrays per meas
-	 * 		- Thus, several GB per meas
+	 * - A few MB per object
+	 * - A few objects per well
+	 * - Thousands of objects per meas
+	 * - Thus, several GB per meas
 	 */
 	
-	public byte[] getImageData(long measId, int wellNr, int channelNr) {
-		return null;
+	public void putImageData(long measId, int wellNr, Map<String, byte[]> data) {
+		data.keySet().parallelStream().forEach(c -> {
+			putImageData(measId, wellNr, c, data.get(c));
+		});
 	}
 	
-	public Map<Integer, byte[]> getImageData(long measId, int wellNr) {
-		return null;
+	public void putImageData(long measId, int wellNr, String channel, byte[] data) {
+		String key = String.format("%s.%d.%s", PREFIX_SW_DATA, wellNr, channel); 
+		try {
+			objectStoreDAO.putMeasObject(measId, key, data);
+		} catch (IOException e) {
+			throw new RecoverableDataAccessException(
+					String.format("Failed to store image data for measurement %d, well %d, channel %s", measId, wellNr, channel), e);
+		}
+	}
+	
+	public byte[] getImageData(long measId, int wellNr, String channel) {
+		String key = String.format("%s.%d.%s", PREFIX_IMAGE_DATA, wellNr, channel);
+		try {
+			if (!objectStoreDAO.measObjectExists(measId, key)) return null;
+			return (byte[]) objectStoreDAO.getMeasObject(measId, key);
+		} catch (IOException e) {
+			throw new RecoverableDataAccessException(
+					String.format("Failed to retrieve image data for measurement %d, well %d, channel %s", measId, wellNr, channel), e);
+		}
+	}
+	
+	public Map<String, byte[]> getImageData(long measId, int wellNr) {
+		String prefix = String.format("%s.%d", PREFIX_IMAGE_DATA, wellNr);
+		try {
+			// Find all available subkeys (expected: 1 key per channel)
+			String[] keys = objectStoreDAO.listMeasObjects(measId, prefix);
+			if (keys.length == 0) return null;
+			
+			return Arrays.stream(keys).parallel().map(k -> {
+				try {
+					String channel = k.substring(k.lastIndexOf('.') + 1);
+					byte[] values = (byte[]) objectStoreDAO.getMeasObject(measId, k);
+					return Pair.of(channel, values);
+				} catch (IOException e) {
+					throw new RecoverableDataAccessException(
+							String.format("Failed to retrieve image data for measurement %d, well %d", measId, wellNr), e);
+				}
+			}).collect(Collectors.toMap(p -> p.getFirst(), p -> p.getSecond()));
+		} catch (IOException e) {
+			throw new RecoverableDataAccessException(
+					String.format("Failed to retrieve image data for measurement %d, well %s", measId, wellNr), e);
+		}
 	}
 	
 	public void deleteImageData(long measId) {
-		
+		try {
+			// Find all available subkeys (expected: 1 key per well per column)
+			String[] keys = objectStoreDAO.listMeasObjects(measId, PREFIX_IMAGE_DATA);
+			objectStoreDAO.deleteMeasObjects(measId, keys);
+		} catch (IOException e) {
+			throw new RecoverableDataAccessException(String.format("Failed to delete image data for measurement %d", measId), e);
+		}
 	}
 
 }

@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
@@ -125,27 +124,49 @@ public class MeasServiceImpl implements MeasService {
 
 	@Override
 	public float[] getSubWellData(long measId, int wellNr, String column) {
+		if (!measExists(measId)) return null;
 		return measDataRepo.getSubWellData(measId, wellNr, column);
 	}
 
 	@Override
 	public Map<Integer, float[]> getSubWellData(long measId, String column) {
+		if (!measExists(measId)) return null;
 		return measDataRepo.getSubWellData(measId, column);
 	}
 
 	@Override
-	public void setMeasImageData(long measId, String channel, byte[][] imageData) {
-		// TODO Implement image data storage
-		throw new NotImplementedException("This method is not yet implemented");
+	public void setMeasImageData(long measId, int wellNr, Map<String, byte[]> imageData) {
+		Measurement meas = findMeasById(measId).orElse(null);
+		
+		if (meas == null) {
+			throw new IllegalArgumentException(String.format("Cannot save image data: measurement with ID %d does not exist", measId));
+		}
+		if (imageData == null || imageData.isEmpty()) {
+			throw new IllegalArgumentException(String.format("Cannot save image data: no data provided"));
+		}
+		
+		String[] channelNames = imageData.keySet().stream().sorted().toArray(i -> new String[i]);
+		if (meas.getImageChannels() != null && !Arrays.equals(channelNames, meas.getImageChannels())) {
+			throw new IllegalArgumentException("Cannot save image data: provided channel names do not match the measurement channel names");
+		}
+		
+		measDataRepo.putImageData(measId, wellNr, imageData);
+		
+		if (meas.getImageChannels() == null) {
+			meas.setSubWellColumns(channelNames);
+			measRepo.save(meas);
+		}
 	}
 	
 	@Override
-	public byte[] getImageData(long measId, int wellNr, int channelNr) {
-		return measDataRepo.getImageData(measId, wellNr, channelNr);
+	public byte[] getImageData(long measId, int wellNr, String channel) {
+		if (!measExists(measId)) return null;
+		return measDataRepo.getImageData(measId, wellNr, channel);
 	}
 
 	@Override
-	public Map<Integer, byte[]> getImageData(long measId, int wellNr) {
+	public Map<String, byte[]> getImageData(long measId, int wellNr) {
+		if (!measExists(measId)) return null;
 		return measDataRepo.getImageData(measId, wellNr);
 	}
 

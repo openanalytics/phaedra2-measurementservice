@@ -80,8 +80,8 @@ public interface MeasService {
 	public Map<String, float[]> getWellData(long measId);
 	
 	/**
-	 * Add subwell data to a measurement. Not that this can be done only once
-	 * for each given column name.
+	 * Add subwell data to a measurement.
+	 * Note that this can be done only once for each given column name.
 	 * 
 	 * @param measId The ID of the measurement to add subwell data to.
 	 * @param column The name of the column to set data for.
@@ -104,14 +104,37 @@ public interface MeasService {
 	 * 
 	 * @param measId The ID of the measurement to get subwelldata for.
 	 * @param column The name of the column to get subwelldata for.
-	 * @return The subwelldata, may be empty.
+	 * @return The subwelldata, containing a float[] per well nr. May be null.
 	 */
 	public Map<Integer, float[]> getSubWellData(long measId, String column);
 	
-	/* Image data */
+	/**
+	 * Add image data to a measurement.
+	 * Note that this can be done only once for each given well nr.
+	 * 
+	 * @param measId The ID of the measurement to add image data to.
+	 * @param wellNr The well nr to add image data for.
+	 * @param imageData The map of data, containing a byte[] for each channel.
+	 */
+	public void setMeasImageData(long measId, int wellNr, Map<String, byte[]> imageData);
 	
-	public void setMeasImageData(long measId, String channel, byte[][] imageData);
-	public byte[] getImageData(long measId, int wellNr, int channelNr);
-	public Map<Integer, byte[]> getImageData(long measId, int wellNr);
+	/**
+	 * Retrieve the image data for a measurement for a given well nr and channel.
+	 * 
+	 * @param measId The ID of the measurement to get image data for.
+	 * @param wellNr The well nr to get image data for.
+	 * @param channel The name of the channel to get image data for.
+	 * @return The image data, may be null.
+	 */
+	public byte[] getImageData(long measId, int wellNr, String channel);
+	
+	/**
+	 * Retrieve the image data for a measurement for a given well nr.
+	 * 
+	 * @param measId The ID of the measurement to get image data for.
+	 * @param wellNr The well nr to get image data for.
+	 * @return The image data, containing one byte array per channel. May be null.
+	 */
+	public Map<String, byte[]> getImageData(long measId, int wellNr);
 	
 }
