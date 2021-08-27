@@ -43,9 +43,11 @@ services:
       - DB_URL=jdbc:postgresql://measservice-db:5432/measservice
       - DB_USERNAME=measservice
       - DB_PASSWORD=measservice
-      - S3_ENDPOINT=http://measservice-objectstore:9000
-      - S3_USERNAME=measservice-minio
-      - S3_PASSWORD=measservice-minio
+      - DB_SCHEMA=measservice
+      - S3_USERNAME=AKIA3HWGAIXYFRB565VB
+      - S3_PASSWORD=EDBLww/4z6XzPFRkAQAm81UTBuEhyZF8h6LfLXB6
+      - S3_BUCKET=phaedra2-poc-measdata
+      - S3_ENDPOINT=https://s3.eu-west-1.amazonaws.com
 
 networks:
   phaedra2:

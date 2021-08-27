@@ -3,13 +3,12 @@ meas-service:
     endpoint: ${S3_ENDPOINT}
     username: ${S3_USERNAME}
     password: ${S3_PASSWORD}
-    bucket-name: measdata
+    bucket-name: ${S3_BUCKET}
   db:
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
-    schema: measservice
-    welldata-table: welldata
+    schema: ${DB_SCHEMA}
 
 cloud:
   aws:
