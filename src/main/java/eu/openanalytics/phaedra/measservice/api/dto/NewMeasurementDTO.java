@@ -18,4 +18,19 @@ public class NewMeasurementDTO extends Measurement {
 		this.welldata = wellData;
 	}
 
+	public Measurement asMeasurement() {
+		Measurement meas = new Measurement();
+		meas.setId(getId());
+		meas.setBarcode(getBarcode());
+		meas.setDescription(getDescription());
+		meas.setName(getName());
+		meas.setRows(getRows());
+		meas.setColumns(getColumns());
+		meas.setCreatedBy(getCreatedBy());
+		meas.setCreatedOn(getCreatedOn());
+		meas.setWellColumns(getSubWellColumns());
+		meas.setSubWellColumns(getSubWellColumns());
+		meas.setImageChannels(getImageChannels());
+		return meas;
+	}
 }

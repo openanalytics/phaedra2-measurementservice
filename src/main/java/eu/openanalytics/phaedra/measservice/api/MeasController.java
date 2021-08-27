@@ -46,7 +46,7 @@ public class MeasController {
 		
 		try {
 			// Step 1: persist a new Measurement entity
-			Measurement newMeas = measService.createNewMeas(newMeasDTO);
+			Measurement newMeas = measService.createNewMeas(newMeasDTO.asMeasurement());
 			
 			// Step 2: persist the well data for the new Measurement
 			if (newMeasDTO.getWelldata() != null && !newMeasDTO.getWelldata().isEmpty()) {
@@ -56,6 +56,7 @@ public class MeasController {
 			
 			return new ResponseEntity<>(newMeas, HttpStatus.CREATED);
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
 		}
 	}
