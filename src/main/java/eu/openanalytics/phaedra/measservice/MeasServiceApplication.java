@@ -1,12 +1,17 @@
 package eu.openanalytics.phaedra.measservice;
 
+import javax.servlet.ServletContext;
 import javax.sql.DataSource;
 
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.util.StringUtils;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
@@ -19,6 +24,8 @@ import com.zaxxer.hikari.HikariDataSource;
 
 import eu.openanalytics.phaedra.util.jdbc.JDBCUtils;
 
+@EnableDiscoveryClient
+@EnableScheduling
 @SpringBootApplication
 public class MeasServiceApplication {
 
@@ -31,9 +38,14 @@ public class MeasServiceApplication {
 	private static final String PROP_S3_REGION = "meas-service.s3.region";
 	private static final String PROP_S3_USERNAME = "meas-service.s3.username";
 	private static final String PROP_S3_PASSWORD = "meas-service.s3.password";
-	
-	@Autowired
-	private Environment environment;
+
+	private final ServletContext servletContext;
+	private final Environment environment;
+
+	public MeasServiceApplication(ServletContext servletContext, Environment environment) {
+		this.servletContext = servletContext;
+		this.environment = environment;
+	}
 
 	public static void main(String[] args) {
 		SpringApplication app = new SpringApplication(MeasServiceApplication.class);
@@ -80,5 +92,11 @@ public class MeasServiceApplication {
 				.withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(username, password)))
 				.enablePathStyleAccess()
 				.build();
+	}
+
+	@Bean
+	public OpenAPI customOpenAPI() {
+		Server server = new Server().url(servletContext.getContextPath()).description("Default Server URL");
+		return new OpenAPI().addServersItem(server);
 	}
 }
