@@ -29,6 +29,8 @@ logging:
     name: meas-service.log
 
 spring:
+  application:
+    name: phaedra-measurement-service
   jackson:
     serialization:
       indent_output: true

@@ -29,6 +29,8 @@ services:
     environment:
       - MINIO_ROOT_USER=measservice-minio
       - MINIO_ROOT_PASSWORD=measservice-minio
+    ports:
+      - "9000:9000"
 
   app:
     image: phaedra2-measurementservice:0.0.2-SNAPSHOT
