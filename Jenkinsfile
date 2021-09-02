@@ -12,7 +12,7 @@ pipeline {
 
     environment {
         REPO_PREFIX = "196229073436.dkr.ecr.eu-west-1.amazonaws.com/openanalytics/"
-        REPO = "openanalytics/phaedra2-resultdataservice"
+        REPO = "openanalytics/phaedra2-measurementservice"
         ACCOUNTID = "196229073436"
     }
 
