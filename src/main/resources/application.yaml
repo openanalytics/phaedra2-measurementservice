@@ -31,6 +31,8 @@ logging:
 spring:
   application:
     name: phaedra-measurement-service
+  liquibase:
+    enabled: false
   jackson:
     serialization:
       indent_output: true
