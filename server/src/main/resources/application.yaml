@@ -36,6 +36,9 @@ spring:
   jackson:
     serialization:
       indent_output: true
+  cloud:
+    kubernetes:
+      enabled: false
 
 eureka:
   client:

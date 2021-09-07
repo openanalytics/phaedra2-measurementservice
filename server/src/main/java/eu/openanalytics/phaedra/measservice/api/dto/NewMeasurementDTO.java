@@ -1,10 +1,9 @@
 package eu.openanalytics.phaedra.measservice.api.dto;
 
-import java.util.Map;
-
+import eu.openanalytics.phaedra.measservice.model.Measurement;
 import org.springframework.data.annotation.Transient;
 
-import eu.openanalytics.phaedra.measservice.model.Measurement;
+import java.util.Map;
 
 public class NewMeasurementDTO extends Measurement {
 

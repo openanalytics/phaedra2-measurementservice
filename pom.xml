@@ -1,95 +1,51 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>eu.openanalytics.phaedra</groupId>
+        <artifactId>phaedra2-parent</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+        <relativePath>../phaedra2-parent</relativePath>
+    </parent>
+    <packaging>pom</packaging>
 
-	<artifactId>phaedra2-measurementservice</artifactId>
-	<name>MeasurementService</name>
-	<packaging>jar</packaging>
-	<version>0.0.2-SNAPSHOT</version>
+    <artifactId>phaedra2-measurementservice</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>phaedra2-measurementservice</name>
 
-	<parent>
-		<groupId>eu.openanalytics.phaedra</groupId>
-		<artifactId>phaedra2-parent</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
-		<relativePath>../phaedra2-parent</relativePath>
-	</parent>
+    <properties>
+        <java.version>16</java.version>
+    </properties>
 
-	<properties>
-		<java.version>11</java.version>
-		<spring-cloud.version>2020.0.3</spring-cloud.version>
-		<docker.repoPrefix/>
-	</properties>
+    <modules>
+        <module>dto/</module>
+        <module>client/</module>
+        <module>server/</module>
+    </modules>
 
-	<dependencies>
-		<!-- AWS Starter + Autoconfigure -->
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-aws</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-aws-autoconfigure</artifactId>
-		</dependency>
-		<!-- Apache Commons -->
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-lang3</artifactId>
-		</dependency>
-
-		<!-- Spring Cloud Eureka dependencies -->
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-kubernetes-fabric8</artifactId>
-		</dependency>
-	</dependencies>
-
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-dependencies</artifactId>
-				<version>${spring-cloud.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-			<!-- Allows building a Docker image -->
-			<plugin>
-				<groupId>com.spotify</groupId>
-				<artifactId>dockerfile-maven-plugin</artifactId>
-				<version>${spotify.docker.version}</version>
-				<executions>
-					<execution>
-						<id>default</id>
-						<goals>
-							<goal>build</goal>
-							<goal>push</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<repository>${docker.repoPrefix}${project.artifactId}</repository>
-					<tag>${project.version}</tag>
-					<buildArgs>
-						<JAR_FILE>target/${project.build.finalName}.jar</JAR_FILE>
-					</buildArgs>
-				</configuration>
-			</plugin>
-
-		</plugins>
-	</build>
-
+    <!-- We cannot specify this in the parent POM, as the repositories are needed to fetch the parent pom.    -->
+    <repositories>
+        <!-- Maven queries repositories in the order that they are defined here.
+         Usually, the Maven Central repository is the last one in this order, because it's defined in the super POM.
+         This means that for all dependencies which are downloaded from Maven Central, the custom repositories are
+         queried first, which slows down the build a lot.
+         Therefore we add central as the first repository in this list.
+         This reduces the time to download dependencies on a fresh machine from ~20-30min to 1min
+         See: https://maven.apache.org/ref/3.6.3/maven-model-builder/super-pom.html for the origin of this configuration
+         -->
+        <repository>
+            <id>central</id>
+            <name>Central Repository</name>
+            <url>https://repo.maven.apache.org/maven2</url>
+            <layout>default</layout>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>oa-nexus-snapshots</id>
+            <url>https://nexus.openanalytics.eu/repository/snapshots/</url>
+        </repository>
+    </repositories>
 </project>

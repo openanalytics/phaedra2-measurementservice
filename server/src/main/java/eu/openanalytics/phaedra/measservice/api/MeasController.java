@@ -1,12 +1,8 @@
 package eu.openanalytics.phaedra.measservice.api;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import javax.servlet.http.HttpServletRequest;
-
+import eu.openanalytics.phaedra.measservice.api.dto.NewMeasurementDTO;
+import eu.openanalytics.phaedra.measservice.model.Measurement;
+import eu.openanalytics.phaedra.measservice.service.MeasService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -19,9 +15,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import eu.openanalytics.phaedra.measservice.api.dto.NewMeasurementDTO;
-import eu.openanalytics.phaedra.measservice.model.Measurement;
-import eu.openanalytics.phaedra.measservice.service.MeasService;
+import javax.servlet.http.HttpServletRequest;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @RestController
 public class MeasController {

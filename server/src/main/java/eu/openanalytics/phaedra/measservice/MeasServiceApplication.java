@@ -1,8 +1,13 @@
 package eu.openanalytics.phaedra.measservice;
 
-import javax.servlet.ServletContext;
-import javax.sql.DataSource;
-
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import eu.openanalytics.phaedra.util.jdbc.JDBCUtils;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.boot.SpringApplication;
@@ -13,15 +18,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.util.StringUtils;
 
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-
-import eu.openanalytics.phaedra.util.jdbc.JDBCUtils;
+import javax.servlet.ServletContext;
+import javax.sql.DataSource;
 
 @EnableDiscoveryClient
 @EnableScheduling
