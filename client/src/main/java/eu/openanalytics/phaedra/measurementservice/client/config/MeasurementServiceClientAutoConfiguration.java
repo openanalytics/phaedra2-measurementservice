@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 public class MeasurementServiceClientAutoConfiguration {
 
     @Bean
-    public MeasurementServiceClient resultDataServiceClient(PhaedraRestTemplate phaedraRestTemplate) {
+    public MeasurementServiceClient measurementServiceClient(PhaedraRestTemplate phaedraRestTemplate) {
         return new HttpMeasurementServiceClient(phaedraRestTemplate);
     }
 
