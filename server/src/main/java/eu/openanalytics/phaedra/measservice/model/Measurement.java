@@ -1,13 +1,12 @@
 package eu.openanalytics.phaedra.measservice.model;
 
-import java.util.Date;
-
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import java.util.Date;
 
 @Table("measurement")
 @JsonInclude(Include.NON_NULL)

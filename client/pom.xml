@@ -4,25 +4,19 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>eu.openanalytics.phaedra</groupId>
-        <artifactId>phaedra2-resultdataservice</artifactId>
+        <artifactId>phaedra2-measurementservice</artifactId>
         <version>0.0.1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>phaedra2-resultdataservice-client</artifactId>
-    <name>phaedra2-resultdataservice-client</name>
+    <artifactId>phaedra2-measurementservice-client</artifactId>
+    <name>phaedra2-measurementservice-client</name>
 
     <properties>
         <java.version>16</java.version>
     </properties>
 
     <dependencies>
-        <!-- Dependency on DTO -->
-        <dependency>
-            <groupId>eu.openanalytics.phaedra</groupId>
-            <artifactId>phaedra2-resultdataservice-dto</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
     </dependencies>
 
 </project>
