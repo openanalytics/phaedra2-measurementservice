@@ -18,6 +18,7 @@
 		<java.version>11</java.version>
 		<spring-cloud.version>2020.0.3</spring-cloud.version>
 		<docker.repoPrefix/>
+		<docker.imageName>${parent.artifactId}</docker.imageName>
 	</properties>
 
 	<dependencies>
@@ -67,26 +68,58 @@
 			</plugin>
 			<!-- Allows building a Docker image -->
 			<plugin>
-				<groupId>com.spotify</groupId>
-				<artifactId>dockerfile-maven-plugin</artifactId>
-				<version>${spotify.docker.version}</version>
+				<groupId>io.fabric8</groupId>
+				<artifactId>docker-maven-plugin</artifactId>
+				<version>0.37.0</version>
+				<configuration>
+					<verbose>true</verbose>
+					<images>
+						<image>
+							<name>${docker.repoPrefix}${docker.imageName}</name>
+							<build>
+								<dockerFile>${project.basedir}/Dockerfile.app</dockerFile>
+								<tags>
+									<tag>${project.version}</tag>
+								</tags>
+							</build>
+						</image>
+						<image>
+							<name>${docker.repoPrefix}${docker.imageName}.liquibase</name>
+							<build>
+								<dockerFile>${project.basedir}/Dockerfile.db</dockerFile>
+								<tags>
+									<tag>${project.version}</tag>
+								</tags>
+							</build>
+						</image>
+					</images>
+				</configuration>
 				<executions>
 					<execution>
 						<id>default</id>
+						<phase>install</phase>
 						<goals>
 							<goal>build</goal>
-							<goal>push</goal>
 						</goals>
 					</execution>
 				</executions>
-				<configuration>
-					<repository>${docker.repoPrefix}${project.artifactId}</repository>
-					<tag>${project.version}</tag>
-					<buildArgs>
-						<JAR_FILE>target/${project.build.finalName}.jar</JAR_FILE>
-					</buildArgs>
-				</configuration>
 			</plugin>
+<!--			<plugin>-->
+<!--				<groupId>org.liquibase</groupId>-->
+<!--				<artifactId>liquibase-maven-plugin</artifactId>-->
+<!--				<version>4.4.3</version>-->
+<!--				<configuration>-->
+<!--					<propertyFile>liquibase/liquibase.properties</propertyFile>-->
+<!--					<outputChangeLogFile>liquibase/metadata_changelog.yaml</outputChangeLogFile>-->
+<!--				</configuration>-->
+<!--				<dependencies>-->
+<!--					<dependency>-->
+<!--						<groupId>org.postgresql</groupId>-->
+<!--						<artifactId>postgresql</artifactId>-->
+<!--						<version>42.2.23</version>-->
+<!--					</dependency>-->
+<!--				</dependencies>-->
+<!--			</plugin>-->
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>

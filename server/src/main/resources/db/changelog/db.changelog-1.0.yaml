@@ -1,0 +1,98 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: sberberovic
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: measurement_pkey
+                  name: id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name
+                  type: TEXT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: barcode
+                  type: TEXT
+              - column:
+                  name: description
+                  type: TEXT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: rows
+                  type: INTEGER
+              - column:
+                  constraints:
+                    nullable: false
+                  name: columns
+                  type: INTEGER
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_on
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  constraints:
+                    nullable: false
+                  name: created_by
+                  type: TEXT
+              - column:
+                  name: well_columns
+                  type: TEXT[]
+              - column:
+                  name: subwell_columns
+                  type: TEXT[]
+              - column:
+                  name: image_channels
+                  type: TEXT[]
+            tableName: measurement
+  - changeSet:
+      id: 2
+      author: sberberovic
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: welldata_pkey
+                  name: meas_id
+                  type: BIGINT
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: welldata_pkey
+                  name: column_name
+                  type: TEXT
+              - column:
+                  name: values
+                  type: FLOAT8[]
+            tableName: welldata
+  - changeSet:
+      id: 3
+      author: sberberovic
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: meas_id
+            baseTableName: welldata
+            constraintName: welldata_meas_id_fkey
+            deferrable: false
+            initiallyDeferred: false
+            onDelete: CASCADE
+            onUpdate: NO ACTION
+            referencedColumnNames: id
+            referencedTableName: measurement
+            validate: true
+

@@ -1,29 +1,27 @@
-CREATE SCHEMA IF NOT EXISTS measservice;
+drop table if exists measservice.measurement;
+drop table if exists measservice.welldata;
 
-DROP TABLE IF EXISTS measservice.measurement;
-DROP TABLE IF EXISTS measservice.welldata;
-
-CREATE TABLE measservice.measurement
+create table measservice.measurement
 (
     id              bigserial,
-    name            text      NOT NULL,
-    barcode         text      NOT NULL,
+    name            text      not null,
+    barcode         text      not null,
     description     text,
-    rows            int       NOT NULL,
-    columns         int       NOT NULL,
-    created_on      timestamp NOT NULL,
-    created_by      text      NOT NULL,
+    rows            int       not null,
+    columns         int       not null,
+    created_on      timestamp not null,
+    created_by      text      not null,
     well_columns    text[],
     subwell_columns text[],
     image_channels  text[],
-    PRIMARY KEY(id)
+    primary key(id)
 );
 
-CREATE TABLE measservice.welldata
+create table measservice.welldata
 (
-    meas_id     bigint NOT NULL,
-    column_name text   NOT NULL,
+    meas_id     bigint not null,
+    column_name text   not null,
     values      float[],
-    PRIMARY KEY (meas_id, column_name),
-    FOREIGN KEY (meas_id) REFERENCES measservice.measurement(id) ON DELETE CASCADE
+    primary key (meas_id, column_name),
+    foreign key (meas_id) references measservice.measurement(id) on delete cascade
 );

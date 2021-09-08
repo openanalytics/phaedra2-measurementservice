@@ -14,6 +14,7 @@ services:
       - POSTGRES_USER=measservice
       - POSTGRES_PASSWORD=measservice
     volumes:
+      - ./db/1-create-tables.sql:/opt/0-create-schema.sql
       - ./db/1-create-tables.sql:/opt/1-create-tables.sql
       - ./sh:/docker-entrypoint-initdb.d/
     ports:
