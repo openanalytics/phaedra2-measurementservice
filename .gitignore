@@ -30,3 +30,6 @@ hs_err_pid*
 /.settings/
 /.project
 /.classpath
+/client/target/
+/server/target/
+/dto/target/
