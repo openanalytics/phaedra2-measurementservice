@@ -27,9 +27,9 @@ hs_err_pid*
 
 # Eclipse IDE files
 /target/
-/.settings/
-/.project
-/.classpath
+.settings/
+.project
+.classpath
 /client/target/
 /server/target/
 /dto/target/
