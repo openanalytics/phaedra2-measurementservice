@@ -81,6 +81,9 @@
 								<tags>
 									<tag>${project.version}</tag>
 								</tags>
+								<args>
+									<JAR_FILE>target/${project.build.finalName}.jar</JAR_FILE>
+								</args>
 							</build>
 						</image>
 						<image>
