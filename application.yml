@@ -1,8 +1,0 @@
-S3_ENDPOINT: http://localhost:9000
-S3_USERNAME: measservice-minio
-S3_PASSWORD: measservice-minio
-S3_BUCKET: measservice-minio
-DB_URL: jdbc:postgresql://localhost:5432/phaedra2?currentSchema=measservice
-DB_USERNAME: phaedra2
-DB_PASSWORD: phaedra2
-DB_SCHEMA: measservice
