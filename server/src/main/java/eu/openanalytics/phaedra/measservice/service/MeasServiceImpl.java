@@ -20,15 +20,20 @@ public class MeasServiceImpl implements MeasService {
 
 	@Autowired
 	private MeasRepository measRepo;
-	
+
 	@Autowired
 	private MeasDataRepository measDataRepo;
-	
+
 	@Override
 	public Measurement createNewMeas(Measurement measInfo) {
 		measInfo.setCreatedOn(new Date());
 		validateMeas(measInfo, true);
 		return measRepo.save(measInfo);
+	}
+
+	@Override
+	public List<Measurement> getAllMeasurements() {
+		return (List<Measurement>) measRepo.findAll();
 	}
 
 	@Override
@@ -40,7 +45,7 @@ public class MeasServiceImpl implements MeasService {
 	public List<Measurement> findMeasByCreatedOnRange(Date date1, Date date2) {
 		return measRepo.findByCreatedOnRange(date1, date2);
 	}
-	
+
 	@Override
 	public boolean measExists(long measId) {
 		return measRepo.existsById(measId);
@@ -58,12 +63,12 @@ public class MeasServiceImpl implements MeasService {
 	@Override
 	public void setMeasWellData(long measId, Map<String, float[]> wellData) {
 		Measurement meas = findMeasById(measId).orElse(null);
-		
-		if (meas == null) 
+
+		if (meas == null)
 			throw new IllegalArgumentException(String.format("Cannot save welldata: measurement with ID %d does not exist", measId));
-		if (!ArrayUtils.isEmpty(meas.getWellColumns())) 
+		if (!ArrayUtils.isEmpty(meas.getWellColumns()))
 			throw new IllegalArgumentException(String.format("Cannot save welldata: measurement with ID %d already contains well data", measId));
-		
+
 		int wellCount = meas.getRows() * meas.getColumns();
 		for (String column: wellData.keySet()) {
 			float[] values = wellData.get(column);
@@ -73,14 +78,14 @@ public class MeasServiceImpl implements MeasService {
 						"Cannot save welldata for measurement %d: column %s has an unexpected count (expected: %d, actual: %d)",
 						measId, column, wellCount, valueCount));
 		}
-		
+
 		measDataRepo.setWellData(measId, wellData);
-		
+
 		String[] wellColumns = wellData.keySet().stream().sorted().toArray(i -> new String[i]);
 		meas.setWellColumns(wellColumns);
 		measRepo.save(meas);
 	}
-	
+
 	@Override
 	public float[] getWellData(long measId, String column) {
 		if (!measExists(measId)) return null;
@@ -95,7 +100,7 @@ public class MeasServiceImpl implements MeasService {
 	@Override
 	public void setMeasSubWellData(long measId, String column, Map<Integer, float[]> subWellData) {
 		Measurement meas = findMeasById(measId).orElse(null);
-		
+
 		if (meas == null) {
 			throw new IllegalArgumentException(String.format("Cannot save subwelldata: measurement with ID %d does not exist", measId));
 		}
@@ -106,13 +111,13 @@ public class MeasServiceImpl implements MeasService {
 		if (subWellData == null || subWellData.isEmpty()) {
 			throw new IllegalArgumentException(String.format("Cannot save subwelldata: no data provided"));
 		}
-		
+
 		int wellCount = meas.getRows() * meas.getColumns();
 		if (subWellData.size() != wellCount) {
 			throw new IllegalArgumentException(
 					String.format("Cannot save subwelldata: data array has unexpected size (expected: %d, actual: %d)", wellCount, subWellData.size()));
 		}
-		
+
 		measDataRepo.putSubWellData(measId, column, subWellData);
 
 		// Register the new column in the measurement.
@@ -137,27 +142,27 @@ public class MeasServiceImpl implements MeasService {
 	@Override
 	public void setMeasImageData(long measId, int wellNr, Map<String, byte[]> imageData) {
 		Measurement meas = findMeasById(measId).orElse(null);
-		
+
 		if (meas == null) {
 			throw new IllegalArgumentException(String.format("Cannot save image data: measurement with ID %d does not exist", measId));
 		}
 		if (imageData == null || imageData.isEmpty()) {
 			throw new IllegalArgumentException(String.format("Cannot save image data: no data provided"));
 		}
-		
+
 		String[] channelNames = imageData.keySet().stream().sorted().toArray(i -> new String[i]);
 		if (meas.getImageChannels() != null && !Arrays.equals(channelNames, meas.getImageChannels())) {
 			throw new IllegalArgumentException("Cannot save image data: provided channel names do not match the measurement channel names");
 		}
-		
+
 		measDataRepo.putImageData(measId, wellNr, imageData);
-		
+
 		if (meas.getImageChannels() == null) {
 			meas.setImageChannels(channelNames);
 			measRepo.save(meas);
 		}
 	}
-	
+
 	@Override
 	public byte[] getImageData(long measId, int wellNr, String channel) {
 		if (!measExists(measId)) return null;
