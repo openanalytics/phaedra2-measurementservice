@@ -1,5 +1,18 @@
 package eu.openanalytics.phaedra.measservice;
 
+import javax.servlet.ServletContext;
+import javax.sql.DataSource;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.context.annotation.Bean;
+import org.springframework.core.env.Environment;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.web.servlet.config.annotation.CorsRegistration;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
@@ -7,19 +20,10 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+
 import eu.openanalytics.phaedra.util.jdbc.JDBCUtils;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.servers.Server;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-import org.springframework.context.annotation.Bean;
-import org.springframework.core.env.Environment;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.util.StringUtils;
-
-import javax.servlet.ServletContext;
-import javax.sql.DataSource;
 
 @EnableDiscoveryClient
 @EnableScheduling
@@ -52,7 +56,7 @@ public class MeasServiceApplication {
 	@Bean
 	public DataSource dataSource() {
 		String url = environment.getProperty(PROP_DB_URL);
-		if (StringUtils.isEmpty(url)) {
+		if (url == null || url.trim().isEmpty()) {
 			throw new RuntimeException("No database URL configured: " + PROP_DB_URL);
 		}
 		String driverClassName = JDBCUtils.getDriverClassName(url);
@@ -70,7 +74,7 @@ public class MeasServiceApplication {
 		config.setPassword(environment.getProperty(PROP_DB_PASSWORD));
 
 		String schema = environment.getProperty(PROP_DB_SCHEMA);
-		if (!StringUtils.isEmpty(schema)) {
+		if (schema != null && !schema.trim().isEmpty()) {
 			config.setConnectionInitSql("set search_path to " + schema);
 		}
 
@@ -95,5 +99,16 @@ public class MeasServiceApplication {
 	public OpenAPI customOpenAPI() {
 		Server server = new Server().url(servletContext.getContextPath()).description("Default Server URL");
 		return new OpenAPI().addServersItem(server);
+	}
+	
+	@Bean
+	public WebMvcConfigurer corsConfigurer() {
+		return new WebMvcConfigurer() {
+			@Override
+			public void addCorsMappings(CorsRegistry registry) {
+				CorsRegistration registration = registry.addMapping("/**");
+				registration.allowedMethods("*");
+			}
+		};
 	}
 }
