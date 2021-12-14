@@ -9,9 +9,6 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.web.servlet.config.annotation.CorsRegistration;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -99,16 +96,5 @@ public class MeasServiceApplication {
 	public OpenAPI customOpenAPI() {
 		Server server = new Server().url(servletContext.getContextPath()).description("Default Server URL");
 		return new OpenAPI().addServersItem(server);
-	}
-	
-	@Bean
-	public WebMvcConfigurer corsConfigurer() {
-		return new WebMvcConfigurer() {
-			@Override
-			public void addCorsMappings(CorsRegistry registry) {
-				CorsRegistration registration = registry.addMapping("/**");
-				registration.allowedMethods("*");
-			}
-		};
 	}
 }
