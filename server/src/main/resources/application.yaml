@@ -19,7 +19,7 @@ cloud:
 
 server:
   servlet:
-    context-path: /phaedra/meas-service
+    context-path: /phaedra/measurement-service
   error:
     include-message: always
   port: 3008
