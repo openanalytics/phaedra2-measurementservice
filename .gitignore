@@ -35,3 +35,5 @@ hs_err_pid*
 /dto/target/
 /phaedra2-measurementservice.iml
 application.yml
+/dto/phaedra2-measurementservice-dto.iml
+/server/phaedra2-measurementservice-server.iml

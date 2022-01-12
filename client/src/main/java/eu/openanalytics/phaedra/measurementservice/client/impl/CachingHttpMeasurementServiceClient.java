@@ -2,6 +2,7 @@ package eu.openanalytics.phaedra.measurementservice.client.impl;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
 import eu.openanalytics.phaedra.measurementservice.client.MeasurementServiceClient;
 import eu.openanalytics.phaedra.measurementservice.client.exception.MeasUnresolvableException;
 import eu.openanalytics.phaedra.util.PhaedraRestTemplate;
@@ -39,6 +40,11 @@ public class CachingHttpMeasurementServiceClient implements MeasurementServiceCl
             logger.info(String.format("Retrieved object from cache: WellData measId=%s, columName=%s",  measId, columnName));
         }
         return res;
+    }
+
+    @Override
+    public MeasurementDTO[] getMeasurements(long... measId) {
+        return httpMeasurementServiceClient.getMeasurements(measId);
     }
 
 }

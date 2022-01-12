@@ -1,6 +1,7 @@
 package eu.openanalytics.phaedra.measservice.api;
 
 import eu.openanalytics.phaedra.measservice.api.dto.NewMeasurementDTO;
+import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
 import eu.openanalytics.phaedra.measservice.model.Measurement;
 import eu.openanalytics.phaedra.measservice.service.MeasService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,17 +57,21 @@ public class MeasController {
     }
 
     @RequestMapping(value = "/meas", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<Measurement>> getMeasurements(@RequestParam(name = "filter", required = false) Map<String, String> filters) {
+    public ResponseEntity<List<MeasurementDTO>> getMeasurements(@RequestParam(name = "filter", required = false) Map<String, String> filters,
+                                                                @RequestParam(name = "measIds", required = false) Optional<long[]> measIds) {
+        if (measIds.isPresent()) {
+            return ResponseEntity.ok(measService.getMeasurementsByIds(measIds.get()));
+        }
         return ResponseEntity.ok(measService.getAllMeasurements());
     }
 
     @RequestMapping(value = "/meas/{measId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Measurement> getMeasurement(@PathVariable long measId) {
+    public ResponseEntity<MeasurementDTO> getMeasurement(@PathVariable long measId) {
         return ResponseEntity.of(measService.findMeasById(measId));
     }
 
     @RequestMapping(value = "/meas/between/{date1}/{date2}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<Measurement>> getMeasurementsBetween(
+    public ResponseEntity<List<MeasurementDTO>> getMeasurementsBetween(
             @PathVariable @DateTimeFormat(pattern = "dd-MM-yyyy") Date date1,
             @PathVariable @DateTimeFormat(pattern = "dd-MM-yyyy") Date date2) {
         return ResponseEntity.ok(measService.findMeasByCreatedOnRange(date1, date2));

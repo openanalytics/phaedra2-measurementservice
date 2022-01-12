@@ -22,6 +22,11 @@
             <artifactId>caffeine</artifactId>
             <version>3.0.4</version>
         </dependency>
+        <dependency>
+            <groupId>eu.openanalytics.phaedra</groupId>
+            <artifactId>phaedra2-measurementservice-dto</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
 </project>

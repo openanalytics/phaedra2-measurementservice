@@ -15,7 +15,7 @@
 	<packaging>jar</packaging>
 
 	<properties>
-		<java.version>11</java.version>
+		<java.version>16</java.version>
 		<spring-cloud.version>2020.0.3</spring-cloud.version>
 		<docker.repoPrefix/>
 		<docker.imageName>${project.parent.artifactId}</docker.imageName>
@@ -46,7 +46,13 @@
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-kubernetes-fabric8</artifactId>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>eu.openanalytics.phaedra</groupId>
+            <artifactId>phaedra2-measurementservice-dto</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
 
 	<dependencyManagement>
 		<dependencies>

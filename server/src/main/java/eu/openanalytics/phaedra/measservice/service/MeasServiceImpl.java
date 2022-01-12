@@ -1,28 +1,27 @@
 package eu.openanalytics.phaedra.measservice.service;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import org.apache.commons.lang3.ArrayUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
-
+import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
 import eu.openanalytics.phaedra.measservice.model.Measurement;
 import eu.openanalytics.phaedra.measservice.repository.MeasDataRepository;
 import eu.openanalytics.phaedra.measservice.repository.MeasRepository;
+import org.apache.commons.lang3.ArrayUtils;
+import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
+
+import java.util.*;
 
 @Component
 public class MeasServiceImpl implements MeasService {
 
-	@Autowired
-	private MeasRepository measRepo;
+	private final MeasRepository measRepo;
+	private final MeasDataRepository measDataRepo;
+	private final ModelMapper modelMapper;
 
-	@Autowired
-	private MeasDataRepository measDataRepo;
+	public MeasServiceImpl(MeasRepository measRepo, MeasDataRepository measDataRepo, ModelMapper modelMapper) {
+		this.measRepo = measRepo;
+		this.measDataRepo = measDataRepo;
+		this.modelMapper = modelMapper;
+	}
 
 	@Override
 	public Measurement createNewMeas(Measurement measInfo) {
@@ -32,18 +31,27 @@ public class MeasServiceImpl implements MeasService {
 	}
 
 	@Override
-	public List<Measurement> getAllMeasurements() {
-		return (List<Measurement>) measRepo.findAll();
+	public List<MeasurementDTO> getAllMeasurements() {
+		List<Measurement> result = (List<Measurement>) measRepo.findAll();
+		return result.stream().map(modelMapper::map).toList();
 	}
 
 	@Override
-	public Optional<Measurement> findMeasById(long measId) {
-		return measRepo.findById(measId);
+	public Optional<MeasurementDTO> findMeasById(long measId) {
+		Optional<Measurement> measurement = measRepo.findById(measId);
+		return Optional.of(modelMapper.map(measurement.get()));
 	}
 
 	@Override
-	public List<Measurement> findMeasByCreatedOnRange(Date date1, Date date2) {
-		return measRepo.findByCreatedOnRange(date1, date2);
+	public List<MeasurementDTO> getMeasurementsByIds(long[] measIds) {
+		List<Measurement> result = measRepo.findAllByIds(measIds);
+		return result.stream().map(modelMapper::map).toList();
+	}
+
+	@Override
+	public List<MeasurementDTO> findMeasByCreatedOnRange(Date date1, Date date2) {
+		List<Measurement> result = measRepo.findByCreatedOnRange(date1, date2);
+		return result.stream().map(modelMapper::map).toList();
 	}
 
 	@Override
@@ -62,7 +70,7 @@ public class MeasServiceImpl implements MeasService {
 
 	@Override
 	public void setMeasWellData(long measId, Map<String, float[]> wellData) {
-		Measurement meas = findMeasById(measId).orElse(null);
+		Measurement meas = measRepo.findById(measId).orElse(null);
 
 		if (meas == null)
 			throw new IllegalArgumentException(String.format("Cannot save welldata: measurement with ID %d does not exist", measId));
@@ -99,7 +107,7 @@ public class MeasServiceImpl implements MeasService {
 
 	@Override
 	public void setMeasSubWellData(long measId, String column, Map<Integer, float[]> subWellData) {
-		Measurement meas = findMeasById(measId).orElse(null);
+		Measurement meas = measRepo.findById(measId).orElse(null);
 
 		if (meas == null) {
 			throw new IllegalArgumentException(String.format("Cannot save subwelldata: measurement with ID %d does not exist", measId));
@@ -141,7 +149,7 @@ public class MeasServiceImpl implements MeasService {
 
 	@Override
 	public void setMeasImageData(long measId, int wellNr, Map<String, byte[]> imageData) {
-		Measurement meas = findMeasById(measId).orElse(null);
+		Measurement meas = measRepo.findById(measId).orElse(null);
 
 		if (meas == null) {
 			throw new IllegalArgumentException(String.format("Cannot save image data: measurement with ID %d does not exist", measId));

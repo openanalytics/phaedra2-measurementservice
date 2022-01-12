@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
 import org.springframework.stereotype.Service;
 
 import eu.openanalytics.phaedra.measservice.model.Measurement;
@@ -25,7 +26,7 @@ public interface MeasService {
 	 * Get all available measurements
 	 * @return List of all available measurements
 	 */
-	public List<Measurement> getAllMeasurements();
+	public List<MeasurementDTO> getAllMeasurements();
 
 	/**
 	 * Find a measurement using its ID.
@@ -33,7 +34,15 @@ public interface MeasService {
 	 * @param measId The ID of the measurement to look for.
 	 * @return An Optional measurement, empty if no matching measurement was found.
 	 */
-	public Optional<Measurement> findMeasById(long measId);
+	public Optional<MeasurementDTO> findMeasById(long measId);
+
+	/**
+	 * Retrieve all the measurements with the measId in the measIds array
+	 *
+	 * @param measIds
+	 * @return
+	 */
+	List<MeasurementDTO> getMeasurementsByIds(long[] measIds);
 
 	/**
 	 * Find a collection of measurements using a Date range.
@@ -42,7 +51,7 @@ public interface MeasService {
 	 * @param date2 The end date to search for.
 	 * @return A collection of all matching measurements, possibly empty.
 	 */
-	public List<Measurement> findMeasByCreatedOnRange(Date date1, Date date2);
+	public List<MeasurementDTO> findMeasByCreatedOnRange(Date date1, Date date2);
 
 	/**
 	 * Check whether a measurement with the given ID exists.
@@ -142,5 +151,4 @@ public interface MeasService {
 	 * @return The image data, containing one byte array per channel. May be null.
 	 */
 	public Map<String, byte[]> getImageData(long measId, int wellNr);
-
 }

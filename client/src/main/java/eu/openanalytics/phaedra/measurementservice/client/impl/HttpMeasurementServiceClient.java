@@ -1,5 +1,6 @@
 package eu.openanalytics.phaedra.measurementservice.client.impl;
 
+import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
 import eu.openanalytics.phaedra.measurementservice.client.MeasurementServiceClient;
 import eu.openanalytics.phaedra.measurementservice.client.exception.MeasUnresolvableException;
 import eu.openanalytics.phaedra.util.PhaedraRestTemplate;
@@ -30,4 +31,11 @@ public class HttpMeasurementServiceClient implements MeasurementServiceClient {
         }
     }
 
+    @Override
+    public MeasurementDTO[] getMeasurements(long ...measIds) {
+        if (measIds != null) {
+            return restTemplate.getForObject(UrlFactory.getMeasurementsByMeasIds(measIds), MeasurementDTO[].class);
+        }
+        return restTemplate.getForObject(UrlFactory.getAllMeasurements(), MeasurementDTO[].class);
+    }
 }
