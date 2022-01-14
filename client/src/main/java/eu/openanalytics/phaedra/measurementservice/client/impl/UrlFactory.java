@@ -5,7 +5,7 @@ import org.springframework.web.util.UriTemplate;
 
 public class UrlFactory {
 
-    private static final String MEAS_SERVICE = "http://phaedra-measurement-service/phaedra/meas-service";
+    private static final String MEAS_SERVICE = "http://phaedra-measurement-service/phaedra/measurement-service";
 
     public static String measurementWell(long measId, String columnName) {
         return String.format("%s/meas/%s/welldata/%s", MEAS_SERVICE, measId, columnName);
