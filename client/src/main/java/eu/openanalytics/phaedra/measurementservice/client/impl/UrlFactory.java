@@ -1,7 +1,10 @@
 package eu.openanalytics.phaedra.measurementservice.client.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.util.UriTemplate;
+
+import java.util.Arrays;
 
 public class UrlFactory {
 
@@ -11,10 +14,10 @@ public class UrlFactory {
         return String.format("%s/meas/%s/welldata/%s", MEAS_SERVICE, measId, columnName);
     }
 
-    public static String getMeasurementsByMeasIds(long ...measIds) {
+    public static String getMeasurementsByMeasIds(long... measIds) {
         String url = new StringBuilder(MEAS_SERVICE).append("/meas").toString();
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
-                .queryParam("measIds", measIds);
+                .queryParam("measIds", StringUtils.join(measIds,','));
         return builder.build().toString();
     }
 

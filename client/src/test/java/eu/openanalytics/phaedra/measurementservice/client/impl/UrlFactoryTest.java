@@ -9,13 +9,13 @@ public class UrlFactoryTest {
     @Test
     public void getMeasurementsByMeasIds() {
         String url = UrlFactory.getMeasurementsByMeasIds(1, 2, 3, 4);
-        assertThat(url.equals("http://phaedra-measurement-service/phaedra/meas-service/meas?measIds=1,2,3,4"));
+        assertThat(url).isEqualTo("http://phaedra-measurement-service/phaedra/measurement-service/meas?measIds=1,2,3,4");
     }
 
     @Test
     public void getAllMeasurements() {
         String url = UrlFactory.getAllMeasurements();
-        assertThat(url.equals("http://phaedra-measurement-service/phaedra/meas-service/meas"));
+        assertThat(url).isEqualTo("http://phaedra-measurement-service/phaedra/measurement-service/meas");
     }
 
 }
