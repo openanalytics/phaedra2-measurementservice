@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.util.List;
 
 @Component
 public class CachingHttpMeasurementServiceClient implements MeasurementServiceClient {
@@ -43,7 +44,7 @@ public class CachingHttpMeasurementServiceClient implements MeasurementServiceCl
     }
 
     @Override
-    public MeasurementDTO[] getMeasurements(long... measId) {
+    public List<MeasurementDTO> getMeasurements(long... measId) {
         return httpMeasurementServiceClient.getMeasurements(measId);
     }
 

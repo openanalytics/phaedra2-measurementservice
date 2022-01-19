@@ -7,6 +7,9 @@ import eu.openanalytics.phaedra.util.PhaedraRestTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 
+import java.util.Arrays;
+import java.util.List;
+
 @Component
 public class HttpMeasurementServiceClient implements MeasurementServiceClient {
 
@@ -32,10 +35,10 @@ public class HttpMeasurementServiceClient implements MeasurementServiceClient {
     }
 
     @Override
-    public MeasurementDTO[] getMeasurements(long ...measIds) {
+    public List<MeasurementDTO> getMeasurements(long ...measIds) {
         if (measIds != null) {
-            return restTemplate.getForObject(UrlFactory.getMeasurementsByMeasIds(measIds), MeasurementDTO[].class);
+            return Arrays.asList(restTemplate.getForObject(UrlFactory.getMeasurementsByMeasIds(measIds), MeasurementDTO[].class));
         }
-        return restTemplate.getForObject(UrlFactory.getAllMeasurements(), MeasurementDTO[].class);
+        return Arrays.asList(restTemplate.getForObject(UrlFactory.getAllMeasurements(), MeasurementDTO[].class));
     }
 }
