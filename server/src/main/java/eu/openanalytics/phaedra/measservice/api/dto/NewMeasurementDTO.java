@@ -30,6 +30,7 @@ public class NewMeasurementDTO extends Measurement {
 		meas.setWellColumns(getSubWellColumns());
 		meas.setSubWellColumns(getSubWellColumns());
 		meas.setImageChannels(getImageChannels());
+		meas.setCaptureJobId(getCaptureJobId());
 		return meas;
 	}
 }

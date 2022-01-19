@@ -39,6 +39,9 @@ public class Measurement {
 	private String[] subWellColumns;
     @Column("image_channels")
 	private String[] imageChannels;
+
+	@Column("capture_job_id")
+	private long captureJobId;
 	
 	public long getId() {
 		return id;
@@ -106,4 +109,6 @@ public class Measurement {
 	public void setCreatedBy(String createdBy) {
 		this.createdBy = createdBy;
 	}
+	public long getCaptureJobId() { return captureJobId;}
+	public void setCaptureJobId(long captureJobId){this.captureJobId=captureJobId;}
 }

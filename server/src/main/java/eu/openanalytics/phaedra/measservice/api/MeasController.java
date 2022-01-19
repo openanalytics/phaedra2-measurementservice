@@ -84,6 +84,13 @@ public class MeasController {
         return ResponseEntity.noContent().build();
     }
 
+    @RequestMapping(value = "/meas/capture-job/{captureJobId}", method = RequestMethod.DELETE)
+    public ResponseEntity<Void> deleteMeasurementByCaptureJobId(@PathVariable long captureJobId) {
+        if (!measService.measWithCaptureJobIdExists(captureJobId)) return ResponseEntity.notFound().build();
+        measService.deleteMeasWithCaptureJobId(captureJobId);
+        return ResponseEntity.noContent().build();
+    }
+
     /**
      * WellData
      * ********

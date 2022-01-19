@@ -22,4 +22,5 @@ public class MeasurementDTO {
     private String[] wellColumns;
     private String[] subWellColumns;
     private String[] imageChannels;
+    private long captureJobId;
 }

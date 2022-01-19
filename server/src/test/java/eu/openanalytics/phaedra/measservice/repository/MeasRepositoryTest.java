@@ -56,7 +56,14 @@ public class MeasRepositoryTest {
 
     @Test
     public void findAllByIdsTest() {
-        List<Measurement> measurements = measRepository.findAllByIds(new long[]{1L,2L,3L});
+        List<Measurement> measurements = measRepository.findAllByIds(new long[]{1000L,2000L,3000L});
         assertThat(measurements.isEmpty()).isFalse();
+        assertThat(measurements.size()).isEqualTo(3);
+    }
+
+    @Test
+    public void getByCaptureJobId() {
+        List<Measurement> measurements = measRepository.getMeasurementByCaptureJobId(1L);
+        assertThat(measurements.size()).isEqualTo(3);
     }
 }

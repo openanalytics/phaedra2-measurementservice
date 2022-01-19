@@ -62,11 +62,26 @@ public interface MeasService {
 	public boolean measExists(long measId);
 
 	/**
+	 * Check whether a measurement with the given captureJobId exists.
+	 *
+	 * @param captureJobId The captureJobId of the measurement to look for.
+	 * @return True if a measurement exists for the given ID.
+	 */
+	public boolean measWithCaptureJobIdExists(long captureJobId);
+
+	/**
 	 * Request the permanent deletion of a measurement, including all of its data.
 	 *
 	 * @param measId The ID of the measurement to delete.
 	 */
 	public void deleteMeas(long measId);
+
+	/**
+	 * Request the permanent deletion of a measurement, including all of its data.
+	 *
+	 * @param captureJobId The captureJobId of the measurement to delete.
+	 */
+	public void deleteMeasWithCaptureJobId(long captureJobId);
 
 	/**
 	 * Add well data to a measurement. Note that this can be done only once:

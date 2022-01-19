@@ -95,4 +95,15 @@ databaseChangeLog:
             referencedColumnNames: id
             referencedTableName: measurement
             validate: true
+  - changeSet:
+      id: 4
+      author: smarien
+      changes:
+        - addColumn:
+            tableName: measurement
+            columns:
+              - column:
+                  name: capture_job_id
+                  type: BIGINT
+
 

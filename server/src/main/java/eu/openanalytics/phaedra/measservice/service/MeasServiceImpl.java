@@ -60,6 +60,9 @@ public class MeasServiceImpl implements MeasService {
 	}
 
 	@Override
+	public boolean measWithCaptureJobIdExists(long captureJobId){ return measRepo.existsByCaptureJobId(captureJobId);}
+
+	@Override
 	public void deleteMeas(long measId) {
 		//TODO Deletion should be queued in an async fashion.
 		measRepo.deleteById(measId);
@@ -67,6 +70,18 @@ public class MeasServiceImpl implements MeasService {
 		measDataRepo.deleteSubWellData(measId);
 		measDataRepo.deleteImageData(measId);
 	}
+
+	@Override
+	public void deleteMeasWithCaptureJobId(long captureJobId) {
+		//TODO Deletion should be queued in an async fashion.
+		List<Measurement> measurements = measRepo.getMeasurementByCaptureJobId(captureJobId);
+		measRepo.deleteAll(measurements);
+		//TODO Deletion of all data.
+		/*measDataRepo.deleteWellData(measId);
+		measDataRepo.deleteSubWellData(measId);
+		measDataRepo.deleteImageData(measId);*/
+	}
+
 
 	@Override
 	public void setMeasWellData(long measId, Map<String, float[]> wellData) {
