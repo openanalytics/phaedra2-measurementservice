@@ -1,5 +1,6 @@
 package eu.openanalytics.phaedra.measservice.service;
 
+import com.google.common.primitives.Longs;
 import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
 import eu.openanalytics.phaedra.measservice.model.Measurement;
 import eu.openanalytics.phaedra.measservice.repository.MeasDataRepository;
@@ -43,8 +44,8 @@ public class MeasServiceImpl implements MeasService {
 	}
 
 	@Override
-	public List<MeasurementDTO> getMeasurementsByIds(long[] measIds) {
-		List<Measurement> result = measRepo.findAllByIds(measIds);
+	public List<MeasurementDTO> getMeasurementsByIds(List<Long> measIds) {
+		List<Measurement> result = measRepo.findAllByIds(Longs.toArray(measIds));
 		return result.stream().map(modelMapper::map).toList();
 	}
 

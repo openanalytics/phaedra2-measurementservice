@@ -42,7 +42,7 @@ public interface MeasService {
 	 * @param measIds
 	 * @return
 	 */
-	List<MeasurementDTO> getMeasurementsByIds(long[] measIds);
+	List<MeasurementDTO> getMeasurementsByIds(List<Long> measIds);
 
 	/**
 	 * Find a collection of measurements using a Date range.

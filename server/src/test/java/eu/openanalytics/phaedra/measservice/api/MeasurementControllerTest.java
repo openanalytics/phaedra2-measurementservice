@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -139,6 +140,14 @@ public class MeasurementControllerTest {
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
+
+//    @Test
+//    public void getMeasurementsByListOfMeasIdsTest() throws Exception {
+//        this.mockMvc.perform(get("/meas")
+//                        .param("measIds", "1000L, 2000L"))
+//                .andDo(print())
+//                .andExpect(status().isOk());
+//    }
 
 
 }

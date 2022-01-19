@@ -4,6 +4,7 @@ import eu.openanalytics.phaedra.measservice.api.dto.NewMeasurementDTO;
 import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
 import eu.openanalytics.phaedra.measservice.model.Measurement;
 import eu.openanalytics.phaedra.measservice.service.MeasService;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -58,9 +59,9 @@ public class MeasController {
 
     @RequestMapping(value = "/meas", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<MeasurementDTO>> getMeasurements(@RequestParam(name = "filter", required = false) Map<String, String> filters,
-                                                                @RequestParam(name = "measIds", required = false) Optional<long[]> measIds) {
-        if (measIds.isPresent()) {
-            return ResponseEntity.ok(measService.getMeasurementsByIds(measIds.get()));
+                                                                @RequestParam(name = "measIds", required = false) List<Long> measIds) {
+        if (CollectionUtils.isNotEmpty(measIds)) {
+            return ResponseEntity.ok(measService.getMeasurementsByIds(measIds));
         }
         return ResponseEntity.ok(measService.getAllMeasurements());
     }
