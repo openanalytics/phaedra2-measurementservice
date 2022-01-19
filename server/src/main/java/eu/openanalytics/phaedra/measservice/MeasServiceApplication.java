@@ -5,6 +5,7 @@ import javax.sql.DataSource;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
@@ -24,7 +25,9 @@ import io.swagger.v3.oas.models.servers.Server;
 
 @EnableDiscoveryClient
 @EnableScheduling
-@SpringBootApplication
+// Temporary disable security autoconfiguration for measurement-service
+// TODO: When authorisation is tested and ready to be integrated into other services remove the exclude property
+@SpringBootApplication(exclude = SecurityAutoConfiguration.class)
 public class MeasServiceApplication {
 
 	private static final String PROP_DB_URL = "meas-service.db.url";
@@ -84,7 +87,7 @@ public class MeasServiceApplication {
 		String region = environment.getProperty(PROP_S3_REGION, "eu-west-1");
 		String username = environment.getProperty(PROP_S3_USERNAME);
 		String password = environment.getProperty(PROP_S3_PASSWORD);
-		
+
 		return AmazonS3ClientBuilder.standard()
 				.withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(endpoint, region))
 				.withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(username, password)))
