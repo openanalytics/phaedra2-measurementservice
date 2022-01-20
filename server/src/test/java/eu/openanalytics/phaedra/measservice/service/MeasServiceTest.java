@@ -68,7 +68,7 @@ public class MeasServiceTest {
     public void getAllMeasurements() {
         List<MeasurementDTO> measurementDTOs = measService.getAllMeasurements();
         assertThat(measurementDTOs.isEmpty()).isFalse();
-        assertThat(measurementDTOs.size()).isEqualTo(3);
+        assertThat(measurementDTOs.size()).isEqualTo(4);
     }
 
     @Test
@@ -99,7 +99,7 @@ public class MeasServiceTest {
         assertThat(comp2).isFalse();
         //Are all measurements removed now?
         List<MeasurementDTO> measurementDTOs = measService.getAllMeasurements();
-        assertThat(measurementDTOs.size()).isEqualTo(0);
-        assertThat(measurementDTOs.isEmpty()).isTrue();
+        assertThat(measurementDTOs.size()).isEqualTo(1);
+        assertThat(measurementDTOs.isEmpty()).isFalse();
     }
 }

@@ -205,7 +205,7 @@ public class MeasServiceImpl implements MeasService {
 	 */
 
 	private void validateMeas(Measurement meas, boolean isNewMeas) {
-		if (isNewMeas) Assert.isTrue(meas.getId() == 0, "New measurement must have ID equal to 0");
+		if (isNewMeas) Assert.isTrue(meas.getId() == null, "New measurement must have ID equal to 0");
 		Assert.hasText(meas.getName(), "Measurement name cannot be empty");
 		Assert.hasText(meas.getBarcode(), "Measurement barcode cannot be empty");
 		Assert.isTrue(meas.getRows() > 0, "Measurement must have at least 1 row");

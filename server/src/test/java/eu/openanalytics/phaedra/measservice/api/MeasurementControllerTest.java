@@ -64,7 +64,7 @@ public class MeasurementControllerTest {
                 .andReturn();
         List<Measurement> measurements = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), List.class);
         assertThat(measurements).isNotNull();
-        assertThat(measurements.size()).isEqualTo(3);
+        assertThat(measurements.size()).isEqualTo(4);
     }
 
     @Test
@@ -120,7 +120,7 @@ public class MeasurementControllerTest {
                 .andReturn();
         List<Measurement> measurements = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), List.class);
         assertThat(measurements).isNotNull();
-        assertThat(measurements.size()).isEqualTo(3);
+        assertThat(measurements.size()).isEqualTo(4);
 
         this.mockMvc.perform(delete("/meas/capture-job/{captureJobId}", 1L))
                 .andDo(print())
@@ -131,7 +131,7 @@ public class MeasurementControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
         List<Measurement> measurements2 = objectMapper.readValue(mvcResult2.getResponse().getContentAsString(), List.class);
-        assertThat(measurements2.isEmpty()).isTrue();
+        assertThat(measurements2.isEmpty()).isFalse();
     }
 
     @Test

@@ -11,16 +11,16 @@ import java.util.Date;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class MeasurementDTO {
 
-    private long id;
+    private Long id;
     private String name;
     private String barcode;
     private String description;
-    private int rows;
-    private int columns;
+    private Integer rows;
+    private Integer columns;
     private Date createdOn;
     private String createdBy;
     private String[] wellColumns;
     private String[] subWellColumns;
     private String[] imageChannels;
-    private long captureJobId;
+    private Long captureJobId;
 }
