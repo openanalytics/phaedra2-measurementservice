@@ -2,6 +2,7 @@ package eu.openanalytics.phaedra.measservice.service;
 
 import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
 import eu.openanalytics.phaedra.measservice.model.Measurement;
+import org.modelmapper.Conditions;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.stereotype.Service;
 
@@ -11,7 +12,8 @@ public class ModelMapper {
 
     public ModelMapper() {
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
-        modelMapper.createTypeMap(Measurement.class, MeasurementDTO.class);
+        modelMapper.createTypeMap(Measurement.class, MeasurementDTO.class)
+                .setPropertyCondition(Conditions.isNotNull());
         modelMapper.validate();
     }
 
