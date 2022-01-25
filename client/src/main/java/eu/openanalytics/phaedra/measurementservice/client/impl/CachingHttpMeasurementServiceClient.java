@@ -44,8 +44,8 @@ public class CachingHttpMeasurementServiceClient implements MeasurementServiceCl
     }
 
     @Override
-    public List<MeasurementDTO> getMeasurements(long... measId) {
-        return httpMeasurementServiceClient.getMeasurements(measId);
+    public List<MeasurementDTO> getMeasurementsByMeasIds(long... measId) {
+        return httpMeasurementServiceClient.getMeasurementsByMeasIds(measId);
     }
 
 }

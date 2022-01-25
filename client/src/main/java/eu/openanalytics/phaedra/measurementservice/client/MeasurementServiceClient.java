@@ -9,6 +9,6 @@ public interface MeasurementServiceClient {
 
     float[] getWellData(long measId, String columnName) throws MeasUnresolvableException;
 
-    List<MeasurementDTO> getMeasurements(long ...measId);
+    List<MeasurementDTO> getMeasurementsByMeasIds(long ...measId);
 
 }
