@@ -1,5 +1,9 @@
 package eu.openanalytics.phaedra.measservice.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler;
 import eu.openanalytics.phaedra.measservice.api.dto.NewMeasurementDTO;
 import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
 import eu.openanalytics.phaedra.measservice.model.Measurement;
@@ -14,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -31,23 +36,38 @@ public class MeasController {
      */
 
     @RequestMapping(value = "/meas", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> createMeasurement(@RequestBody NewMeasurementDTO newMeasDTO, HttpServletRequest request) {
+    public ResponseEntity<?> createMeasurement(@RequestBody String jsonMeasurement, HttpServletRequest request) throws JsonProcessingException {
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.addHandler(new DeserializationProblemHandler() {
+            @Override
+            public Object handleWeirdStringValue(DeserializationContext ctxt, Class<?> targetType, String valueToConvert, String failureMsg) throws IOException {
+                return -1;
+            }
+
+            @Override
+            public Object handleWeirdNumberValue(DeserializationContext ctxt, Class<?> targetType, Number valueToConvert, String failureMsg) throws IOException {
+                return -1;
+            }
+        });
+
+        NewMeasurementDTO newMeasurementDTO = objectMapper.readValue(jsonMeasurement, NewMeasurementDTO.class);
 
         //TODO Identify user from auth info in HTTP request
         if (request.getUserPrincipal() == null || request.getUserPrincipal().getName() == null) {
-            newMeasDTO.setCreatedBy("Anonymous");
+            newMeasurementDTO.setCreatedBy("Anonymous");
         } else {
-            newMeasDTO.setCreatedBy(request.getUserPrincipal().getName());
+            newMeasurementDTO.setCreatedBy(request.getUserPrincipal().getName());
         }
 
         try {
             // Step 1: persist a new Measurement entity
-            Measurement newMeas = measService.createNewMeas(newMeasDTO.asMeasurement());
+            Measurement newMeas = measService.createNewMeas(newMeasurementDTO.asMeasurement());
 
             // Step 2: persist the well data for the new Measurement
-            if (newMeasDTO.getWelldata() != null && !newMeasDTO.getWelldata().isEmpty()) {
-                measService.setMeasWellData(newMeas.getId(), newMeasDTO.getWelldata());
-                newMeasDTO.setWelldata(null);
+            if (newMeasurementDTO.getWelldata() != null && !newMeasurementDTO.getWelldata().isEmpty()) {
+                measService.setMeasWellData(newMeas.getId(), newMeasurementDTO.getWelldata());
+                newMeasurementDTO.setWelldata(null);
             }
 
             return new ResponseEntity<>(newMeas, HttpStatus.CREATED);
