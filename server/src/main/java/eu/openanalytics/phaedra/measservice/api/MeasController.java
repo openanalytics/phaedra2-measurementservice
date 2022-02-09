@@ -10,6 +10,8 @@ import eu.openanalytics.phaedra.measservice.model.Measurement;
 import eu.openanalytics.phaedra.measservice.service.MeasService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -27,6 +29,7 @@ import java.util.Optional;
 
 @RestController
 public class MeasController {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private MeasService measService;
@@ -38,6 +41,7 @@ public class MeasController {
 
     @RequestMapping(value = "/meas", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> createMeasurement(@RequestBody String jsonMeasurement, HttpServletRequest request) throws JsonProcessingException {
+        logger.info(jsonMeasurement);
 
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.addHandler(new DeserializationProblemHandler() {
