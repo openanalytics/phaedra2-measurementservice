@@ -12,17 +12,13 @@ import java.util.Date;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class MeasurementDTO {
 
-    @JsonIgnore
     private Long id;
     private String name;
     private String barcode;
-    @JsonIgnore
     private String description;
     private Integer rows;
     private Integer columns;
-    @JsonIgnore
     private Date createdOn;
-    @JsonIgnore
     private String createdBy;
     private String[] wellColumns;
     private String[] subWellColumns;

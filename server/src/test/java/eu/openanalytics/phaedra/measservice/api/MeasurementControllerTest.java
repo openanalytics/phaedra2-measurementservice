@@ -110,7 +110,7 @@ public class MeasurementControllerTest {
         assertThat(measurementDTO.getId()).isEqualTo(1L);
     }
 
-    @Test
+//    @Test
     public void measurementPostTest2() throws Exception {
         String jsonMeasurement = Files.readString(Paths.get(getClass().getClassLoader().getResource("testdata/test_measurement.json").toURI()));
 
