@@ -1,5 +1,9 @@
 package eu.openanalytics.phaedra.measservice.api;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler;
+import eu.openanalytics.phaedra.measservice.api.dto.NewMeasurementDTO;
 import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
 import eu.openanalytics.phaedra.measservice.model.Measurement;
 import eu.openanalytics.phaedra.measservice.support.Containers;
@@ -18,6 +22,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -99,6 +108,27 @@ public class MeasurementControllerTest {
         MeasurementDTO measurementDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), MeasurementDTO.class);
         assertThat(measurementDTO).isNotNull();
         assertThat(measurementDTO.getId()).isEqualTo(1L);
+    }
+
+    @Test
+    public void measurementPostTest2() throws Exception {
+        String jsonMeasurement = Files.readString(Paths.get(getClass().getClassLoader().getResource("testdata/test_measurement.json").toURI()));
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.addHandler(new DeserializationProblemHandler() {
+            @Override
+            public Object handleWeirdStringValue(DeserializationContext ctxt, Class<?> targetType, String valueToConvert, String failureMsg) throws IOException {
+                return new Double(-1).floatValue();
+            }
+
+            @Override
+            public Object handleWeirdNumberValue(DeserializationContext ctxt, Class<?> targetType, Number valueToConvert, String failureMsg) throws IOException {
+                return -1;
+            }
+        });
+
+        NewMeasurementDTO measurementDTO = objectMapper.readValue(jsonMeasurement, NewMeasurementDTO.class);
+        assertThat(measurementDTO).isNotNull();
     }
 
     //Errors on deleteSubbwellData in S3

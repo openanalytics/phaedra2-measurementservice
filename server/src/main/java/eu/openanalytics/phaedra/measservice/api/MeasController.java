@@ -52,6 +52,7 @@ public class MeasController {
             }
         });
 
+
         NewMeasurementDTO newMeasurementDTO = objectMapper.readValue(jsonMeasurement, NewMeasurementDTO.class);
 
         //TODO Identify user from auth info in HTTP request

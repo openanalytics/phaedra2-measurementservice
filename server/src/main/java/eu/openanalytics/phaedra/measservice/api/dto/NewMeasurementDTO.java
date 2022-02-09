@@ -1,12 +1,36 @@
 package eu.openanalytics.phaedra.measservice.api.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import eu.openanalytics.phaedra.measservice.model.Measurement;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Transient;
 
+import java.util.Date;
 import java.util.Map;
 
-public class NewMeasurementDTO extends Measurement {
+@Data
+@NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class NewMeasurementDTO {
 
+	@JsonIgnore
+	private Long id;
+	private String name;
+	private String barcode;
+	@JsonIgnore
+	private String description;
+	private Integer rows;
+	private Integer columns;
+	@JsonIgnore
+	private Date createdOn;
+	@JsonIgnore
+	private String createdBy;
+	private String[] wellColumns;
+	private String[] subWellColumns;
+	private String[] imageChannels;
+	private Long captureJobId;
 	@Transient
 	private Map<String, float[]> welldata;
 
