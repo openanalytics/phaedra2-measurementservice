@@ -50,15 +50,15 @@ import io.swagger.v3.oas.models.servers.Server;
 @SpringBootApplication(exclude = SecurityAutoConfiguration.class)
 public class MeasServiceApplication {
 
-	private static final String PROP_DB_URL = "meas-service.db.url";
-	private static final String PROP_DB_USERNAME = "meas-service.db.username";
-	private static final String PROP_DB_PASSWORD = "meas-service.db.password";
-	private static final String PROP_DB_SCHEMA = "meas-service.db.schema";
-
-	private static final String PROP_S3_ENDPOINT = "meas-service.s3.endpoint";
-	private static final String PROP_S3_REGION = "meas-service.s3.region";
-	private static final String PROP_S3_USERNAME = "meas-service.s3.username";
-	private static final String PROP_S3_PASSWORD = "meas-service.s3.password";
+//	private static final String PROP_DB_URL = "meas-service.db.url";
+//	private static final String PROP_DB_USERNAME = "meas-service.db.username";
+//	private static final String PROP_DB_PASSWORD = "meas-service.db.password";
+//	private static final String PROP_DB_SCHEMA = "meas-service.db.schema";
+//
+//	private static final String PROP_S3_ENDPOINT = "meas-service.s3.endpoint";
+//	private static final String PROP_S3_REGION = "meas-service.s3.region";
+//	private static final String PROP_S3_USERNAME = "meas-service.s3.username";
+//	private static final String PROP_S3_PASSWORD = "meas-service.s3.password";
 
 	private final ServletContext servletContext;
 	private final Environment environment;
@@ -75,9 +75,9 @@ public class MeasServiceApplication {
 
 	@Bean
 	public DataSource dataSource() {
-		String url = environment.getProperty(PROP_DB_URL);
+		String url = environment.getProperty("DB_URL");
 		if (url == null || url.trim().isEmpty()) {
-			throw new RuntimeException("No database URL configured: " + PROP_DB_URL);
+			throw new RuntimeException("No database URL configured: " + environment.getProperty("DB_URL"));
 		}
 		String driverClassName = JDBCUtils.getDriverClassName(url);
 		if (driverClassName == null) {
@@ -90,10 +90,10 @@ public class MeasServiceApplication {
 		config.setConnectionTimeout(60000);
 		config.setJdbcUrl(url);
 		config.setDriverClassName(driverClassName);
-		config.setUsername(environment.getProperty(PROP_DB_USERNAME));
-		config.setPassword(environment.getProperty(PROP_DB_PASSWORD));
+		config.setUsername(environment.getProperty("DB_USERNAME"));
+		config.setPassword(environment.getProperty("DB_PASSWORD"));
 
-		String schema = environment.getProperty(PROP_DB_SCHEMA);
+		String schema = environment.getProperty("DB_SCHEMA");
 		if (schema != null && !schema.trim().isEmpty()) {
 			config.setConnectionInitSql("set search_path to " + schema);
 		}
@@ -103,10 +103,10 @@ public class MeasServiceApplication {
 
 	@Bean
 	public AmazonS3 amazonS3() {
-		String endpoint = environment.getProperty(PROP_S3_ENDPOINT, "https://s3.amazonaws.com");
-		String region = environment.getProperty(PROP_S3_REGION, "eu-west-1");
-		String username = environment.getProperty(PROP_S3_USERNAME);
-		String password = environment.getProperty(PROP_S3_PASSWORD);
+		String endpoint = environment.getProperty("S3_ENDPOINT", "https://s3.amazonaws.com");
+		String region = environment.getProperty("S3_REGION", "eu-west-1");
+		String username = environment.getProperty("S3_USERNAME");
+		String password = environment.getProperty("S3_PASSWORD");
 
 		return AmazonS3ClientBuilder.standard()
 				.withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(endpoint, region))
@@ -117,7 +117,7 @@ public class MeasServiceApplication {
 
 	@Bean
 	public OpenAPI customOpenAPI() {
-		Server server = new Server().url(servletContext.getContextPath()).description("Default Server URL");
+		Server server = new Server().url(environment.getProperty("API_URL")).description("Default Server URL");
 		return new OpenAPI().addServersItem(server);
 	}
 }
