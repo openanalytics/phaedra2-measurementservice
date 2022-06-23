@@ -208,6 +208,38 @@ public class MeasServiceImpl implements MeasService {
 	}
 
 	@Override
+	public void setMeasImageData(long measId, int wellNr, String channelId, byte[] imageData) {
+		Measurement meas = measRepo.findById(measId).orElse(null);
+
+		if (meas == null) {
+			throw new IllegalArgumentException(String.format("Cannot save image data: measurement with ID %d does not exist", measId));
+		}
+		if (imageData == null || imageData.length == 0) {
+			throw new IllegalArgumentException(String.format("Cannot save image data: no data provided"));
+		}
+		if (channelId == null || channelId.trim().isEmpty()) {
+			throw new IllegalArgumentException(String.format("Cannot save image data: no channel id provided"));
+		}
+		
+		measDataRepo.putImageData(measId, wellNr, channelId, imageData);
+
+		String[] channelNames = meas.getImageChannels();
+		if (channelNames == null) {
+			channelNames = new String[] { channelId };
+		} else if (!ArrayUtils.contains(channelNames, channelId)) {
+			int nrChannels = channelNames.length;
+			channelNames = new String[nrChannels + 1];
+			System.arraycopy(meas.getImageChannels(), 0, channelNames, 0, nrChannels);
+			channelNames[nrChannels] = channelId;
+		} else {
+			return;
+		}
+
+		meas.setImageChannels(channelNames);
+		measRepo.save(meas);
+	}
+	
+	@Override
 	public byte[] getImageData(long measId, int wellNr, String channel) {
 		if (!measExists(measId)) return null;
 		return measDataRepo.getImageData(measId, wellNr, channel);

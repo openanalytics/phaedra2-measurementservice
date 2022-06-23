@@ -167,6 +167,17 @@ public interface MeasService {
 	 * @param imageData The map of data, containing a byte[] for each channel.
 	 */
 	public void setMeasImageData(long measId, int wellNr, Map<String, byte[]> imageData);
+	
+	/**
+	 * Add image data to a measurement.
+	 * Note that this can be done only once for each given well nr and channel id.
+	 *
+	 * @param measId The ID of the measurement to add image data to.
+	 * @param wellNr The well nr to add image data for.
+	 * @param channelId The ID of the channel to add image data for.
+	 * @param imageData The binary image codestream data.
+	 */
+	public void setMeasImageData(long measId, int wellNr, String channelId, byte[] imageData);
 
 	/**
 	 * Retrieve the image data for a measurement for a given well nr and channel.
