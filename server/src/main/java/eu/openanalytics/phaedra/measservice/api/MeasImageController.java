@@ -39,7 +39,7 @@ public class MeasImageController {
 	@Autowired
 	private MeasImageService measImageService;
 	
-	@RequestMapping(value = "/image/{measId}/{wellNr}/{channel}", method = RequestMethod.GET, produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+	@RequestMapping(value = "/image/{measId}/{wellNr}/{channel}", method = RequestMethod.GET, produces = MediaType.IMAGE_JPEG_VALUE)
     public ResponseEntity<byte[]> renderImage(@PathVariable long measId, @PathVariable int wellNr, @PathVariable String channel) {
     	try {
     		byte[] rendered = measImageService.renderImage(measId, wellNr, channel);
@@ -49,7 +49,7 @@ public class MeasImageController {
     	}
     }
     
-	@RequestMapping(value = "/image/{measId}/{wellNr}", method = RequestMethod.GET, produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+	@RequestMapping(value = "/image/{measId}/{wellNr}", method = RequestMethod.GET, produces = MediaType.IMAGE_JPEG_VALUE)
     public ResponseEntity<byte[]> renderImage(@PathVariable long measId, @PathVariable int wellNr) {
     	try {
     		byte[] rendered = measImageService.renderImage(measId, wellNr);
