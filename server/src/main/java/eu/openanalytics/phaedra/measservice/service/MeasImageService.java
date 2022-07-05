@@ -22,6 +22,7 @@ package eu.openanalytics.phaedra.measservice.service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -46,7 +47,10 @@ public class MeasImageService {
 	@Autowired
 	private MeasService measService;
 	
-	public byte[] renderImage(long measId, int wellNr, String channel) throws IOException {
+	@Autowired
+	private ImageRenderConfigService renderConfigService;
+	
+	public byte[] renderImage(long measId, int wellNr, String channel, Long renderConfigId) throws IOException {
 
 		MeasurementDTO meas = measService.findMeasById(measId).orElse(null);
 		if (meas == null) return null;
@@ -58,12 +62,11 @@ public class MeasImageService {
 			new ByteArraySource(codestreamData)
 		};
 		
-		ImageRenderConfig cfg = new ImageRenderConfig(channel);
-		
+		ImageRenderConfig cfg = obtainImageRenderConfig(Collections.singletonList(channel), renderConfigId);
 		return renderService().renderImage(sources, cfg);
 	}
 
-	public byte[] renderImage(long measId, int wellNr) throws IOException {
+	public byte[] renderImage(long measId, int wellNr, Long renderConfigId) throws IOException {
 
 		MeasurementDTO meas = measService.findMeasById(measId).orElse(null);
 		if (meas == null) return null;
@@ -83,12 +86,21 @@ public class MeasImageService {
 			sources.add(new ByteArraySource(codestreamData));
 		}
 		
-		ImageRenderConfig cfg = new ImageRenderConfig(availableChannels.stream().toArray(i -> new String[i]));
+		ImageRenderConfig cfg = obtainImageRenderConfig(availableChannels, renderConfigId);
 		return renderService().renderImage(sources.toArray(i -> new ICodestreamSource[i]), cfg);
 	}
 	
 	@Bean
 	private ImageRenderService renderService() {
 		return new ImageRenderService();
+	}
+	
+	private ImageRenderConfig obtainImageRenderConfig(List<String> channels, Long configId) {
+		if (configId == null) {
+			return new ImageRenderConfig(channels.stream().toArray(i -> new String[i]));
+		} else {
+			return renderConfigService.getConfigById(configId).map(c -> c.getConfig())
+					.orElseThrow(() -> new IllegalArgumentException("No image render config found with ID " + configId));
+		}
 	}
 }

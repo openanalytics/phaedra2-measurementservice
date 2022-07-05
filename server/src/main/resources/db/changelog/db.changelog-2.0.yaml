@@ -1,0 +1,22 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: fmichielssen
+      changes:
+        - createTable:
+            tableName: image_render_config
+            columns:
+              - column:
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: image_render_config_pk
+                  name: id
+                  type: BIGINT
+              - column:
+                  name: name
+                  type: TEXT
+              - column:
+                  name: config
+                  type: JSON

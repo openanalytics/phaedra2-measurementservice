@@ -29,6 +29,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import eu.openanalytics.phaedra.measservice.service.MeasImageService;
@@ -40,9 +41,10 @@ public class MeasImageController {
 	private MeasImageService measImageService;
 	
 	@RequestMapping(value = "/image/{measId}/{wellNr}/{channel}", method = RequestMethod.GET, produces = MediaType.IMAGE_JPEG_VALUE)
-    public ResponseEntity<byte[]> renderImage(@PathVariable long measId, @PathVariable int wellNr, @PathVariable String channel) {
+    public ResponseEntity<byte[]> renderImage(@PathVariable long measId, @PathVariable int wellNr, @PathVariable String channel,
+    		@RequestParam(name="renderConfigId", required=false) Long renderConfigId) {
     	try {
-    		byte[] rendered = measImageService.renderImage(measId, wellNr, channel);
+    		byte[] rendered = measImageService.renderImage(measId, wellNr, channel, renderConfigId);
    			return ResponseEntity.of(Optional.ofNullable(rendered));
     	} catch (IOException e) {
     		throw new RuntimeException("Render failed", e);
@@ -50,9 +52,10 @@ public class MeasImageController {
     }
     
 	@RequestMapping(value = "/image/{measId}/{wellNr}", method = RequestMethod.GET, produces = MediaType.IMAGE_JPEG_VALUE)
-    public ResponseEntity<byte[]> renderImage(@PathVariable long measId, @PathVariable int wellNr) {
+    public ResponseEntity<byte[]> renderImage(@PathVariable long measId, @PathVariable int wellNr,
+    		@RequestParam(name="renderConfigId", required=false) Long renderConfigId) {
     	try {
-    		byte[] rendered = measImageService.renderImage(measId, wellNr);
+    		byte[] rendered = measImageService.renderImage(measId, wellNr, renderConfigId);
    			return ResponseEntity.of(Optional.ofNullable(rendered));
     	} catch (IOException e) {
     		throw new RuntimeException("Render failed", e);

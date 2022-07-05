@@ -25,3 +25,10 @@ create table measservice.welldata
     primary key (meas_id, column_name),
     foreign key (meas_id) references measservice.measurement(id) on delete cascade
 );
+
+create table measservice.image_render_config
+(
+    id     bigserial,
+    name   text   not null,
+    config json
+);
