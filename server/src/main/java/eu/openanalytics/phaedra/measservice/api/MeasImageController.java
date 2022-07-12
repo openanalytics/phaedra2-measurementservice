@@ -23,6 +23,8 @@ package eu.openanalytics.phaedra.measservice.api;
 import java.io.IOException;
 import java.util.Optional;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +34,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import eu.openanalytics.phaedra.imaging.render.ImageRenderConfig;
+import eu.openanalytics.phaedra.imaging.util.ImageRenderConfigUtils;
 import eu.openanalytics.phaedra.measservice.service.MeasImageService;
 
 @RestController
@@ -42,9 +46,10 @@ public class MeasImageController {
 	
 	@RequestMapping(value = "/image/{measId}/{wellNr}/{channel}", method = RequestMethod.GET, produces = MediaType.IMAGE_JPEG_VALUE)
     public ResponseEntity<byte[]> renderImage(@PathVariable long measId, @PathVariable int wellNr, @PathVariable String channel,
-    		@RequestParam(name="renderConfigId", required=false) Long renderConfigId) {
+    		@RequestParam(name="renderConfigId", required=false) Long renderConfigId, HttpServletRequest request) {
     	try {
-    		byte[] rendered = measImageService.renderImage(measId, wellNr, channel, renderConfigId);
+    		ImageRenderConfig renderConfig = ImageRenderConfigUtils.parseFromParameters(request.getParameterMap());
+    		byte[] rendered = measImageService.renderImage(measId, wellNr, channel, renderConfigId, renderConfig);
    			return ResponseEntity.of(Optional.ofNullable(rendered));
     	} catch (IOException e) {
     		throw new RuntimeException("Render failed", e);
@@ -53,9 +58,10 @@ public class MeasImageController {
     
 	@RequestMapping(value = "/image/{measId}/{wellNr}", method = RequestMethod.GET, produces = MediaType.IMAGE_JPEG_VALUE)
     public ResponseEntity<byte[]> renderImage(@PathVariable long measId, @PathVariable int wellNr,
-    		@RequestParam(name="renderConfigId", required=false) Long renderConfigId) {
+    		@RequestParam(name="renderConfigId", required=false) Long renderConfigId, HttpServletRequest request) {
     	try {
-    		byte[] rendered = measImageService.renderImage(measId, wellNr, renderConfigId);
+    		ImageRenderConfig renderConfig = ImageRenderConfigUtils.parseFromParameters(request.getParameterMap());
+    		byte[] rendered = measImageService.renderImage(measId, wellNr, renderConfigId, renderConfig);
    			return ResponseEntity.of(Optional.ofNullable(rendered));
     	} catch (IOException e) {
     		throw new RuntimeException("Render failed", e);

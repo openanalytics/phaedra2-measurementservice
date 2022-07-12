@@ -22,6 +22,7 @@ package eu.openanalytics.phaedra.measservice.service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,8 @@ import eu.openanalytics.phaedra.imaging.jp2k.ICodestreamSource;
 import eu.openanalytics.phaedra.imaging.jp2k.openjpeg.OpenJPEGLibLoader;
 import eu.openanalytics.phaedra.imaging.jp2k.openjpeg.source.ByteArraySource;
 import eu.openanalytics.phaedra.imaging.render.ImageRenderConfig;
+import eu.openanalytics.phaedra.imaging.render.ImageRenderConfig.ChannelRenderConfig;
+import eu.openanalytics.phaedra.imaging.util.ImageRenderConfigUtils;
 import eu.openanalytics.phaedra.imaging.render.ImageRenderService;
 import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
 
@@ -50,7 +53,7 @@ public class MeasImageService {
 	@Autowired
 	private ImageRenderConfigService renderConfigService;
 	
-	public byte[] renderImage(long measId, int wellNr, String channel, Long renderConfigId) throws IOException {
+	public byte[] renderImage(long measId, int wellNr, String channel, Long renderConfigId, ImageRenderConfig renderConfig) throws IOException {
 
 		MeasurementDTO meas = measService.findMeasById(measId).orElse(null);
 		if (meas == null) return null;
@@ -62,11 +65,11 @@ public class MeasImageService {
 			new ByteArraySource(codestreamData)
 		};
 		
-		ImageRenderConfig cfg = obtainImageRenderConfig(Collections.singletonList(channel), renderConfigId);
+		ImageRenderConfig cfg = obtainImageRenderConfig(Collections.singletonList(channel), renderConfigId, renderConfig);
 		return renderService().renderImage(sources, cfg);
 	}
 
-	public byte[] renderImage(long measId, int wellNr, Long renderConfigId) throws IOException {
+	public byte[] renderImage(long measId, int wellNr, Long renderConfigId, ImageRenderConfig renderConfig) throws IOException {
 
 		MeasurementDTO meas = measService.findMeasById(measId).orElse(null);
 		if (meas == null) return null;
@@ -86,7 +89,7 @@ public class MeasImageService {
 			sources.add(new ByteArraySource(codestreamData));
 		}
 		
-		ImageRenderConfig cfg = obtainImageRenderConfig(availableChannels, renderConfigId);
+		ImageRenderConfig cfg = obtainImageRenderConfig(availableChannels, renderConfigId, renderConfig);
 		return renderService().renderImage(sources.toArray(i -> new ICodestreamSource[i]), cfg);
 	}
 	
@@ -95,12 +98,33 @@ public class MeasImageService {
 		return new ImageRenderService();
 	}
 	
-	private ImageRenderConfig obtainImageRenderConfig(List<String> channels, Long configId) {
-		if (configId == null) {
-			return new ImageRenderConfig(channels.stream().toArray(i -> new String[i]));
+	private ImageRenderConfig obtainImageRenderConfig(List<String> channels, Long baseConfigId, ImageRenderConfig additionalConfig) {
+		ImageRenderConfig cfg = null;
+		
+		// First, load or generate a base config.
+		if (baseConfigId == null) {
+			cfg = new ImageRenderConfig(channels.stream().toArray(i -> new String[i]));
 		} else {
-			return renderConfigService.getConfigById(configId).map(c -> c.getConfig())
-					.orElseThrow(() -> new IllegalArgumentException("No image render config found with ID " + configId));
+			cfg = ImageRenderConfigUtils.copy(renderConfigService.getConfigById(baseConfigId)
+					.map(c -> c.getConfig())
+					.orElseThrow(() -> new IllegalArgumentException("No image render config found with ID " + baseConfigId)));
 		}
+		
+		// Then, apply additionalConfig, if any.
+		if (additionalConfig != null) {
+			ImageRenderConfigUtils.merge(additionalConfig, cfg);
+		}
+		
+		// Finally, filter and sort channel configs so they match the requested channels.
+		List<ChannelRenderConfig> filteredChannelConfigs = new ArrayList<>();
+		for (String channel: channels) {
+			ChannelRenderConfig channelConfig = Arrays.stream(cfg.channelConfigs)
+					.filter(c -> channel.equalsIgnoreCase(c.name))
+					.findAny().orElse(new ChannelRenderConfig(channel));
+			filteredChannelConfigs.add(channelConfig);
+		}
+		cfg.channelConfigs = filteredChannelConfigs.toArray(i -> new ChannelRenderConfig[i]);
+
+		return cfg;
 	}
 }
