@@ -69,6 +69,28 @@ public class MeasImageService {
 		return renderService().renderImage(sources, cfg);
 	}
 
+	public byte[] renderImage(long measId, int wellNr, List<String> channels, Long renderConfigId, ImageRenderConfig renderConfig) throws IOException {
+		
+		MeasurementDTO meas = measService.findMeasById(measId).orElse(null);
+		if (meas == null) return null;
+		
+		Map<String, byte[]> codestreamDatas = measService.getImageData(measId, wellNr);
+		if (codestreamDatas == null || codestreamDatas.isEmpty()) return null;
+		
+		List<ICodestreamSource> sources = new ArrayList<>();
+		List<String> availableChannels = new ArrayList<>();
+		
+		for (String channel: channels) {
+			byte[] codestreamData = codestreamDatas.get(channel);
+			if (codestreamData == null) continue;
+			availableChannels.add(channel);
+			sources.add(new ByteArraySource(codestreamData));
+		}
+		
+		ImageRenderConfig cfg = obtainImageRenderConfig(availableChannels, renderConfigId, renderConfig);
+		return renderService().renderImage(sources.toArray(i -> new ICodestreamSource[i]), cfg);
+	}
+	
 	public byte[] renderImage(long measId, int wellNr, Long renderConfigId, ImageRenderConfig renderConfig) throws IOException {
 
 		MeasurementDTO meas = measService.findMeasById(measId).orElse(null);

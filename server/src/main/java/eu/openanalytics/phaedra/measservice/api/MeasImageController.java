@@ -21,6 +21,8 @@
 package eu.openanalytics.phaedra.measservice.api;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
@@ -49,8 +51,16 @@ public class MeasImageController {
     		@RequestParam(name="renderConfigId", required=false) Long renderConfigId, HttpServletRequest request) {
     	try {
     		ImageRenderConfig renderConfig = ImageRenderConfigUtils.parseFromParameters(request.getParameterMap());
-    		byte[] rendered = measImageService.renderImage(measId, wellNr, channel, renderConfigId, renderConfig);
-   			return ResponseEntity.of(Optional.ofNullable(rendered));
+    		
+    		byte[] rendered = null;
+    		if (channel.contains(",")) {
+    			List<String> channels = Arrays.stream(channel.split(",")).toList();
+    			rendered = measImageService.renderImage(measId, wellNr, channels, renderConfigId, renderConfig);
+    		} else {
+    			rendered = measImageService.renderImage(measId, wellNr, channel, renderConfigId, renderConfig);
+    		}
+   			
+    		return ResponseEntity.of(Optional.ofNullable(rendered));
     	} catch (IOException e) {
     		throw new RuntimeException("Render failed", e);
     	}
