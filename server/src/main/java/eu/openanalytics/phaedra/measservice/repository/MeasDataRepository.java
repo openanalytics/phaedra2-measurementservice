@@ -182,7 +182,7 @@ public class MeasDataRepository {
 	}
 	
 	public Map<String, byte[]> getImageData(long measId, int wellNr) {
-		String prefix = String.format("%s.%d", PREFIX_IMAGE_DATA, wellNr);
+		String prefix = String.format("%s.%d.", PREFIX_IMAGE_DATA, wellNr);
 		try {
 			// Find all available subkeys (expected: 1 key per channel)
 			String[] keys = objectStoreDAO.listMeasObjects(measId, prefix);
