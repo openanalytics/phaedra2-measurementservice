@@ -1,5 +1,7 @@
 package eu.openanalytics.phaedra.measservice.api;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -31,6 +33,11 @@ public class ImageRenderConfigController {
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage(), e);
         }
+    }
+    
+    @RequestMapping(value = "/render-configs", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<NamedImageRenderConfig>> getAllConfigs() {
+        return ResponseEntity.ok(service.getAllConfigs());
     }
     
     @RequestMapping(value = "/render-config/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)

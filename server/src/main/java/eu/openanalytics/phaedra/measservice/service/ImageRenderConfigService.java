@@ -1,5 +1,6 @@
 package eu.openanalytics.phaedra.measservice.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.cache.annotation.Cacheable;
@@ -36,6 +37,10 @@ public class ImageRenderConfigService {
 	
 	public NamedImageRenderConfig updateConfig(NamedImageRenderConfig config) {
 		return repo.save(config);
+	}
+	
+	public List<NamedImageRenderConfig> getAllConfigs() {
+		return (List<NamedImageRenderConfig>) repo.findAll();
 	}
 	
 	public void deleteConfig(long id) {
