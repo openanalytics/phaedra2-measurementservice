@@ -35,6 +35,17 @@ public class ImageRenderConfigController {
         }
     }
     
+    @RequestMapping(value = "/render-config", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> updateConfig(@RequestBody String renderConfigString, ObjectMapper objectMapper) {
+        try {
+        	NamedImageRenderConfig config = objectMapper.readValue(renderConfigString, NamedImageRenderConfig.class);
+        	config = service.updateConfig(config);
+        	return new ResponseEntity<>(config, HttpStatus.OK);
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage(), e);
+        }
+    }
+    
     @RequestMapping(value = "/render-configs", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<NamedImageRenderConfig>> getAllConfigs() {
         return ResponseEntity.ok(service.getAllConfigs());
