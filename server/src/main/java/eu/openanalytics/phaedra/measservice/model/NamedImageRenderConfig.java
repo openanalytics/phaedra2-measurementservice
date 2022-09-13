@@ -2,12 +2,13 @@ package eu.openanalytics.phaedra.measservice.model;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Date;
 
 import org.postgresql.util.PGobject;
 import org.springframework.core.convert.converter.Converter;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
@@ -31,6 +32,11 @@ public class NamedImageRenderConfig {
 
 	@Column
 	private String name;
+	
+	@Column
+	private Date createdOn;
+	@Column
+	private String createdBy;
 	
 	@Column
 	private ImageRenderConfig config;

@@ -20,16 +20,18 @@
  */
 package eu.openanalytics.phaedra.measservice;
 
-import javax.servlet.ServletContext;
 import javax.sql.DataSource;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.web.SecurityFilterChain;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -39,32 +41,23 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
+import eu.openanalytics.phaedra.util.auth.AuthenticationConfigHelper;
+import eu.openanalytics.phaedra.util.auth.AuthorizationServiceFactory;
+import eu.openanalytics.phaedra.util.auth.IAuthorizationService;
 import eu.openanalytics.phaedra.util.jdbc.JDBCUtils;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.servers.Server;
 
 @EnableDiscoveryClient
 @EnableScheduling
-// Temporary disable security autoconfiguration for measurement-service
-// TODO: When authorisation is tested and ready to be integrated into other services remove the exclude property
-@SpringBootApplication(exclude = SecurityAutoConfiguration.class)
+@EnableCaching
+@EnableWebSecurity
+@SpringBootApplication
 public class MeasServiceApplication {
 
-//	private static final String PROP_DB_URL = "meas-service.db.url";
-//	private static final String PROP_DB_USERNAME = "meas-service.db.username";
-//	private static final String PROP_DB_PASSWORD = "meas-service.db.password";
-//	private static final String PROP_DB_SCHEMA = "meas-service.db.schema";
-//
-//	private static final String PROP_S3_ENDPOINT = "meas-service.s3.endpoint";
-//	private static final String PROP_S3_REGION = "meas-service.s3.region";
-//	private static final String PROP_S3_USERNAME = "meas-service.s3.username";
-//	private static final String PROP_S3_PASSWORD = "meas-service.s3.password";
-
-	private final ServletContext servletContext;
 	private final Environment environment;
 
-	public MeasServiceApplication(ServletContext servletContext, Environment environment) {
-		this.servletContext = servletContext;
+	public MeasServiceApplication(Environment environment) {
 		this.environment = environment;
 	}
 
@@ -119,5 +112,15 @@ public class MeasServiceApplication {
 	public OpenAPI customOpenAPI() {
 		Server server = new Server().url(environment.getProperty("API_URL")).description("Default Server URL");
 		return new OpenAPI().addServersItem(server);
+	}
+	
+	@Bean
+	public IAuthorizationService authService() {
+		return AuthorizationServiceFactory.create();
+	}
+
+	@Bean
+	public SecurityFilterChain httpSecurity(HttpSecurity http) throws Exception {
+		return AuthenticationConfigHelper.configure(http);
 	}
 }
