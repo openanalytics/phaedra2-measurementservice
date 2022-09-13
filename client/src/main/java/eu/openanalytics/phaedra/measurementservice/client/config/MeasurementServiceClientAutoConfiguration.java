@@ -24,6 +24,8 @@ package eu.openanalytics.phaedra.measurementservice.client.config;
 import eu.openanalytics.phaedra.measurementservice.client.MeasurementServiceClient;
 import eu.openanalytics.phaedra.measurementservice.client.impl.CachingHttpMeasurementServiceClient;
 import eu.openanalytics.phaedra.util.PhaedraRestTemplate;
+import eu.openanalytics.phaedra.util.auth.IAuthorizationService;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -31,8 +33,8 @@ import org.springframework.context.annotation.Configuration;
 public class MeasurementServiceClientAutoConfiguration {
 
     @Bean
-    public MeasurementServiceClient measurementServiceClient(PhaedraRestTemplate phaedraRestTemplate) {
-        return new CachingHttpMeasurementServiceClient(phaedraRestTemplate);
+    public MeasurementServiceClient measurementServiceClient(PhaedraRestTemplate phaedraRestTemplate, IAuthorizationService authService) {
+        return new CachingHttpMeasurementServiceClient(phaedraRestTemplate, authService);
     }
 
 }

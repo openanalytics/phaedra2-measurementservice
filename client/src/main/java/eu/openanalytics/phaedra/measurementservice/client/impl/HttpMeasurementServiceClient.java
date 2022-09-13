@@ -20,34 +20,40 @@
  */
 package eu.openanalytics.phaedra.measurementservice.client.impl;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
+
 import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
 import eu.openanalytics.phaedra.measurementservice.client.MeasurementServiceClient;
 import eu.openanalytics.phaedra.measurementservice.client.exception.MeasUnresolvableException;
 import eu.openanalytics.phaedra.util.PhaedraRestTemplate;
-import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import eu.openanalytics.phaedra.util.auth.IAuthorizationService;
 
 @Component
 public class HttpMeasurementServiceClient implements MeasurementServiceClient {
 
     private final PhaedraRestTemplate restTemplate;
-
-    public HttpMeasurementServiceClient(PhaedraRestTemplate restTemplate) {
+    private final IAuthorizationService authService;
+    
+    public HttpMeasurementServiceClient(PhaedraRestTemplate restTemplate, IAuthorizationService authService) {
         this.restTemplate = restTemplate;
+        this.authService = authService;
     }
 
     @Override
     public float[] getWellData(long measId, String columnName) throws MeasUnresolvableException {
         try {
-            var wellData = restTemplate.getForObject(UrlFactory.measurementWell(measId, columnName), float[].class);
-            if (wellData == null) {
-                throw new MeasUnresolvableException("WellData could not be converted");
-            }
-            return wellData;
+            var res = restTemplate.exchange(UrlFactory.measurementWell(measId, columnName), HttpMethod.GET, 
+            		new HttpEntity<>(makeHttpHeaders()), float[].class);
+            if (res == null) throw new MeasUnresolvableException("WellData could not be converted");
+            return res.getBody();
         } catch (HttpClientErrorException.NotFound ex) {
             throw new MeasUnresolvableException("WellData not found");
         } catch (HttpClientErrorException ex) {
@@ -58,8 +64,18 @@ public class HttpMeasurementServiceClient implements MeasurementServiceClient {
     @Override
     public List<MeasurementDTO> getMeasurementsByMeasIds(long ...measIds) {
         if (measIds != null) {
-            return Arrays.asList(restTemplate.getForObject(UrlFactory.getMeasurementsByMeasIds(measIds), MeasurementDTO[].class));
+            var res = restTemplate.exchange(UrlFactory.getMeasurementsByMeasIds(measIds), HttpMethod.GET,
+            		new HttpEntity<>(makeHttpHeaders()), MeasurementDTO[].class);
+            MeasurementDTO[] measurements = res.getBody();
+            return Arrays.asList(measurements);
         }
         return new ArrayList<>();
+    }
+    
+    private HttpHeaders makeHttpHeaders() {
+    	HttpHeaders httpHeaders = new HttpHeaders();
+        String bearerToken = authService.getCurrentBearerToken();
+    	if (bearerToken != null) httpHeaders.set(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", bearerToken));
+    	return httpHeaders;
     }
 }

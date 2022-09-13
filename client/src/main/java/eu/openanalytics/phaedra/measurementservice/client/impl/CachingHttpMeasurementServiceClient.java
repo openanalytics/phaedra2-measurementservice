@@ -26,6 +26,8 @@ import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
 import eu.openanalytics.phaedra.measurementservice.client.MeasurementServiceClient;
 import eu.openanalytics.phaedra.measurementservice.client.exception.MeasUnresolvableException;
 import eu.openanalytics.phaedra.util.PhaedraRestTemplate;
+import eu.openanalytics.phaedra.util.auth.IAuthorizationService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -42,8 +44,8 @@ public class CachingHttpMeasurementServiceClient implements MeasurementServiceCl
     private record WellDataKey(long measId, String columnName) {};
     private final Cache<WellDataKey, float[]> wellDataCache;
 
-    public CachingHttpMeasurementServiceClient(PhaedraRestTemplate restTemplate) {
-        httpMeasurementServiceClient = new HttpMeasurementServiceClient(restTemplate);
+    public CachingHttpMeasurementServiceClient(PhaedraRestTemplate restTemplate, IAuthorizationService authService) {
+        httpMeasurementServiceClient = new HttpMeasurementServiceClient(restTemplate, authService);
         wellDataCache = Caffeine.newBuilder()
                 .maximumSize(1_000)
                 .expireAfterAccess(Duration.ofHours(1))
