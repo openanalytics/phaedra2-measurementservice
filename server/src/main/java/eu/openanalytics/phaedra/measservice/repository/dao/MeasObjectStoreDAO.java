@@ -20,6 +20,7 @@
  */
 package eu.openanalytics.phaedra.measservice.repository.dao;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -108,27 +109,46 @@ public class MeasObjectStoreDAO {
 		return s3Client.doesObjectExist(bucketName, s3key);
 	}
 	
+	public long getMeasObjectSize(long measId, String key) throws IOException {
+		String s3key = makeS3Key(measId, key);
+		return s3Client.getObjectMetadata(bucketName, s3key).getContentLength();
+	}
+	
 	public Object getMeasObject(long measId, String key) throws IOException {
+		byte[] bytes = getMeasObjectRaw(measId, key);
+		return deserializeObjectFromStream(new ByteArrayInputStream(bytes));
+	}
+
+	public byte[] getMeasObjectRaw(long measId, String key) throws IOException {
+		return getMeasObjectRaw(measId, key, -1, -1);
+	}
+	
+	public byte[] getMeasObjectRaw(long measId, String key, long offset, int len) throws IOException {
 		String s3key = makeS3Key(measId, key);
 		GetObjectRequest request = new GetObjectRequest(bucketName, s3key);
+		if (len > 1) {
+			request.setRange(offset, offset + len - 1);
+		}
 		try (
 			S3Object object = s3Client.getObject(request);
 			S3ObjectInputStream input = object.getObjectContent();
 		) {
-			return deserializeObjectFromStream(input);
+			return StreamUtils.copyToByteArray(input);
 		} catch (AmazonS3Exception e) {
 			throw new IOException(e);
 		}
 	}
-
+	
 	public void putMeasObject(long measId, String key, Object value) throws IOException {
+		putMeasObjectRaw(measId, key, serializeObject(value));
+	}
+	
+	public void putMeasObjectRaw(long measId, String key, byte[] value) throws IOException {
 		String s3key = makeS3Key(measId, key);
 		
-		// Serialize the object and write it into a temporary file.
-		byte[] objectBytes = serializeObject(value);
 		File tempFile = File.createTempFile("meas-data", null);
 		try (OutputStream out = new FileOutputStream(tempFile)) {
-			StreamUtils.copy(objectBytes, out);
+			StreamUtils.copy(value, out);
 		}
 		
 		// By using a file instead of a stream, TransferManager can optimize the upload: multipart parallel uploads with auto-retrying.

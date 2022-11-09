@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -54,7 +55,7 @@ public class MeasImageController {
     		
     		byte[] rendered = null;
     		if (channel.contains(",")) {
-    			List<String> channels = Arrays.stream(channel.split(",")).toList();
+    			List<String> channels = Arrays.stream(channel.split(",")).collect(Collectors.toList());
     			rendered = measImageService.renderImage(measId, wellNr, channels, renderConfigId, renderConfig);
     		} else {
     			rendered = measImageService.renderImage(measId, wellNr, channel, renderConfigId, renderConfig);

@@ -180,6 +180,16 @@ public interface MeasService {
 	public void setMeasImageData(long measId, int wellNr, String channelId, byte[] imageData);
 
 	/**
+	 * Retrieve the size of the image data for the given measurement, well nr and channel.
+	 * 
+	 * @param measId The ID of the measurement to get image data size for.
+	 * @param wellNr The well nr to get image data size for.
+	 * @param channel The name of the channel to get image data size for.
+	 * @return The size of the image data, in bytes.
+	 */
+	public long getImageDataSize(long measId, int wellNr, String channel);
+	
+	/**
 	 * Retrieve the image data for a measurement for a given well nr and channel.
 	 *
 	 * @param measId The ID of the measurement to get image data for.
@@ -189,6 +199,18 @@ public interface MeasService {
 	 */
 	public byte[] getImageData(long measId, int wellNr, String channel);
 
+	/**
+	 * Retrieve a part of the image data for a measurement for a given well nr and channel.
+	 *
+	 * @param measId The ID of the measurement to get image data for.
+	 * @param wellNr The well nr to get image data for.
+	 * @param channel The name of the channel to get image data for.
+	 * @param offset The offset in the codestream of image data.
+	 * @param len The length of the part to get.
+	 * @return The image data part, may be null.
+	 */
+	public byte[] getImageDataPart(long measId, int wellNr, String channel, long offset, int len);
+	
 	/**
 	 * Retrieve the image data for a measurement for a given well nr.
 	 *

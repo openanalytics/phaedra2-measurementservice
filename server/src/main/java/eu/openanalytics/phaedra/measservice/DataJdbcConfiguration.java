@@ -20,10 +20,12 @@
  */
 package eu.openanalytics.phaedra.measservice;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.jdbc.core.convert.JdbcCustomConversions;
 import org.springframework.data.jdbc.repository.config.AbstractJdbcConfiguration;
 import org.springframework.lang.NonNull;
@@ -41,9 +43,9 @@ public class DataJdbcConfiguration extends AbstractJdbcConfiguration {
 	@Override
 	@NonNull
 	public JdbcCustomConversions jdbcCustomConversions() {
-		return new JdbcCustomConversions(List.of(
-				new NamedImageRenderConfig.ConfigReadingConverter(objectMapper),
-				new NamedImageRenderConfig.ConfigWritingConverter(objectMapper)
-		));
+		List<Converter<?,?>> converters = new ArrayList<>();
+		converters.add(new NamedImageRenderConfig.ConfigReadingConverter(objectMapper));
+		converters.add(new NamedImageRenderConfig.ConfigWritingConverter(objectMapper));
+		return new JdbcCustomConversions(converters);
 	}
 }

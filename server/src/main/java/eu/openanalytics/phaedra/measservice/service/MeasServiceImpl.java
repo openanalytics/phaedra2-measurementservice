@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class MeasServiceImpl implements MeasService {
@@ -54,25 +55,25 @@ public class MeasServiceImpl implements MeasService {
 	@Override
 	public List<MeasurementDTO> getAllMeasurements() {
 		List<Measurement> result = (List<Measurement>) measRepo.findAll();
-		return result.stream().map(modelMapper::map).toList();
+		return result.stream().map(modelMapper::map).collect(Collectors.toList());
 	}
 
 	@Override
 	public Optional<MeasurementDTO> findMeasById(long measId) {
 		Optional<Measurement> measurement = measRepo.findById(measId);
-		return Optional.of(modelMapper.map(measurement.get()));
+		return measurement.map(modelMapper::map);
 	}
 
 	@Override
 	public List<MeasurementDTO> getMeasurementsByIds(List<Long> measIds) {
 		List<Measurement> result = measRepo.findAllByIds(Longs.toArray(measIds));
-		return result.stream().map(modelMapper::map).toList();
+		return result.stream().map(modelMapper::map).collect(Collectors.toList());
 	}
 
 	@Override
 	public List<MeasurementDTO> findMeasByCreatedOnRange(Date date1, Date date2) {
 		List<Measurement> result = measRepo.findByCreatedOnRange(date1, date2);
-		return result.stream().map(modelMapper::map).toList();
+		return result.stream().map(modelMapper::map).collect(Collectors.toList());
 	}
 
 	@Override
@@ -240,9 +241,20 @@ public class MeasServiceImpl implements MeasService {
 	}
 	
 	@Override
+	public long getImageDataSize(long measId, int wellNr, String channel) {
+		return measDataRepo.getImageDataSize(measId, wellNr, channel);
+	}
+	
+	@Override
 	public byte[] getImageData(long measId, int wellNr, String channel) {
 		if (!measExists(measId)) return null;
 		return measDataRepo.getImageData(measId, wellNr, channel);
+	}
+	
+	@Override
+	public byte[] getImageDataPart(long measId, int wellNr, String channel, long offset, int len) {
+		// Note that this method does NOT perform an existence check, for performance reasons.
+		return measDataRepo.getImageData(measId, wellNr, channel, offset, len);
 	}
 
 	@Override

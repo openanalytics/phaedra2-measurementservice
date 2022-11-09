@@ -163,10 +163,21 @@ public class MeasDataRepository {
 	public void putImageData(long measId, int wellNr, String channel, byte[] data) {
 		String key = String.format("%s.%d.%s", PREFIX_IMAGE_DATA, wellNr, channel); 
 		try {
-			objectStoreDAO.putMeasObject(measId, key, data);
+			objectStoreDAO.putMeasObjectRaw(measId, key, data);
 		} catch (IOException e) {
 			throw new RecoverableDataAccessException(
 					String.format("Failed to store image data for measurement %d, well %d, channel %s", measId, wellNr, channel), e);
+		}
+	}
+	
+	public long getImageDataSize(long measId, int wellNr, String channel) {
+		String key = String.format("%s.%d.%s", PREFIX_IMAGE_DATA, wellNr, channel);
+		try {
+			if (!objectStoreDAO.measObjectExists(measId, key)) return -1;
+			return objectStoreDAO.getMeasObjectSize(measId, key);
+		} catch (IOException e) {
+			throw new RecoverableDataAccessException(
+					String.format("Failed to retrieve image data for measurement %d, well %d, channel %s", measId, wellNr, channel), e);
 		}
 	}
 	
@@ -174,7 +185,18 @@ public class MeasDataRepository {
 		String key = String.format("%s.%d.%s", PREFIX_IMAGE_DATA, wellNr, channel);
 		try {
 			if (!objectStoreDAO.measObjectExists(measId, key)) return null;
-			return (byte[]) objectStoreDAO.getMeasObject(measId, key);
+			return objectStoreDAO.getMeasObjectRaw(measId, key);
+		} catch (IOException e) {
+			throw new RecoverableDataAccessException(
+					String.format("Failed to retrieve image data for measurement %d, well %d, channel %s", measId, wellNr, channel), e);
+		}
+	}
+	
+	public byte[] getImageData(long measId, int wellNr, String channel, long offset, int len) {
+		String key = String.format("%s.%d.%s", PREFIX_IMAGE_DATA, wellNr, channel);
+		try {
+			// Note that this method does NOT perform an existence check, for performance reasons.
+			return objectStoreDAO.getMeasObjectRaw(measId, key, offset, len);
 		} catch (IOException e) {
 			throw new RecoverableDataAccessException(
 					String.format("Failed to retrieve image data for measurement %d, well %d, channel %s", measId, wellNr, channel), e);
@@ -191,7 +213,7 @@ public class MeasDataRepository {
 			return Arrays.stream(keys).parallel().map(k -> {
 				try {
 					String channel = k.substring(k.lastIndexOf('.') + 1);
-					byte[] values = (byte[]) objectStoreDAO.getMeasObject(measId, k);
+					byte[] values = objectStoreDAO.getMeasObjectRaw(measId, k);
 					return Pair.of(channel, values);
 				} catch (IOException e) {
 					throw new RecoverableDataAccessException(
