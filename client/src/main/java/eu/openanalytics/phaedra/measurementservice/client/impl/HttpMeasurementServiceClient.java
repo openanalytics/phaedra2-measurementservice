@@ -1,7 +1,7 @@
 /**
  * Phaedra II
  *
- * Copyright (C) 2016-2022 Open Analytics
+ * Copyright (C) 2016-2023 Open Analytics
  *
  * ===========================================================================
  *
@@ -41,7 +41,7 @@ public class HttpMeasurementServiceClient implements MeasurementServiceClient {
 
     private final PhaedraRestTemplate restTemplate;
     private final IAuthorizationService authService;
-    
+
     public HttpMeasurementServiceClient(PhaedraRestTemplate restTemplate, IAuthorizationService authService) {
         this.restTemplate = restTemplate;
         this.authService = authService;
@@ -50,7 +50,7 @@ public class HttpMeasurementServiceClient implements MeasurementServiceClient {
     @Override
     public float[] getWellData(long measId, String columnName) throws MeasUnresolvableException {
         try {
-            var res = restTemplate.exchange(UrlFactory.measurementWell(measId, columnName), HttpMethod.GET, 
+            var res = restTemplate.exchange(UrlFactory.measurementWell(measId, columnName), HttpMethod.GET,
             		new HttpEntity<>(makeHttpHeaders()), float[].class);
             if (res == null) throw new MeasUnresolvableException("WellData could not be converted");
             return res.getBody();
@@ -71,7 +71,7 @@ public class HttpMeasurementServiceClient implements MeasurementServiceClient {
         }
         return new ArrayList<>();
     }
-    
+
     private HttpHeaders makeHttpHeaders() {
     	HttpHeaders httpHeaders = new HttpHeaders();
         String bearerToken = authService.getCurrentBearerToken();

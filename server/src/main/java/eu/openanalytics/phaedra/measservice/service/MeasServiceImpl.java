@@ -1,7 +1,7 @@
 /**
  * Phaedra II
  *
- * Copyright (C) 2016-2022 Open Analytics
+ * Copyright (C) 2016-2023 Open Analytics
  *
  * ===========================================================================
  *
@@ -221,7 +221,7 @@ public class MeasServiceImpl implements MeasService {
 		if (channelId == null || channelId.trim().isEmpty()) {
 			throw new IllegalArgumentException(String.format("Cannot save image data: no channel id provided"));
 		}
-		
+
 		measDataRepo.putImageData(measId, wellNr, channelId, imageData);
 
 		String[] channelNames = meas.getImageChannels();
@@ -239,18 +239,18 @@ public class MeasServiceImpl implements MeasService {
 		meas.setImageChannels(channelNames);
 		measRepo.save(meas);
 	}
-	
+
 	@Override
 	public long getImageDataSize(long measId, int wellNr, String channel) {
 		return measDataRepo.getImageDataSize(measId, wellNr, channel);
 	}
-	
+
 	@Override
 	public byte[] getImageData(long measId, int wellNr, String channel) {
 		if (!measExists(measId)) return null;
 		return measDataRepo.getImageData(measId, wellNr, channel);
 	}
-	
+
 	@Override
 	public byte[] getImageDataPart(long measId, int wellNr, String channel, long offset, int len) {
 		// Note that this method does NOT perform an existence check, for performance reasons.

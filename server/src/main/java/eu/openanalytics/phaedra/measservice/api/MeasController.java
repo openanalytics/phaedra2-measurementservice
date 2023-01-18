@@ -1,7 +1,7 @@
 /**
  * Phaedra II
  *
- * Copyright (C) 2016-2022 Open Analytics
+ * Copyright (C) 2016-2023 Open Analytics
  *
  * ===========================================================================
  *
@@ -184,7 +184,7 @@ public class MeasController {
         measService.setMeasImageData(measId, wellNr, dataMap);
         return ResponseEntity.created(null).build();
     }
-    
+
     @RequestMapping(value = "/meas/{measId}/imagedata/{wellNr}/{channel}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Void> setImageData(@PathVariable long measId, @PathVariable int wellNr, @PathVariable String channel, @RequestBody byte[] imageData) {
         measService.setMeasImageData(measId, wellNr, channel, imageData);

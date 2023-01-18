@@ -1,7 +1,7 @@
 /**
  * Phaedra II
  *
- * Copyright (C) 2016-2022 Open Analytics
+ * Copyright (C) 2016-2023 Open Analytics
  *
  * ===========================================================================
  *
@@ -113,7 +113,7 @@ public class MeasServiceApplication {
 		Server server = new Server().url(environment.getProperty("API_URL")).description("Default Server URL");
 		return new OpenAPI().addServersItem(server);
 	}
-	
+
 	@Bean
 	public IAuthorizationService authService() {
 		return AuthorizationServiceFactory.create();

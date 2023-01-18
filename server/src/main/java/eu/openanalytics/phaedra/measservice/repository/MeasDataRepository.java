@@ -1,7 +1,7 @@
 /**
  * Phaedra II
  *
- * Copyright (C) 2016-2022 Open Analytics
+ * Copyright (C) 2016-2023 Open Analytics
  *
  * ===========================================================================
  *
@@ -38,38 +38,38 @@ public class MeasDataRepository {
 
 	private static final String PREFIX_SW_DATA = "subwelldata";
 	private static final String PREFIX_IMAGE_DATA = "imagedata";
-	
+
 	@Autowired
 	private MeasWelldataDAO welldataDAO;
-	
+
 	@Autowired
 	private MeasObjectStoreDAO objectStoreDAO;
-		
+
 	public float[] getWellData(long measId, String column) {
 		return welldataDAO.getData(measId, column);
 	}
-	
+
 	public Map<String, float[]> getWellData(long measId) {
 		return welldataDAO.getData(measId);
 	}
-	
+
 	public void deleteWellData(long measId) {
 		welldataDAO.deleteData(measId);
 	}
-	
+
 	public void setWellData(long measId, Map<String, float[]> wellData) {
 		welldataDAO.saveData(measId, wellData);
 	}
-	
+
 	/*
 	 * Subwell data storage approach
 	 * *****************************
-	 * 
+	 *
 	 * One object per well per column.
-	 * 
+	 *
 	 * Key: "subwelldata.<colName>.<wellNr>"
 	 * Value: float[]
-	 * 
+	 *
 	 * Summary:
 	 * - Thousands of objects per well
 	 * - A million objects per meas
@@ -77,15 +77,15 @@ public class MeasDataRepository {
 	 * - Thus, several MB per well
 	 * - Thus, several GB per meas
 	 */
-	
+
 	public void putSubWellData(long measId, String column, Map<Integer, float[]> data) {
 		data.keySet().parallelStream().forEach(i -> {
 			putSubWellData(measId, i + 1, column, data.get(i));
 		});
 	}
-	
+
 	public void putSubWellData(long measId, int wellNr, String column, float[] data) {
-		String key = String.format("%s.%s.%d", PREFIX_SW_DATA, column, wellNr); 
+		String key = String.format("%s.%s.%d", PREFIX_SW_DATA, column, wellNr);
 		try {
 			objectStoreDAO.putMeasObject(measId, key, data);
 		} catch (IOException e) {
@@ -93,7 +93,7 @@ public class MeasDataRepository {
 					String.format("Failed to store subwell data for measurement %d, well %d, column %s", measId, wellNr, column), e);
 		}
 	}
-	
+
 	public float[] getSubWellData(long measId, int wellNr, String column) {
 		String key = String.format("%s.%s.%d", PREFIX_SW_DATA, column, wellNr);
 		try {
@@ -104,14 +104,14 @@ public class MeasDataRepository {
 					String.format("Failed to retrieve subwell data for measurement %d, well %d, column %s", measId, wellNr, column), e);
 		}
 	}
-	
+
 	public Map<Integer, float[]> getSubWellData(long measId, String column) {
 		String prefix = String.format("%s.%s", PREFIX_SW_DATA, column);
 		try {
 			// Find all available subkeys (expected: 1 key per well)
 			String[] keys = objectStoreDAO.listMeasObjects(measId, prefix);
 			if (keys.length == 0) return null;
-			
+
 			return Arrays.stream(keys).parallel().map(k -> {
 				try {
 					Integer wellNr = Integer.valueOf(k.substring(k.lastIndexOf('.') + 1));
@@ -127,7 +127,7 @@ public class MeasDataRepository {
 					String.format("Failed to retrieve subwell data for measurement %d, column %s", measId, column), e);
 		}
 	}
-	
+
 	public void deleteSubWellData(long measId) {
 		try {
 			// Find all available subkeys (expected: 1 key per well per column)
@@ -141,27 +141,27 @@ public class MeasDataRepository {
 	/*
 	 * Image data storage approach
 	 * ***************************
-	 * 
+	 *
 	 * One object per well per channel.
-	 * 
+	 *
 	 * Key: "imagedata.<wellNr>.<channel>"
 	 * Value: byte[]
-	 * 
+	 *
 	 * Summary:
 	 * - A few MB per object
 	 * - A few objects per well
 	 * - Thousands of objects per meas
 	 * - Thus, several GB per meas
 	 */
-	
+
 	public void putImageData(long measId, int wellNr, Map<String, byte[]> data) {
 		data.keySet().parallelStream().forEach(c -> {
 			putImageData(measId, wellNr, c, data.get(c));
 		});
 	}
-	
+
 	public void putImageData(long measId, int wellNr, String channel, byte[] data) {
-		String key = String.format("%s.%d.%s", PREFIX_IMAGE_DATA, wellNr, channel); 
+		String key = String.format("%s.%d.%s", PREFIX_IMAGE_DATA, wellNr, channel);
 		try {
 			objectStoreDAO.putMeasObjectRaw(measId, key, data);
 		} catch (IOException e) {
@@ -169,7 +169,7 @@ public class MeasDataRepository {
 					String.format("Failed to store image data for measurement %d, well %d, channel %s", measId, wellNr, channel), e);
 		}
 	}
-	
+
 	public long getImageDataSize(long measId, int wellNr, String channel) {
 		String key = String.format("%s.%d.%s", PREFIX_IMAGE_DATA, wellNr, channel);
 		try {
@@ -180,7 +180,7 @@ public class MeasDataRepository {
 					String.format("Failed to retrieve image data for measurement %d, well %d, channel %s", measId, wellNr, channel), e);
 		}
 	}
-	
+
 	public byte[] getImageData(long measId, int wellNr, String channel) {
 		String key = String.format("%s.%d.%s", PREFIX_IMAGE_DATA, wellNr, channel);
 		try {
@@ -191,7 +191,7 @@ public class MeasDataRepository {
 					String.format("Failed to retrieve image data for measurement %d, well %d, channel %s", measId, wellNr, channel), e);
 		}
 	}
-	
+
 	public byte[] getImageData(long measId, int wellNr, String channel, long offset, int len) {
 		String key = String.format("%s.%d.%s", PREFIX_IMAGE_DATA, wellNr, channel);
 		try {
@@ -202,14 +202,14 @@ public class MeasDataRepository {
 					String.format("Failed to retrieve image data for measurement %d, well %d, channel %s", measId, wellNr, channel), e);
 		}
 	}
-	
+
 	public Map<String, byte[]> getImageData(long measId, int wellNr) {
 		String prefix = String.format("%s.%d.", PREFIX_IMAGE_DATA, wellNr);
 		try {
 			// Find all available subkeys (expected: 1 key per channel)
 			String[] keys = objectStoreDAO.listMeasObjects(measId, prefix);
 			if (keys.length == 0) return null;
-			
+
 			return Arrays.stream(keys).parallel().map(k -> {
 				try {
 					String channel = k.substring(k.lastIndexOf('.') + 1);
@@ -225,7 +225,7 @@ public class MeasDataRepository {
 					String.format("Failed to retrieve image data for measurement %d, well %s", measId, wellNr), e);
 		}
 	}
-	
+
 	public void deleteImageData(long measId) {
 		try {
 			// Find all available subkeys (expected: 1 key per well per column)

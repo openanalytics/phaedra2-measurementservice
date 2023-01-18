@@ -18,17 +18,15 @@
  * You should have received a copy of the Apache License
  * along with this program.  If not, see <http://www.apache.org/licenses/>
  */
-package eu.openanalytics.phaedra.measurementservice.client;
+package eu.openanalytics.phaedra.measservice.exception;
 
-import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
-import eu.openanalytics.phaedra.measurementservice.client.exception.MeasUnresolvableException;
+import eu.openanalytics.phaedra.util.exceptionhandling.UserVisibleException;
 
-import java.util.List;
+public class MeasurementConsumerException extends UserVisibleException {
 
-public interface MeasurementServiceClient {
+    public MeasurementConsumerException(String msg) {
+        super(String.format("An error during measurement creation step: " + msg));
+    }
 
-    float[] getWellData(long measId, String columnName) throws MeasUnresolvableException;
-
-    List<MeasurementDTO> getMeasurementsByMeasIds(long ...measId);
 
 }
