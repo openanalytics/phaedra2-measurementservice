@@ -30,6 +30,7 @@ import liquibase.exception.LiquibaseException;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.utility.DockerImageName;
 
 import java.sql.SQLException;
 
@@ -39,7 +40,8 @@ public class Containers {
     public static final PostgreSQLContainer<?> postgreSQLContainer;
 
     static {
-        postgreSQLContainer = new PostgreSQLContainer<>("postgres:13-alpine")
+        postgreSQLContainer = new PostgreSQLContainer<>(DockerImageName.parse("registry.openanalytics.eu/library/postgres:13-alpine")
+                .asCompatibleSubstituteFor(PostgreSQLContainer.IMAGE))
                 .withUrlParam("currentSchema","measservice");
 
         postgreSQLContainer.start();
