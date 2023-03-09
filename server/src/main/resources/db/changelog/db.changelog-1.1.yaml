@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: sberberovic
+      changes:
+        - dropNotNullConstraint:
+            columnName: rows
+            tableName: measurement
+            schemaName: measservice
+        - dropNotNullConstraint:
+            columnName: columns
+            tableName: measurement
+            schemaName: measservice
