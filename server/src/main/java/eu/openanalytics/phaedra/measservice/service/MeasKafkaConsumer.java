@@ -20,19 +20,16 @@
  */
 package eu.openanalytics.phaedra.measservice.service;
 
-import eu.openanalytics.phaedra.measservice.api.dto.NewMeasurementDTO;
-import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
-import eu.openanalytics.phaedra.measservice.exception.MeasurementConsumerException;
-import eu.openanalytics.phaedra.measservice.model.Measurement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+
+import eu.openanalytics.phaedra.measservice.api.dto.NewMeasurementDTO;
+import eu.openanalytics.phaedra.measservice.exception.MeasurementConsumerException;
+import eu.openanalytics.phaedra.measservice.model.Measurement;
 
 @Service
 public class MeasKafkaConsumer {
@@ -40,28 +37,29 @@ public class MeasKafkaConsumer {
     private final MeasService measService;
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    private static final String TOPIC = "datacapture";
+    private static final String EVENT_SAVE_MEAS = "saveMeasurement";
+    
     public MeasKafkaConsumer(MeasService measService) {
         this.measService = measService;
     }
 
-    @KafkaListener(topics = "data-capture-topic")
+    @KafkaListener(topics = TOPIC)
     public void onNewMeasurement(NewMeasurementDTO newMeasurementDTO, @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) String msgKey) throws MeasurementConsumerException {
-        if (msgKey.equals("newMeasurement")) {
-            logger.info("Create new measurement with " + newMeasurementDTO.getName() + " and barcode " + newMeasurementDTO.getBarcode());
+        if (!EVENT_SAVE_MEAS.equals(msgKey)) return;
+        
+        logger.info("Create new measurement with " + newMeasurementDTO.getName() + " and barcode " + newMeasurementDTO.getBarcode());
+        try {
+            // Step 1: persist a new Measurement entity
+            Measurement newMeas = measService.createNewMeas(newMeasurementDTO.asMeasurement());
 
-            try {
-                // Step 1: persist a new Measurement entity
-                Measurement newMeas = measService.createNewMeas(newMeasurementDTO.asMeasurement());
-
-                // Step 2: persist the well data for the new Measurement
-                if (newMeasurementDTO.getWelldata() != null && !newMeasurementDTO.getWelldata().isEmpty()) {
-                    measService.setMeasWellData(newMeas.getId(), newMeasurementDTO.getWelldata());
-                    newMeasurementDTO.setWelldata(null);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                throw new MeasurementConsumerException(e.getMessage());
+            // Step 2: persist the well data for the new Measurement
+            if (newMeasurementDTO.getWelldata() != null && !newMeasurementDTO.getWelldata().isEmpty()) {
+                measService.setMeasWellData(newMeas.getId(), newMeasurementDTO.getWelldata());
+                newMeasurementDTO.setWelldata(null);
             }
+        } catch (Exception e) {
+            throw new MeasurementConsumerException(e.getMessage());
         }
     }
 }
