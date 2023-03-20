@@ -21,18 +21,20 @@
 package eu.openanalytics.phaedra.measservice.service;
 
 import eu.openanalytics.phaedra.measservice.api.dto.NewMeasurementDTO;
+import eu.openanalytics.phaedra.measservice.config.KafkaConsumerConfig;
 import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
+import eu.openanalytics.phaedra.measservice.dto.SubwellDataDTO;
 import eu.openanalytics.phaedra.measservice.exception.MeasurementConsumerException;
 import eu.openanalytics.phaedra.measservice.model.Measurement;
+import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+
+import java.util.Optional;
 
 @Service
 public class MeasKafkaConsumer {
@@ -61,6 +63,20 @@ public class MeasKafkaConsumer {
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new MeasurementConsumerException(e.getMessage());
+            }
+        }
+    }
+
+    @KafkaListener(topics = KafkaConsumerConfig.MEASUREMENTS_TOPIC, groupId = "curvedata-service", filter="saveCurveDataEventFilter")
+    public void onSaveSubwellData(SubwellDataDTO subwellDataDTO, @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) String msgKey) {
+        if (msgKey.equals(KafkaConsumerConfig.SAVE_SUBWELL_DATA_EVENT)) {
+            Optional<MeasurementDTO> measurement = measService.findMeasById(subwellDataDTO.getMeasurementId());
+            if (measurement.isPresent()) {
+                if (MapUtils.isNotEmpty(subwellDataDTO.getData())) {
+                    subwellDataDTO.getData().keySet().parallelStream().forEach(column -> {
+                        measService.setMeasSubWellData(subwellDataDTO.getMeasurementId(), subwellDataDTO.getWellId(), column, subwellDataDTO.getData().get(column));
+                    });
+                }
             }
         }
     }

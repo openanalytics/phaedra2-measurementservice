@@ -140,6 +140,15 @@ public interface MeasService {
 	public void setMeasSubWellData(long measId, String column, Map<Integer, float[]> subWellData);
 
 	/**
+	 * Add subwell data to a measurement for a specific well and column
+	 * @param measId The ID of the measurement to add subwell data to.
+	 * @param wellNr The well number of the subwell data
+	 * @param column The name of the column to set data for.
+	 * @param subWellData float[] containing the actual subwell data and well number
+	 */
+	public void setMeasSubWellData(long measId, int wellNr, String column, float[] subWellData);
+
+	/**
 	 * Retrieve the subwelldata for a measurement for a given well number and column name.
 	 *
 	 * @param measId The ID of the measurement to get subwelldata for.
@@ -167,7 +176,7 @@ public interface MeasService {
 	 * @param imageData The map of data, containing a byte[] for each channel.
 	 */
 	public void setMeasImageData(long measId, int wellNr, Map<String, byte[]> imageData);
-	
+
 	/**
 	 * Add image data to a measurement.
 	 * Note that this can be done only once for each given well nr and channel id.
@@ -181,14 +190,14 @@ public interface MeasService {
 
 	/**
 	 * Retrieve the size of the image data for the given measurement, well nr and channel.
-	 * 
+	 *
 	 * @param measId The ID of the measurement to get image data size for.
 	 * @param wellNr The well nr to get image data size for.
 	 * @param channel The name of the channel to get image data size for.
 	 * @return The size of the image data, in bytes.
 	 */
 	public long getImageDataSize(long measId, int wellNr, String channel);
-	
+
 	/**
 	 * Retrieve the image data for a measurement for a given well nr and channel.
 	 *
@@ -210,7 +219,7 @@ public interface MeasService {
 	 * @return The image data part, may be null.
 	 */
 	public byte[] getImageDataPart(long measId, int wellNr, String channel, long offset, int len);
-	
+
 	/**
 	 * Retrieve the image data for a measurement for a given well nr.
 	 *
