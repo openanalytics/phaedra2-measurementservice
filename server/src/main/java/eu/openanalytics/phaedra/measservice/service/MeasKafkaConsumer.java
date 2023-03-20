@@ -62,7 +62,6 @@ public class MeasKafkaConsumer {
             throw new MeasurementConsumerException(e.getMessage());
         }
     }
-}
 
     @KafkaListener(topics = KafkaConsumerConfig.MEASUREMENTS_TOPIC, groupId = "curvedata-service", filter="saveCurveDataEventFilter")
     public void onSaveSubwellData(SubwellDataDTO subwellDataDTO, @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) String msgKey) {
