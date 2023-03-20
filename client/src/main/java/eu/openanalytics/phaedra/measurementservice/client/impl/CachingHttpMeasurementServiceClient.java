@@ -34,6 +34,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class CachingHttpMeasurementServiceClient implements MeasurementServiceClient {
@@ -41,8 +42,9 @@ public class CachingHttpMeasurementServiceClient implements MeasurementServiceCl
     private final HttpMeasurementServiceClient httpMeasurementServiceClient;
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private record WellDataKey(long measId, String columnName) {};
-    private final Cache<WellDataKey, float[]> wellDataCache;
+    private record CacheDataKey(long measId, String columnName) {};
+    private final Cache<CacheDataKey, float[]> wellDataCache;
+    private final Cache<CacheDataKey, Map<Integer, float[]>> subWellDataCache;
 
     public CachingHttpMeasurementServiceClient(PhaedraRestTemplate restTemplate, IAuthorizationService authService) {
         httpMeasurementServiceClient = new HttpMeasurementServiceClient(restTemplate, authService);
@@ -50,11 +52,15 @@ public class CachingHttpMeasurementServiceClient implements MeasurementServiceCl
                 .maximumSize(1_000)
                 .expireAfterAccess(Duration.ofHours(1))
                 .build();
+        subWellDataCache = Caffeine.newBuilder()
+                .maximumSize(1_000)
+                .expireAfterAccess(Duration.ofHours(1))
+                .build();
     }
 
     @Override
     public float[] getWellData(long measId, String columnName) throws MeasUnresolvableException {
-        var key = new WellDataKey(measId, columnName);
+        var key = new CacheDataKey(measId, columnName);
         var res = wellDataCache.getIfPresent(key);
         if (res == null) {
             res = httpMeasurementServiceClient.getWellData(measId, columnName);
@@ -63,6 +69,19 @@ public class CachingHttpMeasurementServiceClient implements MeasurementServiceCl
             logger.info(String.format("Retrieved object from cache: WellData measId=%s, columName=%s",  measId, columnName));
         }
         return res;
+    }
+
+    @Override
+    public Map<Integer, float[]> getSubWellData(long measId, String columnName) throws MeasUnresolvableException {
+    	 var key = new CacheDataKey(measId, columnName);
+         var res = subWellDataCache.getIfPresent(key);
+         if (res == null) {
+             res = httpMeasurementServiceClient.getSubWellData(measId, columnName);
+             subWellDataCache.put(key, res);
+         } else {
+             logger.info(String.format("Retrieved object from cache: SubWellData measId=%s, columName=%s",  measId, columnName));
+         }
+         return res;
     }
 
     @Override

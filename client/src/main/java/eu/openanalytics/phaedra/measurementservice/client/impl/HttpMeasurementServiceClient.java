@@ -23,6 +23,7 @@ package eu.openanalytics.phaedra.measurementservice.client.impl;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -52,6 +53,21 @@ public class HttpMeasurementServiceClient implements MeasurementServiceClient {
         try {
             var res = restTemplate.exchange(UrlFactory.measurementWell(measId, columnName), HttpMethod.GET,
             		new HttpEntity<>(makeHttpHeaders()), float[].class);
+            if (res == null) throw new MeasUnresolvableException("WellData could not be converted");
+            return res.getBody();
+        } catch (HttpClientErrorException.NotFound ex) {
+            throw new MeasUnresolvableException("WellData not found");
+        } catch (HttpClientErrorException ex) {
+            throw new MeasUnresolvableException("Error while fetching WellData");
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+	@Override
+    public Map<Integer, float[]> getSubWellData(long measId, String columnName) throws MeasUnresolvableException {
+    	try {
+            var res = restTemplate.exchange(UrlFactory.measurementWell(measId, columnName), HttpMethod.GET,
+            		new HttpEntity<>(makeHttpHeaders()), Map.class);
             if (res == null) throw new MeasUnresolvableException("WellData could not be converted");
             return res.getBody();
         } catch (HttpClientErrorException.NotFound ex) {
