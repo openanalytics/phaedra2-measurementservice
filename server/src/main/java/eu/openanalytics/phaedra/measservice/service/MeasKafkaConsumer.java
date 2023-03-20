@@ -20,6 +20,10 @@
  */
 package eu.openanalytics.phaedra.measservice.service;
 
+import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
+import eu.openanalytics.phaedra.measservice.dto.SubwellDataDTO;
+import eu.openanalytics.phaedra.measservice.dto.WellDataDTO;
+import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -30,6 +34,11 @@ import org.springframework.stereotype.Service;
 import eu.openanalytics.phaedra.measservice.api.dto.NewMeasurementDTO;
 import eu.openanalytics.phaedra.measservice.exception.MeasurementConsumerException;
 import eu.openanalytics.phaedra.measservice.model.Measurement;
+
+import java.util.Optional;
+
+import static eu.openanalytics.phaedra.measservice.config.KafkaConfig.*;
+import static org.apache.commons.collections4.MapUtils.isNotEmpty;
 
 @Service
 public class MeasKafkaConsumer {
@@ -63,16 +72,27 @@ public class MeasKafkaConsumer {
         }
     }
 
-    @KafkaListener(topics = KafkaConsumerConfig.MEASUREMENTS_TOPIC, groupId = "curvedata-service", filter="saveCurveDataEventFilter")
-    public void onSaveSubwellData(SubwellDataDTO subwellDataDTO, @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) String msgKey) {
-        if (msgKey.equals(KafkaConsumerConfig.SAVE_SUBWELL_DATA_EVENT)) {
-            Optional<MeasurementDTO> measurement = measService.findMeasById(subwellDataDTO.getMeasurementId());
-            if (measurement.isPresent()) {
-                if (MapUtils.isNotEmpty(subwellDataDTO.getData())) {
-                    subwellDataDTO.getData().keySet().parallelStream().forEach(column -> {
-                        measService.setMeasSubWellData(subwellDataDTO.getMeasurementId(), subwellDataDTO.getWellId(), column, subwellDataDTO.getData().get(column));
-                    });
-                }
+    @KafkaListener(topics = TOPIC_MEASUREMENTS, groupId = GROUP_ID)
+    public void onSaveWellData(WellDataDTO wellDataDTO, @Header(KafkaHeaders.RECEIVED_KEY) String msgKey) {
+        if (!EVENT_SAVE_WELL_DATA.equalsIgnoreCase(msgKey)) return;
+
+        Optional<MeasurementDTO> measurementDTO = measService.findMeasById(wellDataDTO.getMeasurementId());
+        if (measurementDTO.isEmpty()) return;
+
+        if (isNotEmpty(wellDataDTO.getData())) {
+            measService.setMeasWellData(wellDataDTO.getMeasurementId(), wellDataDTO.getData());
+        }
+    }
+
+    @KafkaListener(topics = TOPIC_MEASUREMENTS, groupId = GROUP_ID)
+    public void onSaveSubwellData(SubwellDataDTO subwellDataDTO, @Header(KafkaHeaders.RECEIVED_KEY) String msgKey) {
+        if (!EVENT_SAVE_SUBWELL_DATA.equalsIgnoreCase(msgKey)) return;
+        Optional<MeasurementDTO> measurement = measService.findMeasById(subwellDataDTO.getMeasurementId());
+        if (measurement.isPresent()) {
+            if (isNotEmpty(subwellDataDTO.getData())) {
+                subwellDataDTO.getData().keySet().parallelStream().forEach(column -> {
+                    measService.setMeasSubWellData(subwellDataDTO.getMeasurementId(), subwellDataDTO.getWellId(), column, subwellDataDTO.getData().get(column));
+                });
             }
         }
     }
