@@ -24,12 +24,14 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -39,12 +41,13 @@ import eu.openanalytics.phaedra.measservice.model.NamedImageRenderConfig;
 import eu.openanalytics.phaedra.measservice.service.ImageRenderConfigService;
 
 @RestController
+@RequestMapping(value = "/renderconfigurations")
 public class ImageRenderConfigController {
 
 	@Autowired
 	private ImageRenderConfigService service;
 	
-    @RequestMapping(value = "/render-config", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping
     public ResponseEntity<?> createConfig(@RequestBody String renderConfigString, ObjectMapper objectMapper) {
         try {
         	NamedImageRenderConfig config = objectMapper.readValue(renderConfigString, NamedImageRenderConfig.class);
@@ -55,28 +58,23 @@ public class ImageRenderConfigController {
         }
     }
     
-    @RequestMapping(value = "/render-config", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> updateConfig(@RequestBody String renderConfigString, ObjectMapper objectMapper) {
-        try {
-        	NamedImageRenderConfig config = objectMapper.readValue(renderConfigString, NamedImageRenderConfig.class);
-        	config = service.updateConfig(config);
-        	return new ResponseEntity<>(config, HttpStatus.OK);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage(), e);
-        }
+    @PutMapping(value = "/{id}")
+    public ResponseEntity<?> updateConfig(@PathVariable long id, @RequestBody NamedImageRenderConfig renderConfig) {
+    	renderConfig.setId(id);
+        return new ResponseEntity<>(service.updateConfig(renderConfig), HttpStatus.OK);
     }
     
-    @RequestMapping(value = "/render-configs", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping
     public ResponseEntity<List<NamedImageRenderConfig>> getAllConfigs() {
         return ResponseEntity.ok(service.getAllConfigs());
     }
     
-    @RequestMapping(value = "/render-config/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/{id}")
     public ResponseEntity<NamedImageRenderConfig> getConfig(@PathVariable long id) {
         return ResponseEntity.of(service.getConfigById(id));
     }
     
-    @RequestMapping(value = "/render-config/{id}", method = RequestMethod.DELETE)
+    @DeleteMapping(value = "/{id}")
     public ResponseEntity<Void> deleteConfig(@PathVariable long id) {
         if (!service.configExists(id)) return ResponseEntity.notFound().build();
         service.deleteConfig(id);

@@ -31,9 +31,8 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -47,8 +46,8 @@ public class MeasImageController {
 	@Autowired
 	private MeasImageService measImageService;
 	
-	@RequestMapping(value = "/image/{measId}/{wellNr}/{channel}", method = RequestMethod.GET, produces = MediaType.IMAGE_JPEG_VALUE)
-    public ResponseEntity<byte[]> renderImage(@PathVariable long measId, @PathVariable int wellNr, @PathVariable String channel,
+	@GetMapping(value = "/measurements/{measurementId}/images/{wellNr}/{channel}", produces = MediaType.IMAGE_JPEG_VALUE)
+    public ResponseEntity<byte[]> renderImage(@PathVariable long measurementId, @PathVariable int wellNr, @PathVariable String channel,
     		@RequestParam(name="renderConfigId", required=false) Long renderConfigId, HttpServletRequest request) {
     	try {
     		ImageRenderConfig renderConfig = ImageRenderConfigUtils.parseFromParameters(request.getParameterMap());
@@ -56,26 +55,26 @@ public class MeasImageController {
     		byte[] rendered = null;
     		if (channel.contains(",")) {
     			List<String> channels = Arrays.stream(channel.split(",")).collect(Collectors.toList());
-    			rendered = measImageService.renderImage(measId, wellNr, channels, renderConfigId, renderConfig);
+    			rendered = measImageService.renderImage(measurementId, wellNr, channels, renderConfigId, renderConfig);
     		} else {
-    			rendered = measImageService.renderImage(measId, wellNr, channel, renderConfigId, renderConfig);
+    			rendered = measImageService.renderImage(measurementId, wellNr, channel, renderConfigId, renderConfig);
     		}
    			
     		return ResponseEntity.of(Optional.ofNullable(rendered));
     	} catch (IOException e) {
-    		throw new RuntimeException("Render failed", e);
+    		throw new RuntimeException("Image render failed", e);
     	}
     }
     
-	@RequestMapping(value = "/image/{measId}/{wellNr}", method = RequestMethod.GET, produces = MediaType.IMAGE_JPEG_VALUE)
-    public ResponseEntity<byte[]> renderImage(@PathVariable long measId, @PathVariable int wellNr,
+	@GetMapping(value = "/measurements/{measurementId}/images/{wellNr}", produces = MediaType.IMAGE_JPEG_VALUE)
+    public ResponseEntity<byte[]> renderImage(@PathVariable long measurementId, @PathVariable int wellNr,
     		@RequestParam(name="renderConfigId", required=false) Long renderConfigId, HttpServletRequest request) {
     	try {
     		ImageRenderConfig renderConfig = ImageRenderConfigUtils.parseFromParameters(request.getParameterMap());
-    		byte[] rendered = measImageService.renderImage(measId, wellNr, renderConfigId, renderConfig);
+    		byte[] rendered = measImageService.renderImage(measurementId, wellNr, renderConfigId, renderConfig);
    			return ResponseEntity.of(Optional.ofNullable(rendered));
     	} catch (IOException e) {
-    		throw new RuntimeException("Render failed", e);
+    		throw new RuntimeException("Image render failed", e);
     	}
     }
 }

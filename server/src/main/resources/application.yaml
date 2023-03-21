@@ -44,7 +44,3 @@ spring:
       resourceserver:
         jwt:
           jwk-set-uri: http://localhost
-
-eureka:
-  client:
-    enabled: true

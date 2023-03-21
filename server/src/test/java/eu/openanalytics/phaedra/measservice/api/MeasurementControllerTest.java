@@ -20,15 +20,16 @@
  */
 package eu.openanalytics.phaedra.measservice.api;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler;
-import eu.openanalytics.phaedra.measservice.api.dto.NewMeasurementDTO;
-import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
-import eu.openanalytics.phaedra.measservice.model.Measurement;
-import eu.openanalytics.phaedra.measservice.support.Containers;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Date;
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -42,21 +43,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
+import eu.openanalytics.phaedra.measservice.model.Measurement;
+import eu.openanalytics.phaedra.measservice.support.Containers;
 
 @Testcontainers
 @SpringBootTest
@@ -87,7 +78,7 @@ public class MeasurementControllerTest {
 
     @Test
     public void measurementsGetTest() throws Exception {
-        MvcResult mvcResult = this.mockMvc.perform(get("/meas"))
+        MvcResult mvcResult = this.mockMvc.perform(get("/measurements"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
@@ -98,7 +89,7 @@ public class MeasurementControllerTest {
 
     @Test
     public void measurementGetTest() throws Exception {
-        MvcResult mvcResult = this.mockMvc.perform(get("/meas/{measId}", 1000L))
+        MvcResult mvcResult = this.mockMvc.perform(get("/measurements/{measId}", 1000L))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();
@@ -120,7 +111,7 @@ public class MeasurementControllerTest {
 
         String requestBody = objectMapper.writeValueAsString(measurement);
 
-        MvcResult mvcResult = this.mockMvc.perform(post("/meas").contentType(MediaType.APPLICATION_JSON).content(requestBody))
+        MvcResult mvcResult = this.mockMvc.perform(post("/measurements").contentType(MediaType.APPLICATION_JSON).content(requestBody))
                 .andDo(print())
                 .andExpect(status().isCreated())
                 .andReturn();
@@ -130,74 +121,11 @@ public class MeasurementControllerTest {
         assertThat(measurementDTO.getId()).isEqualTo(1L);
     }
 
-//    @Test
-    public void measurementPostTest2() throws Exception {
-        String jsonMeasurement = Files.readString(Paths.get(getClass().getClassLoader().getResource("testdata/test_measurement.json").toURI()));
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.addHandler(new DeserializationProblemHandler() {
-            @Override
-            public Object handleWeirdStringValue(DeserializationContext ctxt, Class<?> targetType, String valueToConvert, String failureMsg) throws IOException {
-                return new Double(-1).floatValue();
-            }
-
-            @Override
-            public Object handleWeirdNumberValue(DeserializationContext ctxt, Class<?> targetType, Number valueToConvert, String failureMsg) throws IOException {
-                return -1;
-            }
-        });
-
-        NewMeasurementDTO measurementDTO = objectMapper.readValue(jsonMeasurement, NewMeasurementDTO.class);
-        assertThat(measurementDTO).isNotNull();
-    }
-
-    //Errors on deleteSubbwellData in S3
-
-    /*@Test
-    public void deleteMeasurementById() throws Exception {
-        Long id = 1000L;
-
-        this.mockMvc.perform(delete("/meas/{meas}", id))
-                .andDo(print())
-                .andExpect(status().isOk());
-    }*/
-
-    @Test
-    public void deleteMeasurementByCaptureJobId() throws Exception{
-        MvcResult mvcResult = this.mockMvc.perform(get("/meas"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andReturn();
-        List<Measurement> measurements = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), List.class);
-        assertThat(measurements).isNotNull();
-        assertThat(measurements.size()).isEqualTo(4);
-
-        this.mockMvc.perform(delete("/meas/capture-job/{captureJobId}", 1L))
-                .andDo(print())
-                .andExpect(status().isNoContent());
-
-        MvcResult mvcResult2 = this.mockMvc.perform(get("/meas"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andReturn();
-        List<Measurement> measurements2 = objectMapper.readValue(mvcResult2.getResponse().getContentAsString(), List.class);
-        assertThat(measurements2.isEmpty()).isFalse();
-    }
-
     @Test
     public void deleteMeasurementByCaptureJobIdNotFound() throws Exception{
         this.mockMvc.perform(delete("/meas/capture-job/{captureJobId}", 2L))
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
-
-//    @Test
-//    public void getMeasurementsByListOfMeasIdsTest() throws Exception {
-//        this.mockMvc.perform(get("/meas")
-//                        .param("measIds", "1000L, 2000L"))
-//                .andDo(print())
-//                .andExpect(status().isOk());
-//    }
-
 
 }

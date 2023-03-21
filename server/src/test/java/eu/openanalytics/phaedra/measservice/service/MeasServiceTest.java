@@ -20,10 +20,11 @@
  */
 package eu.openanalytics.phaedra.measservice.service;
 
-import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
-import eu.openanalytics.phaedra.measservice.repository.MeasDataRepository;
-import eu.openanalytics.phaedra.measservice.repository.MeasRepository;
-import eu.openanalytics.phaedra.measservice.support.Containers;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.List;
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,16 +38,18 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
+import eu.openanalytics.phaedra.measservice.repository.MeasDataRepository;
+import eu.openanalytics.phaedra.measservice.repository.MeasRepository;
+import eu.openanalytics.phaedra.measservice.support.Containers;
+import eu.openanalytics.phaedra.util.auth.IAuthorizationService;
 
 @Testcontainers
 @SpringBootTest
 @Sql({"/jdbc/test-data.sql"})
 @TestPropertySource(locations = "classpath:application-test.properties")
 public class MeasServiceTest {
+	
     @Autowired
     private MeasServiceImpl measService;
 
@@ -55,6 +58,9 @@ public class MeasServiceTest {
 
     @Autowired
     private MeasDataRepository measDataRepository;
+    
+    @Autowired
+    private IAuthorizationService authService;
 
     @Autowired ModelMapper modelMapper;
 
@@ -81,7 +87,7 @@ public class MeasServiceTest {
 
     @BeforeEach
     void before() {
-        this.measService = new MeasServiceImpl(measRepository, measDataRepository, modelMapper);
+        this.measService = new MeasServiceImpl(measRepository, measDataRepository, modelMapper, authService);
     }
 
     @Test
