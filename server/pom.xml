@@ -31,17 +31,14 @@
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-aws-autoconfigure</artifactId>
 		</dependency>
+		
 		<!-- Apache Commons -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 		</dependency>
 
-		<!-- Spring Cloud Eureka dependencies -->
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-		</dependency>
+		<!-- Spring Cloud dependencies -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-kubernetes-fabric8</artifactId>

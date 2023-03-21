@@ -20,36 +20,35 @@
  */
 package eu.openanalytics.phaedra.measservice.api;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler;
-import eu.openanalytics.phaedra.measservice.api.dto.NewMeasurementDTO;
-import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
-import eu.openanalytics.phaedra.measservice.model.Measurement;
-import eu.openanalytics.phaedra.measservice.service.MeasService;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.math.NumberUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+
+import eu.openanalytics.phaedra.measservice.api.dto.NewMeasurementDTO;
+import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
+import eu.openanalytics.phaedra.measservice.model.Measurement;
+import eu.openanalytics.phaedra.measservice.service.MeasService;
+
 @RestController
+@RequestMapping("/measurements")
 public class MeasController {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
     private MeasService measService;
@@ -59,82 +58,39 @@ public class MeasController {
      * ************
      */
 
-    @RequestMapping(value = "/meas", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> createMeasurement(@RequestBody String jsonMeasurement, HttpServletRequest request) throws JsonProcessingException {
-        logger.info(jsonMeasurement);
+    @PostMapping
+    public ResponseEntity<?> createMeasurement(@RequestBody NewMeasurementDTO measurementDTO) throws JsonProcessingException {
+        Measurement meas = measService.createNewMeas(measurementDTO.asMeasurement());
+        if (measurementDTO.getWelldata() != null && !measurementDTO.getWelldata().isEmpty()) {
+            measService.setMeasWellData(meas.getId(), measurementDTO.getWelldata());
+        }
+        return new ResponseEntity<>(meas, HttpStatus.CREATED);
+    }
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.addHandler(new DeserializationProblemHandler() {
-            @Override
-            public Object handleWeirdStringValue(DeserializationContext ctxt, Class<?> targetType, String valueToConvert, String failureMsg) throws IOException {
-                return NumberUtils.createFloat("-1.0");
-            }
+    @GetMapping(value = "/{measurementId}")
+    public ResponseEntity<MeasurementDTO> getMeasurement(@PathVariable long measurementId) {
+        return ResponseEntity.of(measService.findMeasById(measurementId));
+    }
 
-            @Override
-            public Object handleWeirdNumberValue(DeserializationContext ctxt, Class<?> targetType, Number valueToConvert, String failureMsg) throws IOException {
-                return -1;
-            }
-        });
-
-
-        NewMeasurementDTO newMeasurementDTO = objectMapper.readValue(jsonMeasurement, NewMeasurementDTO.class);
-
-        //TODO Identify user from auth info in HTTP request
-        if (request.getUserPrincipal() == null || request.getUserPrincipal().getName() == null) {
-            newMeasurementDTO.setCreatedBy("Anonymous");
+    @GetMapping
+    public ResponseEntity<List<MeasurementDTO>> getMeasurements(
+    		@RequestParam(name = "ids", required = false) List<Long> ids,
+    		@RequestParam(name = "fromDate", required = false) @DateTimeFormat(pattern = "dd-MM-yyyy") Date fromDate,
+    		@RequestParam(name = "toDate", required = false) @DateTimeFormat(pattern = "dd-MM-yyyy") Date toDate) {
+    	
+        if (CollectionUtils.isNotEmpty(ids)) {
+            return ResponseEntity.ok(measService.getMeasurementsByIds(ids));
+        } else if (fromDate != null || toDate != null) {
+        	return ResponseEntity.ok(measService.findMeasByCreatedOnRange(fromDate, toDate));	
         } else {
-            newMeasurementDTO.setCreatedBy(request.getUserPrincipal().getName());
-        }
-
-        try {
-            // Step 1: persist a new Measurement entity
-            Measurement newMeas = measService.createNewMeas(newMeasurementDTO.asMeasurement());
-
-            // Step 2: persist the well data for the new Measurement
-            if (newMeasurementDTO.getWelldata() != null && !newMeasurementDTO.getWelldata().isEmpty()) {
-                measService.setMeasWellData(newMeas.getId(), newMeasurementDTO.getWelldata());
-                newMeasurementDTO.setWelldata(null);
-            }
-
-            return new ResponseEntity<>(newMeas, HttpStatus.CREATED);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage(), e);
+        	return ResponseEntity.ok(measService.getAllMeasurements());
         }
     }
 
-    @RequestMapping(value = "/meas", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<MeasurementDTO>> getMeasurements(@RequestParam(name = "filter", required = false) Map<String, String> filters,
-                                                                @RequestParam(name = "measIds", required = false) List<Long> measIds) {
-        if (CollectionUtils.isNotEmpty(measIds)) {
-            return ResponseEntity.ok(measService.getMeasurementsByIds(measIds));
-        }
-        return ResponseEntity.ok(measService.getAllMeasurements());
-    }
-
-    @RequestMapping(value = "/meas/{measId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<MeasurementDTO> getMeasurement(@PathVariable long measId) {
-        return ResponseEntity.of(measService.findMeasById(measId));
-    }
-
-    @RequestMapping(value = "/meas/between/{date1}/{date2}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<MeasurementDTO>> getMeasurementsBetween(
-            @PathVariable @DateTimeFormat(pattern = "dd-MM-yyyy") Date date1,
-            @PathVariable @DateTimeFormat(pattern = "dd-MM-yyyy") Date date2) {
-        return ResponseEntity.ok(measService.findMeasByCreatedOnRange(date1, date2));
-    }
-
-    @RequestMapping(value = "/meas/{measId}", method = RequestMethod.DELETE)
-    public ResponseEntity<Void> deleteMeasurement(@PathVariable long measId) {
-        if (!measService.measExists(measId)) return ResponseEntity.notFound().build();
-        measService.deleteMeas(measId);
-        return ResponseEntity.noContent().build();
-    }
-
-    @RequestMapping(value = "/meas/capture-job/{captureJobId}", method = RequestMethod.DELETE)
-    public ResponseEntity<Void> deleteMeasurementByCaptureJobId(@PathVariable long captureJobId) {
-        if (!measService.measWithCaptureJobIdExists(captureJobId)) return ResponseEntity.notFound().build();
-        measService.deleteMeasWithCaptureJobId(captureJobId);
+    @DeleteMapping(value = "/{measurementId}")
+    public ResponseEntity<Void> deleteMeasurement(@PathVariable long measurementId) {
+        if (!measService.measExists(measurementId)) return ResponseEntity.notFound().build();
+        measService.deleteMeas(measurementId);
         return ResponseEntity.noContent().build();
     }
 
@@ -143,14 +99,14 @@ public class MeasController {
      * ********
      */
 
-    @RequestMapping(value = "/meas/{measId}/welldata", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, float[]>> getWellData(@PathVariable long measId) {
-        return ResponseEntity.of(Optional.ofNullable(measService.getWellData(measId)));
+    @GetMapping(value = "/{measurementId}/welldata")
+    public ResponseEntity<Map<String, float[]>> getWellData(@PathVariable long measurementId) {
+        return ResponseEntity.of(Optional.ofNullable(measService.getWellData(measurementId)));
     }
 
-    @RequestMapping(value = "/meas/{measId}/welldata/{column}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<float[]> getWellData(@PathVariable long measId, @PathVariable String column) {
-        return ResponseEntity.of(Optional.ofNullable(measService.getWellData(measId, column)));
+    @GetMapping(value = "/{measurementId}/welldata/{column}")
+    public ResponseEntity<float[]> getWellData(@PathVariable long measurementId, @PathVariable String column) {
+        return ResponseEntity.of(Optional.ofNullable(measService.getWellData(measurementId, column)));
     }
 
     /**
@@ -158,20 +114,20 @@ public class MeasController {
      * ***********
      */
 
-    @RequestMapping(value = "/meas/{measId}/subwelldata/{column}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> setSubWellData(@PathVariable long measId, @PathVariable String column, @RequestBody Map<Integer, float[]> dataMap) {
-        measService.setMeasSubWellData(measId, column, dataMap);
+    @PostMapping(value = "/{measurementId}/subwelldata/{column}")
+    public ResponseEntity<Void> setSubWellData(@PathVariable long measurementId, @PathVariable String column, @RequestBody Map<Integer, float[]> dataMap) {
+        measService.setMeasSubWellData(measurementId, column, dataMap);
         return ResponseEntity.created(null).build();
     }
 
-    @RequestMapping(value = "/meas/{measId}/subwelldata/{column}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<Integer, float[]>> getSubWellData(@PathVariable long measId, @PathVariable String column) {
-        return ResponseEntity.of(Optional.ofNullable(measService.getSubWellData(measId, column)));
+    @GetMapping(value = "/{measurementId}/subwelldata/{column}")
+    public ResponseEntity<Map<Integer, float[]>> getSubWellData(@PathVariable long measurementId, @PathVariable String column) {
+        return ResponseEntity.of(Optional.ofNullable(measService.getSubWellData(measurementId, column)));
     }
 
-    @RequestMapping(value = "/meas/{measId}/subwelldata/{column}/{wellNr}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<float[]> getSubWellData(@PathVariable long measId, @PathVariable String column, @PathVariable int wellNr) {
-        return ResponseEntity.of(Optional.ofNullable(measService.getSubWellData(measId, wellNr, column)));
+    @GetMapping(value = "/{measurementId}/subwelldata/{column}/{wellNr}")
+    public ResponseEntity<float[]> getSubWellData(@PathVariable long measurementId, @PathVariable String column, @PathVariable int wellNr) {
+        return ResponseEntity.of(Optional.ofNullable(measService.getSubWellData(measurementId, wellNr, column)));
     }
 
     /**
@@ -179,25 +135,25 @@ public class MeasController {
      * *********
      */
 
-    @RequestMapping(value = "/meas/{measId}/imagedata/{wellNr}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> setImageData(@PathVariable long measId, @PathVariable int wellNr, @RequestBody Map<String, byte[]> dataMap) {
-        measService.setMeasImageData(measId, wellNr, dataMap);
+    @PostMapping(value = "/{measurementId}/imagedata/{wellNr}")
+    public ResponseEntity<Void> setImageData(@PathVariable long measurementId, @PathVariable int wellNr, @RequestBody Map<String, byte[]> dataMap) {
+        measService.setMeasImageData(measurementId, wellNr, dataMap);
         return ResponseEntity.created(null).build();
     }
 
-    @RequestMapping(value = "/meas/{measId}/imagedata/{wellNr}/{channel}", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Void> setImageData(@PathVariable long measId, @PathVariable int wellNr, @PathVariable String channel, @RequestBody byte[] imageData) {
-        measService.setMeasImageData(measId, wellNr, channel, imageData);
+    @PostMapping(value = "/{measurementId}/imagedata/{wellNr}/{channel}")
+    public ResponseEntity<Void> setImageData(@PathVariable long measurementId, @PathVariable int wellNr, @PathVariable String channel, @RequestBody byte[] imageData) {
+        measService.setMeasImageData(measurementId, wellNr, channel, imageData);
         return ResponseEntity.created(null).build();
     }
 
-    @RequestMapping(value = "/meas/{measId}/imagedata/{wellNr}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, byte[]>> getImageData(@PathVariable long measId, @PathVariable int wellNr) {
-        return ResponseEntity.of(Optional.ofNullable(measService.getImageData(measId, wellNr)));
+    @GetMapping(value = "/{measurementId}/imagedata/{wellNr}")
+    public ResponseEntity<Map<String, byte[]>> getImageData(@PathVariable long measurementId, @PathVariable int wellNr) {
+        return ResponseEntity.of(Optional.ofNullable(measService.getImageData(measurementId, wellNr)));
     }
 
-    @RequestMapping(value = "/meas/{measId}/imagedata/{wellNr}/{channel}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<byte[]> getImageData(@PathVariable long measId, @PathVariable int wellNr, @PathVariable String channel) {
-        return ResponseEntity.of(Optional.ofNullable(measService.getImageData(measId, wellNr, channel)));
+    @GetMapping(value = "/{measurementId}/imagedata/{wellNr}/{channel}")
+    public ResponseEntity<byte[]> getImageData(@PathVariable long measurementId, @PathVariable int wellNr, @PathVariable String channel) {
+        return ResponseEntity.of(Optional.ofNullable(measService.getImageData(measurementId, wellNr, channel)));
     }
 }

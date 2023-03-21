@@ -20,17 +20,24 @@
  */
 package eu.openanalytics.phaedra.measservice.service;
 
-import com.google.common.primitives.Longs;
-import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
-import eu.openanalytics.phaedra.measservice.model.Measurement;
-import eu.openanalytics.phaedra.measservice.repository.MeasDataRepository;
-import eu.openanalytics.phaedra.measservice.repository.MeasRepository;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import com.google.common.primitives.Longs;
+
+import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
+import eu.openanalytics.phaedra.measservice.model.Measurement;
+import eu.openanalytics.phaedra.measservice.repository.MeasDataRepository;
+import eu.openanalytics.phaedra.measservice.repository.MeasRepository;
+import eu.openanalytics.phaedra.util.auth.IAuthorizationService;
 
 @Component
 public class MeasServiceImpl implements MeasService {
@@ -38,18 +45,21 @@ public class MeasServiceImpl implements MeasService {
 	private final MeasRepository measRepo;
 	private final MeasDataRepository measDataRepo;
 	private final ModelMapper modelMapper;
+	private final IAuthorizationService authService;
 
-	public MeasServiceImpl(MeasRepository measRepo, MeasDataRepository measDataRepo, ModelMapper modelMapper) {
+	public MeasServiceImpl(MeasRepository measRepo, MeasDataRepository measDataRepo, ModelMapper modelMapper, IAuthorizationService authService) {
 		this.measRepo = measRepo;
 		this.measDataRepo = measDataRepo;
 		this.modelMapper = modelMapper;
+		this.authService = authService;
 	}
 
 	@Override
-	public Measurement createNewMeas(Measurement measInfo) {
-		measInfo.setCreatedOn(new Date());
-		validateMeas(measInfo, true);
-		return measRepo.save(measInfo);
+	public Measurement createNewMeas(Measurement measurement) {
+		measurement.setCreatedBy(authService.getCurrentPrincipalName());
+		measurement.setCreatedOn(new Date());
+		validateMeas(measurement, true);
+		return measRepo.save(measurement);
 	}
 
 	@Override
