@@ -55,8 +55,6 @@ services:
       - S3_PASSWORD=EDBLww/4z6XzPFRkAQAm81UTBuEhyZF8h6LfLXB6
       - S3_BUCKET=phaedra2-poc-measdata
       - S3_ENDPOINT=https://s3.eu-west-1.amazonaws.com
-      - JAVA_OPTS=
-        -DSERVICE_REGISTRY=http://phaedra2-serviceregistry:8761/eureka/
 networks:
   private:
     name: private
