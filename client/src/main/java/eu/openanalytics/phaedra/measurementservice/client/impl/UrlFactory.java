@@ -35,13 +35,13 @@ public class UrlFactory {
     }
 
     public static String getMeasurementsByMeasIds(long... measIds) {
-        String url = new StringBuilder(MEAS_SERVICE).append("/meas").toString();
+        String url = new StringBuilder(MEAS_SERVICE).append("/measurements").toString();
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
                 .queryParam("measIds", StringUtils.join(measIds,','));
         return builder.build().toString();
     }
 
     public static String getAllMeasurements() {
-        return new StringBuilder(MEAS_SERVICE).append("/meas").toString();
+        return new StringBuilder(MEAS_SERVICE).append("/measurements").toString();
     }
 }
