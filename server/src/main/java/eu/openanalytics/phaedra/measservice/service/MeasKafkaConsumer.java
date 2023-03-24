@@ -39,12 +39,13 @@ public class MeasKafkaConsumer {
 
     private static final String TOPIC = "datacapture";
     private static final String EVENT_SAVE_MEAS = "saveMeasurement";
+    private static final String GROUP_ID = "measurement-service";
     
     public MeasKafkaConsumer(MeasService measService) {
         this.measService = measService;
     }
 
-    @KafkaListener(topics = TOPIC)
+    @KafkaListener(topics = TOPIC, groupId = GROUP_ID)
     public void onNewMeasurement(NewMeasurementDTO newMeasurementDTO, @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) String msgKey) throws MeasurementConsumerException {
         if (!EVENT_SAVE_MEAS.equals(msgKey)) return;
         
