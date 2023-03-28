@@ -25,19 +25,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import eu.openanalytics.phaedra.measservice.exception.MeasurementNotFoundException;
+import eu.openanalytics.phaedra.measservice.service.MeasServiceImpl;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -67,6 +62,20 @@ public class MeasController {
         return new ResponseEntity<>(meas, HttpStatus.CREATED);
     }
 
+    @PutMapping(value = "/{measurementId}")
+    public ResponseEntity<?> updateMeasurement(@PathVariable long measurementId, @RequestBody MeasurementDTO measurementDTO) throws JsonProcessingException {
+        if (measurementId != measurementDTO.getId())
+            return ResponseEntity.badRequest().build();
+
+        try {
+            Measurement measurement = measService.updateMeasurement(measurementDTO);
+            return new ResponseEntity<>(measurement, HttpStatus.OK);
+        } catch (MeasurementNotFoundException e) {
+            return ResponseEntity.noContent().build();
+        }
+
+    }
+
     @GetMapping(value = "/{measurementId}")
     public ResponseEntity<MeasurementDTO> getMeasurement(@PathVariable long measurementId) {
         return ResponseEntity.of(measService.findMeasById(measurementId));
@@ -77,11 +86,11 @@ public class MeasController {
     		@RequestParam(name = "ids", required = false) List<Long> ids,
     		@RequestParam(name = "fromDate", required = false) @DateTimeFormat(pattern = "dd-MM-yyyy") Date fromDate,
     		@RequestParam(name = "toDate", required = false) @DateTimeFormat(pattern = "dd-MM-yyyy") Date toDate) {
-    	
+
         if (CollectionUtils.isNotEmpty(ids)) {
             return ResponseEntity.ok(measService.getMeasurementsByIds(ids));
         } else if (fromDate != null || toDate != null) {
-        	return ResponseEntity.ok(measService.findMeasByCreatedOnRange(fromDate, toDate));	
+        	return ResponseEntity.ok(measService.findMeasByCreatedOnRange(fromDate, toDate));
         } else {
         	return ResponseEntity.ok(measService.getAllMeasurements());
         }

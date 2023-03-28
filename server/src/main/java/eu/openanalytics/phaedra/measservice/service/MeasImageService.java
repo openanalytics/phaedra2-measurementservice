@@ -45,9 +45,9 @@ import eu.openanalytics.phaedra.measservice.image.ImageCodestreamAccessorCache;
 @Service
 public class MeasImageService {
 
-	static {
-		OpenJPEGLibLoader.load();
-	}
+//	static {
+//		OpenJPEGLibLoader.load();
+//	}
 
 	@Autowired
 	private MeasService measService;

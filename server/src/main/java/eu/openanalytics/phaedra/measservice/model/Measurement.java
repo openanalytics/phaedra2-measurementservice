@@ -59,6 +59,12 @@ public class Measurement {
 	@Column
 	private String createdBy;
 
+	@Column
+	@JsonIgnore
+	private Date updatedOn;
+	@Column
+	private String updatedBy;
+
 	@Column("well_columns")
 	private String[] wellColumns;
 	@Column("subwell_columns")

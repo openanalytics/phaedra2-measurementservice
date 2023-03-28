@@ -11,3 +11,17 @@ databaseChangeLog:
             columnName: columns
             tableName: measurement
             schemaName: measservice
+  - changeSet:
+      id: 2
+      author: sberberovic
+      changes:
+        - addColumn:
+            tableName: measurement
+            columns:
+              - column:
+                  name: updated_on
+                  type: TIMESTAMP WITHOUT TIME ZONE
+              - column:
+                  name: updated_by
+                  type: TEXT
+

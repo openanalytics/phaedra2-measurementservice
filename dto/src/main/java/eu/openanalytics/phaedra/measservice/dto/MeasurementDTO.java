@@ -39,6 +39,8 @@ public class MeasurementDTO {
     private Integer columns;
     private Date createdOn;
     private String createdBy;
+    private Date updatedOn;
+    private String updatedBy;
     private String[] wellColumns;
     private String[] subWellColumns;
     private String[] imageChannels;

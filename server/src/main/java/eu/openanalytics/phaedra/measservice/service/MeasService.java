@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
+import eu.openanalytics.phaedra.measservice.exception.MeasurementNotFoundException;
 import org.springframework.stereotype.Service;
 
 import eu.openanalytics.phaedra.measservice.model.Measurement;
@@ -41,6 +42,13 @@ public interface MeasService {
 	 * @return The input measurement object, with a generated ID added to it.
 	 */
 	public Measurement createNewMeas(Measurement measInfo);
+
+	/**
+	 * Update an existing measurement
+	 * @param measurementDTO
+	 * @return
+	 */
+	Measurement updateMeasurement(MeasurementDTO measurementDTO) throws MeasurementNotFoundException;
 
 	/**
 	 * Get all available measurements

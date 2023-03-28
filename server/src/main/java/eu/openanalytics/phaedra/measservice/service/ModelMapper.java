@@ -22,9 +22,13 @@ package eu.openanalytics.phaedra.measservice.service;
 
 import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
 import eu.openanalytics.phaedra.measservice.model.Measurement;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.Conditions;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.stereotype.Service;
+
+import java.util.Arrays;
 
 @Service
 public class ModelMapper {
@@ -43,5 +47,41 @@ public class ModelMapper {
 
     Measurement map(MeasurementDTO measurementDTO) {
         return modelMapper.map(measurementDTO, Measurement.class);
+    }
+
+    Measurement map(Measurement measurement, MeasurementDTO measurementDTO) {
+        if (StringUtils.isNotBlank(measurementDTO.getName())
+                && !StringUtils.equals(measurement.getName(), measurementDTO.getName()))
+            measurement.setName(measurementDTO.getName());
+
+        if (StringUtils.isNotBlank(measurementDTO.getBarcode())
+                && !StringUtils.equals(measurement.getBarcode(), measurementDTO.getBarcode()))
+            measurement.setBarcode(measurementDTO.getBarcode());
+
+        if (StringUtils.isNotBlank(measurementDTO.getDescription())
+                && !StringUtils.equals(measurement.getDescription(), measurementDTO.getDescription()))
+            measurement.setDescription(measurementDTO.getDescription());
+
+        if (ArrayUtils.isNotEmpty(measurementDTO.getWellColumns())
+                && !Arrays.equals(measurement.getWellColumns(), measurementDTO.getWellColumns()))
+            measurement.setWellColumns(measurementDTO.getWellColumns());
+
+        if (ArrayUtils.isNotEmpty(measurementDTO.getSubWellColumns())
+                && !Arrays.equals(measurement.getSubWellColumns(), measurementDTO.getSubWellColumns()))
+            measurement.setSubWellColumns(measurementDTO.getSubWellColumns());
+
+        if (ArrayUtils.isNotEmpty(measurementDTO.getImageChannels())
+                && !Arrays.equals(measurement.getImageChannels(), measurementDTO.getImageChannels()))
+            measurement.setImageChannels(measurementDTO.getImageChannels());
+
+        if (measurementDTO.getColumns() != null
+                && !measurementDTO.getColumns().equals(measurement.getColumns()))
+            measurement.setColumns(measurementDTO.getColumns());
+
+        if (measurementDTO.getRows() != null
+                && !measurementDTO.getRows().equals(measurement.getRows()))
+            measurement.setRows(measurementDTO.getRows());
+
+        return measurement;
     }
 }

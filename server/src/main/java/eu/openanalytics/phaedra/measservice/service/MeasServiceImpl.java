@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import eu.openanalytics.phaedra.measservice.exception.MeasurementNotFoundException;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
@@ -60,6 +61,18 @@ public class MeasServiceImpl implements MeasService {
 		measurement.setCreatedOn(new Date());
 		validateMeas(measurement, true);
 		return measRepo.save(measurement);
+	}
+
+	@Override
+	public Measurement updateMeasurement(MeasurementDTO measurementDTO) throws MeasurementNotFoundException {
+		Optional<Measurement> result = measRepo.findById(measurementDTO.getId());
+		if (result.isPresent()) {
+			Measurement updated = modelMapper.map(result.get(), measurementDTO);
+			updated.setUpdatedBy(authService.getCurrentPrincipalName());
+			updated.setUpdatedOn(new Date());
+			return measRepo.save(updated);
+		}
+		throw new MeasurementNotFoundException(String.format("Mesurement %d not found", measurementDTO.getId()));
 	}
 
 	@Override
@@ -121,8 +134,6 @@ public class MeasServiceImpl implements MeasService {
 
 		if (meas == null)
 			throw new IllegalArgumentException(String.format("Cannot save welldata: measurement with ID %d does not exist", measId));
-		if (!ArrayUtils.isEmpty(meas.getWellColumns()))
-			throw new IllegalArgumentException(String.format("Cannot save welldata: measurement with ID %d already contains well data", measId));
 
 		int wellCount = meas.getRows() * meas.getColumns();
 		for (String column: wellData.keySet()) {
@@ -296,8 +307,6 @@ public class MeasServiceImpl implements MeasService {
 		if (isNewMeas) Assert.isTrue(meas.getId() == null, "New measurement must have ID equal to 0");
 		Assert.hasText(meas.getName(), "Measurement name cannot be empty");
 		Assert.hasText(meas.getBarcode(), "Measurement barcode cannot be empty");
-		Assert.isTrue(meas.getRows() > 0, "Measurement must have at least 1 row");
-		Assert.isTrue(meas.getColumns() > 0, "Measurement must have at least 1 column");
 		Assert.hasText(meas.getCreatedBy(), "Measurement creator cannot be empty");
 		Assert.notNull(meas.getCreatedOn(), "Measurement creation date cannot be null");
 	}
