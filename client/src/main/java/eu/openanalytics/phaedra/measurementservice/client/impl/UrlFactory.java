@@ -22,9 +22,6 @@ package eu.openanalytics.phaedra.measurementservice.client.impl;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.springframework.web.util.UriTemplate;
-
-import java.util.Arrays;
 
 public class UrlFactory {
 

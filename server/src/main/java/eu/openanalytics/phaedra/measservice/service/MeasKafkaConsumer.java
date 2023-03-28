@@ -24,11 +24,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler;
+import eu.openanalytics.phaedra.measservice.api.dto.NewMeasurementDTO;
 import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
 import eu.openanalytics.phaedra.measservice.dto.SubwellDataDTO;
 import eu.openanalytics.phaedra.measservice.dto.WellDataDTO;
-import io.swagger.v3.core.util.Json;
-import org.apache.commons.collections4.MapUtils;
+import eu.openanalytics.phaedra.measservice.exception.MeasurementConsumerException;
+import eu.openanalytics.phaedra.measservice.model.Measurement;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,10 +37,6 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Service;
-
-import eu.openanalytics.phaedra.measservice.api.dto.NewMeasurementDTO;
-import eu.openanalytics.phaedra.measservice.exception.MeasurementConsumerException;
-import eu.openanalytics.phaedra.measservice.model.Measurement;
 
 import java.io.IOException;
 import java.util.Optional;
