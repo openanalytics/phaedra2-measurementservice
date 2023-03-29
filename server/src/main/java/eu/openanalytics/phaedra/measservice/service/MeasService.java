@@ -121,6 +121,16 @@ public interface MeasService {
 	public void setMeasWellData(long measId, Map<String, float[]> wellData);
 
 	/**
+	 * Add well data to a measurement. Note that this can be done only once:
+	 * if a measurement already contains well data, an exception will be thrown.
+	 *
+	 * @param measId The ID of the measurement to add well data to.
+	 * @param column The name of the well data column
+	 * @param data The well data to add to the measurement.
+	 */
+	public void setMeasWellData(long measId, String column, float[] data);
+
+	/**
 	 * Retrieve the welldata for a measurement for a given column name.
 	 *
 	 * @param measId The ID of the measurement to get welldata for.

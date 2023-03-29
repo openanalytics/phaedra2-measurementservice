@@ -31,5 +31,7 @@ import java.util.Map;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class WellDataDTO {
     private long measurementId;
-    private Map<String, float[]> data;
+//    private Map<String, float[]> data;
+    private String column;
+    private float[] data;
 }

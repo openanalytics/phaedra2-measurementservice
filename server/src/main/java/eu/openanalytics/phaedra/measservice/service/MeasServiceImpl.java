@@ -127,7 +127,6 @@ public class MeasServiceImpl implements MeasService {
 		measDataRepo.deleteImageData(measId);*/
 	}
 
-
 	@Override
 	public void setMeasWellData(long measId, Map<String, float[]> wellData) {
 		Measurement meas = measRepo.findById(measId).orElse(null);
@@ -143,13 +142,40 @@ public class MeasServiceImpl implements MeasService {
 				throw new IllegalArgumentException(String.format(
 						"Cannot save welldata for measurement %d: column %s has an unexpected count (expected: %d, actual: %d)",
 						measId, column, wellCount, valueCount));
-		}
+			}
 
 		measDataRepo.setWellData(measId, wellData);
 
 		String[] wellColumns = wellData.keySet().stream().sorted().toArray(i -> new String[i]);
 		meas.setWellColumns(wellColumns);
 		measRepo.save(meas);
+	}
+
+
+	@Override
+//	public void setMeasWellData(long measId, Map<String, float[]> wellData) {
+	public void setMeasWellData(long measId, String column, float[] data) {
+		Measurement meas = measRepo.findById(measId).orElse(null);
+
+		if (meas == null)
+			throw new IllegalArgumentException(String.format("Cannot save welldata: measurement with ID %d does not exist", measId));
+
+		int wellCount = meas.getRows() * meas.getColumns();
+//		for (String column: wellData.keySet()) {
+//			float[] values = data.get(column);
+			int valueCount = data.length;
+			if (valueCount != wellCount)
+				throw new IllegalArgumentException(String.format(
+						"Cannot save welldata for measurement %d: column %s has an unexpected count (expected: %d, actual: %d)",
+						measId, column, wellCount, valueCount));
+//		}
+
+//		measDataRepo.setWellData(measId, wellData);
+		measDataRepo.setWellData(measId, column, data);
+
+//		String[] wellColumns = wellData.keySet().stream().sorted().toArray(i -> new String[i]);
+//		meas.setWellColumns(wellColumns);
+//		measRepo.save(meas);
 	}
 
 	@Override

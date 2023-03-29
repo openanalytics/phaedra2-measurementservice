@@ -30,6 +30,7 @@ import eu.openanalytics.phaedra.measservice.dto.SubwellDataDTO;
 import eu.openanalytics.phaedra.measservice.dto.WellDataDTO;
 import eu.openanalytics.phaedra.measservice.exception.MeasurementConsumerException;
 import eu.openanalytics.phaedra.measservice.model.Measurement;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +59,7 @@ public class MeasKafkaConsumer {
     }
 
     @KafkaListener(topics = TOPIC, groupId = GROUP_ID)
-    public void onNewMeasurement(NewMeasurementDTO newMeasurementDTO, @Header(KafkaHeaders.RECEIVED_MESSAGE_KEY) String msgKey) throws MeasurementConsumerException {
+    public void onNewMeasurement(NewMeasurementDTO newMeasurementDTO, @Header(KafkaHeaders.RECEIVED_KEY) String msgKey) throws MeasurementConsumerException {
         if (!EVENT_SAVE_MEAS.equals(msgKey)) return;
 
         logger.info("Create new measurement with " + newMeasurementDTO.getName() + " and barcode " + newMeasurementDTO.getBarcode());
@@ -104,8 +105,8 @@ public class MeasKafkaConsumer {
         Optional<MeasurementDTO> measurementDTO = measService.findMeasById(wellDataDTO.getMeasurementId());
         if (measurementDTO.isEmpty()) return;
 
-        if (isNotEmpty(wellDataDTO.getData())) {
-            measService.setMeasWellData(wellDataDTO.getMeasurementId(), wellDataDTO.getData());
+        if (ArrayUtils.isNotEmpty(wellDataDTO.getData())) {
+            measService.setMeasWellData(wellDataDTO.getMeasurementId(), wellDataDTO.getColumn(), wellDataDTO.getData());
         }
     }
 

@@ -25,11 +25,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.sql.Array;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -103,7 +99,29 @@ public class MeasWelldataDAO {
 			CopyManager cm = conn.unwrap(PgConnection.class).getCopyAPI();
 			cm.copyIn(sql, new ByteArrayInputStream(dataCSV));
 			conn.commit();
-		} catch (IOException | SQLException e) {
+		} catch (SQLException | IOException e) {
+			throw new RuntimeException("Failed to save measurement data", e);
+		}
+	}
+
+	public void saveData(long measId, String column, float[] data) {
+		if (data == null || ArrayUtils.isEmpty(data)) throw new RuntimeException("No measurement data provided");
+
+		String sql = String.format("select count(*) from %s.%s where meas_id = %d", schemaName, tableName, measId);
+		int rowCount = select(sql, rs -> (rs.next()) ? rs.getInt(1) : 0, 0);
+		if (rowCount > 0) throw new RuntimeException("Cannot save measurement data: data already exists for meas " + measId);
+
+		try (Connection conn = getConnection()) {
+			sql = String.format("insert into %s.%s(meas_id, column_name, \"values\") values (?, ?, ?)", schemaName, tableName);
+
+			PreparedStatement stmt= conn.prepareStatement(sql);
+			stmt.setLong(1, measId);
+			stmt.setString(2, column);
+			stmt.setObject(3, data);
+			stmt.executeUpdate();
+
+			conn.commit();
+		} catch (SQLException e) {
 			throw new RuntimeException("Failed to save measurement data", e);
 		}
 	}

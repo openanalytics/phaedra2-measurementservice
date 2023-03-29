@@ -60,6 +60,9 @@ public class MeasDataRepository {
 	public void setWellData(long measId, Map<String, float[]> wellData) {
 		welldataDAO.saveData(measId, wellData);
 	}
+	public void setWellData(long measId, String column, float[] data) {
+		welldataDAO.saveData(measId, column, data);
+	}
 
 	/*
 	 * Subwell data storage approach
