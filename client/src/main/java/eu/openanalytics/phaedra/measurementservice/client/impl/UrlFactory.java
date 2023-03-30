@@ -25,7 +25,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 public class UrlFactory {
 
-    private static final String MEAS_SERVICE = "http://phaedra-measurement-service/phaedra/measurement-service";
+    private static final String MEAS_SERVICE = "http://phaedra-measurement-service:8080/phaedra/measurement-service";
 
     public static String measurementWell(long measId, String columnName) {
         return String.format("%s/measurements/%s/welldata/%s", MEAS_SERVICE, measId, columnName);
