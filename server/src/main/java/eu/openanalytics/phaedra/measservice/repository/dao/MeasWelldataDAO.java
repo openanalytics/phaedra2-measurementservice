@@ -107,7 +107,7 @@ public class MeasWelldataDAO {
 	public void saveData(long measId, String column, float[] data) {
 		if (data == null || ArrayUtils.isEmpty(data)) throw new RuntimeException("No measurement data provided");
 
-		String sql = String.format("select count(*) from %s.%s where meas_id = %d", schemaName, tableName, measId);
+		String sql = String.format("select count(*) from %s.%s where meas_id = %d and column_name = '%s'", schemaName, tableName, measId, column);
 		int rowCount = select(sql, rs -> (rs.next()) ? rs.getInt(1) : 0, 0);
 		if (rowCount > 0) throw new RuntimeException("Cannot save measurement data: data already exists for meas " + measId);
 
