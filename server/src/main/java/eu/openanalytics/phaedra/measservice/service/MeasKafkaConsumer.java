@@ -93,11 +93,13 @@ public class MeasKafkaConsumer {
         objectMapper.addHandler(new DeserializationProblemHandler() {
             @Override
             public Object handleWeirdStringValue(DeserializationContext ctxt, Class<?> targetType, String valueToConvert, String failureMsg) throws IOException {
-                return NumberUtils.createFloat("-1.0");
+                logger.info("Value to convert: " + valueToConvert);
+                return StringUtils.isNotBlank(valueToConvert) ? NumberUtils.createFloat("-1.0") : Float.NaN;
             }
 
             @Override
             public Object handleWeirdNumberValue(DeserializationContext ctxt, Class<?> targetType, Number valueToConvert, String failureMsg) throws IOException {
+                logger.info("Value to convert: " + valueToConvert);
                 return -1;
             }
         });
