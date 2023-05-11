@@ -90,7 +90,7 @@ public class MeasKafkaConsumer {
 
 
     public void onSaveWellData(String wellData) throws JsonProcessingException {
-        String cleanWellDataString = wellData.replace("\r", "");
+        String cleanWellDataString = wellData.replace("\\r", "");
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.coercionConfigFor(Float.class)
                 .setCoercion(CoercionInputShape.EmptyString, CoercionAction.AsNull);
