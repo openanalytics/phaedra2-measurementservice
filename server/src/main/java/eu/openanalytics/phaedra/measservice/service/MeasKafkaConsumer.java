@@ -23,6 +23,8 @@ package eu.openanalytics.phaedra.measservice.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.cfg.CoercionAction;
+import com.fasterxml.jackson.databind.cfg.CoercionInputShape;
 import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler;
 import eu.openanalytics.phaedra.measservice.api.dto.NewMeasurementDTO;
 import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
@@ -40,7 +42,6 @@ import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.Optional;
 
 import static eu.openanalytics.phaedra.measservice.config.KafkaConfig.*;
@@ -63,7 +64,7 @@ public class MeasKafkaConsumer {
     public void onNewMeasurement(NewMeasurementDTO newMeasurementDTO, @Header(KafkaHeaders.RECEIVED_KEY) String msgKey) throws MeasurementConsumerException {
         if (!EVENT_SAVE_MEAS.equals(msgKey)) return;
 
-        logger.info("Create new measurement with " + newMeasurementDTO.getName() + " and barcode " + newMeasurementDTO.getBarcode());
+        logger.info(String.format("Create new measurement with %s and barcode %s", newMeasurementDTO.getName(), newMeasurementDTO.getBarcode()));
         try {
             // Step 1: persist a new Measurement entity
             Measurement newMeas = measService.createNewMeas(newMeasurementDTO.asMeasurement());
@@ -90,16 +91,19 @@ public class MeasKafkaConsumer {
 
     public void onSaveWellData(String wellData) throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.coercionConfigFor(Float.class)
+                .setCoercion(CoercionInputShape.EmptyString, CoercionAction.AsNull);
+
         objectMapper.addHandler(new DeserializationProblemHandler() {
             @Override
-            public Object handleWeirdStringValue(DeserializationContext ctxt, Class<?> targetType, String valueToConvert, String failureMsg) throws IOException {
-                logger.info("Value to convert: " + valueToConvert);
+            public Object handleWeirdStringValue(DeserializationContext ctxt, Class<?> targetType, String valueToConvert, String failureMsg) {
+                logger.info(String.format("Value to convert: %s", valueToConvert));
                 return StringUtils.isNotBlank(valueToConvert) ? NumberUtils.createFloat("-1.0") : Float.NaN;
             }
 
             @Override
-            public Object handleWeirdNumberValue(DeserializationContext ctxt, Class<?> targetType, Number valueToConvert, String failureMsg) throws IOException {
-                logger.info("Value to convert: " + valueToConvert);
+            public Object handleWeirdNumberValue(DeserializationContext ctxt, Class<?> targetType, Number valueToConvert, String failureMsg) {
+                logger.info(String.format("Value to convert: %s", valueToConvert));
                 return -1;
             }
         });
@@ -117,12 +121,11 @@ public class MeasKafkaConsumer {
         SubwellDataDTO subwellDataDTO = new ObjectMapper().readValue(subwellData, SubwellDataDTO.class);
         Optional<MeasurementDTO> measurement = measService.findMeasById(subwellDataDTO.getMeasurementId());
 
-        if (measurement.isPresent()) {
-            if (isNotEmpty(subwellDataDTO.getData())) {
-                subwellDataDTO.getData().keySet().parallelStream().forEach(column -> {
-                    measService.setMeasSubWellData(subwellDataDTO.getMeasurementId(), subwellDataDTO.getWellId(), StringUtils.trim(column), subwellDataDTO.getData().get(column));
-                });
-            }
+        if (measurement.isPresent() && (isNotEmpty(subwellDataDTO.getData()))) {
+            subwellDataDTO.getData().keySet()
+                    .parallelStream().forEach(column -> measService.setMeasSubWellData(subwellDataDTO.getMeasurementId(),
+                            subwellDataDTO.getWellId(), StringUtils.trim(column), subwellDataDTO.getData().get(column)));
+
         }
     }
 }

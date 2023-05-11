@@ -17,7 +17,7 @@
 	<properties>
         <java.version>16</java.version>
         <spring-cloud.version>2020.0.3</spring-cloud.version>
-        
+
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <docker.imageName>openanalytics/${project.parent.artifactId}</docker.imageName>
@@ -33,7 +33,7 @@
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-aws-autoconfigure</artifactId>
 		</dependency>
-		
+
 		<!-- Apache Commons -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -92,6 +92,10 @@
 			<version>1.16.0</version>
 			<scope>test</scope>
 		</dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
 
     </dependencies>
 
@@ -113,7 +117,7 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
-			
+
             <plugin>
                 <groupId>io.fabric8</groupId>
 				<artifactId>docker-maven-plugin</artifactId>
