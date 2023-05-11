@@ -20,25 +20,18 @@
  */
 package eu.openanalytics.phaedra.measservice.service;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import eu.openanalytics.phaedra.measservice.exception.MeasurementNotFoundException;
-import org.apache.commons.lang3.ArrayUtils;
-import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
-
 import com.google.common.primitives.Longs;
-
 import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
+import eu.openanalytics.phaedra.measservice.exception.MeasurementNotFoundException;
 import eu.openanalytics.phaedra.measservice.model.Measurement;
 import eu.openanalytics.phaedra.measservice.repository.MeasDataRepository;
 import eu.openanalytics.phaedra.measservice.repository.MeasRepository;
 import eu.openanalytics.phaedra.util.auth.IAuthorizationService;
+import org.apache.commons.lang3.ArrayUtils;
+import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
+
+import java.util.*;
 
 @Component
 public class MeasServiceImpl implements MeasService {
@@ -78,7 +71,7 @@ public class MeasServiceImpl implements MeasService {
 	@Override
 	public List<MeasurementDTO> getAllMeasurements() {
 		List<Measurement> result = (List<Measurement>) measRepo.findAll();
-		return result.stream().map(modelMapper::map).collect(Collectors.toList());
+		return result.stream().map(modelMapper::map).toList();
 	}
 
 	@Override
@@ -90,13 +83,13 @@ public class MeasServiceImpl implements MeasService {
 	@Override
 	public List<MeasurementDTO> getMeasurementsByIds(List<Long> measIds) {
 		List<Measurement> result = measRepo.findAllByIds(Longs.toArray(measIds));
-		return result.stream().map(modelMapper::map).collect(Collectors.toList());
+		return result.stream().map(modelMapper::map).toList();
 	}
 
 	@Override
 	public List<MeasurementDTO> findMeasByCreatedOnRange(Date date1, Date date2) {
 		List<Measurement> result = measRepo.findByCreatedOnRange(date1, date2);
-		return result.stream().map(modelMapper::map).collect(Collectors.toList());
+		return result.stream().map(modelMapper::map).toList();
 	}
 
 	@Override
@@ -146,7 +139,7 @@ public class MeasServiceImpl implements MeasService {
 
 		measDataRepo.setWellData(measId, wellData);
 
-		String[] wellColumns = wellData.keySet().stream().sorted().toArray(i -> new String[i]);
+		String[] wellColumns = wellData.keySet().stream().sorted().toArray(String[]::new);
 		meas.setWellColumns(wellColumns);
 		measRepo.save(meas);
 	}
@@ -192,7 +185,7 @@ public class MeasServiceImpl implements MeasService {
 					String.format("Cannot save subwelldata: measurement with ID %d already contains subwelldata for column %s", measId, column));
 		}
 		if (subWellData == null || subWellData.isEmpty()) {
-			throw new IllegalArgumentException(String.format("Cannot save subwelldata: no data provided"));
+			throw new IllegalArgumentException("Cannot save subwelldata: no data provided");
 		}
 
 		int wellCount = meas.getRows() * meas.getColumns();
@@ -205,7 +198,7 @@ public class MeasServiceImpl implements MeasService {
 
 		// Register the new column in the measurement.
 		String[] subWellColumns = ArrayUtils.add(meas.getSubWellColumns(), column);
-		subWellColumns = Arrays.stream(subWellColumns).sorted().toArray(i -> new String[i]);
+		subWellColumns = Arrays.stream(subWellColumns).sorted().toArray(String[]::new);
 		meas.setSubWellColumns(subWellColumns);
 		measRepo.save(meas);
 	}
@@ -218,7 +211,7 @@ public class MeasServiceImpl implements MeasService {
 			throw new IllegalArgumentException(String.format("Cannot save subwelldata: measurement with ID %d does not exist", measId));
 		}
 		if (subWellData == null || ArrayUtils.isEmpty(subWellData)) {
-			throw new IllegalArgumentException(String.format("Cannot save subwelldata: no data provided"));
+			throw new IllegalArgumentException("Cannot save subwelldata: no data provided");
 		}
 
 		measDataRepo.putSubWellData(measId, wellNr, column, subWellData);
@@ -244,10 +237,10 @@ public class MeasServiceImpl implements MeasService {
 			throw new IllegalArgumentException(String.format("Cannot save image data: measurement with ID %d does not exist", measId));
 		}
 		if (imageData == null || imageData.isEmpty()) {
-			throw new IllegalArgumentException(String.format("Cannot save image data: no data provided"));
+			throw new IllegalArgumentException("Cannot save image data: no data provided");
 		}
 
-		String[] channelNames = imageData.keySet().stream().sorted().toArray(i -> new String[i]);
+		String[] channelNames = imageData.keySet().stream().sorted().toArray(String[]::new);
 		if (meas.getImageChannels() != null && !Arrays.equals(channelNames, meas.getImageChannels())) {
 			throw new IllegalArgumentException("Cannot save image data: provided channel names do not match the measurement channel names");
 		}
@@ -268,10 +261,10 @@ public class MeasServiceImpl implements MeasService {
 			throw new IllegalArgumentException(String.format("Cannot save image data: measurement with ID %d does not exist", measId));
 		}
 		if (imageData == null || imageData.length == 0) {
-			throw new IllegalArgumentException(String.format("Cannot save image data: no data provided"));
+			throw new IllegalArgumentException("Cannot save image data: no data provided");
 		}
 		if (channelId == null || channelId.trim().isEmpty()) {
-			throw new IllegalArgumentException(String.format("Cannot save image data: no channel id provided"));
+			throw new IllegalArgumentException("Cannot save image data: no channel id provided");
 		}
 
 		measDataRepo.putImageData(measId, wellNr, channelId, imageData);
