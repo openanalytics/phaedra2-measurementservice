@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.cfg.CoercionAction;
 import com.fasterxml.jackson.databind.cfg.CoercionInputShape;
 import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler;
+import com.fasterxml.jackson.databind.type.LogicalType;
 import eu.openanalytics.phaedra.measservice.api.dto.NewMeasurementDTO;
 import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
 import eu.openanalytics.phaedra.measservice.dto.SubwellDataDTO;
@@ -42,6 +43,7 @@ import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.Optional;
 
 import static eu.openanalytics.phaedra.measservice.config.KafkaConfig.*;
@@ -92,14 +94,14 @@ public class MeasKafkaConsumer {
     public void onSaveWellData(String wellData) throws JsonProcessingException {
         String cleanWellDataString = wellData.replace("\\r", "");
         ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.coercionConfigFor(Float.class)
-                .setCoercion(CoercionInputShape.EmptyString, CoercionAction.AsNull);
+//        objectMapper.coercionConfigFor(LogicalType.Float)
+//                .setCoercion(CoercionInputShape.EmptyString, CoercionAction.AsNull);
 
         objectMapper.addHandler(new DeserializationProblemHandler() {
             @Override
             public Object handleWeirdStringValue(DeserializationContext ctxt, Class<?> targetType, String valueToConvert, String failureMsg) {
                 logger.info(String.format("Value to convert: %s", valueToConvert));
-                return StringUtils.isNotBlank(valueToConvert) ? NumberUtils.createFloat("-1.0") : Float.NaN;
+                return NumberUtils.isParsable(valueToConvert) ? NumberUtils.createFloat("-1.0") : Float.NaN;
             }
 
             @Override
