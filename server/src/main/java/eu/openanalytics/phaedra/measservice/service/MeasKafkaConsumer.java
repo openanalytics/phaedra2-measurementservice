@@ -94,8 +94,6 @@ public class MeasKafkaConsumer {
     public void onSaveWellData(String wellData) throws JsonProcessingException {
         String cleanWellDataString = wellData.replace("\\r", "");
         ObjectMapper objectMapper = new ObjectMapper();
-//        objectMapper.coercionConfigFor(LogicalType.Float)
-//                .setCoercion(CoercionInputShape.EmptyString, CoercionAction.AsNull);
 
         objectMapper.addHandler(new DeserializationProblemHandler() {
             @Override
@@ -112,11 +110,13 @@ public class MeasKafkaConsumer {
         });
 
         WellDataDTO wellDataDTO = objectMapper.readValue(cleanWellDataString, WellDataDTO.class);
-        Optional<MeasurementDTO> measurementDTO = measService.findMeasById(wellDataDTO.getMeasurementId());
-        if (measurementDTO.isEmpty()) return;
+        if (StringUtils.isNotBlank(wellDataDTO.getColumn())) {
+            Optional<MeasurementDTO> measurementDTO = measService.findMeasById(wellDataDTO.getMeasurementId());
+            if (measurementDTO.isEmpty()) return;
 
-        if (ArrayUtils.isNotEmpty(wellDataDTO.getData())) {
-            measService.setMeasWellData(wellDataDTO.getMeasurementId(), wellDataDTO.getColumn(), wellDataDTO.getData());
+            if (ArrayUtils.isNotEmpty(wellDataDTO.getData())) {
+                measService.setMeasWellData(wellDataDTO.getMeasurementId(), wellDataDTO.getColumn(), wellDataDTO.getData());
+            }
         }
     }
 
