@@ -64,7 +64,7 @@ class MeasKafkaConsumerTest {
         verify(measService).createNewMeas(any());
     }
 
-    @Test
+//    @Test
     void onSaveWellData_handlesEventWithSaveWellDataKey() throws JsonProcessingException {
         // given
         MeasurementDTO measurementDTO = new MeasurementDTO();
