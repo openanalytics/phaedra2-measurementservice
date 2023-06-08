@@ -44,6 +44,8 @@ import java.util.Optional;
 
 import static eu.openanalytics.phaedra.measservice.config.KafkaConfig.*;
 import static org.apache.commons.collections4.MapUtils.isNotEmpty;
+import static org.apache.commons.lang3.ArrayUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.*;
 
 @Service
 public class MeasKafkaConsumer {
@@ -106,25 +108,36 @@ public class MeasKafkaConsumer {
         });
 
         WellDataDTO wellDataDTO = objectMapper.readValue(cleanWellDataString, WellDataDTO.class);
-        if (StringUtils.isNotBlank(wellDataDTO.getColumn())) {
-            Optional<MeasurementDTO> measurementDTO = measService.findMeasById(wellDataDTO.getMeasurementId());
-            if (measurementDTO.isEmpty()) return;
-
-            if (ArrayUtils.isNotEmpty(wellDataDTO.getData())) {
+        if (isNotBlank(wellDataDTO.getColumn())) {
+            if (isNotEmpty(wellDataDTO.getData())) {
                 measService.setMeasWellData(wellDataDTO.getMeasurementId(), wellDataDTO.getColumn(), wellDataDTO.getData());
             }
         }
     }
 
     public void onSaveSubwellData(String subwellData) throws JsonProcessingException {
-        SubwellDataDTO subwellDataDTO = new ObjectMapper().readValue(subwellData, SubwellDataDTO.class);
-        Optional<MeasurementDTO> measurement = measService.findMeasById(subwellDataDTO.getMeasurementId());
+        String cleanSubWellDataString = subwellData.replace("\\r", "");
+        ObjectMapper objectMapper = new ObjectMapper();
 
-        if (measurement.isPresent() && (isNotEmpty(subwellDataDTO.getData()))) {
-            subwellDataDTO.getData().keySet()
-                    .parallelStream().forEach(column -> measService.setMeasSubWellData(subwellDataDTO.getMeasurementId(),
-                            subwellDataDTO.getWellId(), StringUtils.trim(column), subwellDataDTO.getData().get(column)));
+        objectMapper.addHandler(new DeserializationProblemHandler() {
+            @Override
+            public Object handleWeirdStringValue(DeserializationContext ctxt, Class<?> targetType, String valueToConvert, String failureMsg) {
+                logger.info(String.format("Value to convert: %s", valueToConvert));
+                return NumberUtils.isParsable(valueToConvert) ? NumberUtils.createFloat("-1.0") : Float.NaN;
+            }
 
+            @Override
+            public Object handleWeirdNumberValue(DeserializationContext ctxt, Class<?> targetType, Number valueToConvert, String failureMsg) {
+                logger.info(String.format("Value to convert: %s", valueToConvert));
+                return -1;
+            }
+        });
+
+        SubwellDataDTO subwellDataDTO = objectMapper.readValue(cleanSubWellDataString, SubwellDataDTO.class);
+        if (subwellDataDTO != null && isNotBlank(subwellDataDTO.getColumn())) {
+            if (isNotEmpty(subwellDataDTO.getData())) {
+                measService.setMeasSubWellData(subwellDataDTO.getMeasurementId(), subwellDataDTO.getWellId(), subwellDataDTO.getColumn(), subwellDataDTO.getData());
+            }
         }
     }
 }

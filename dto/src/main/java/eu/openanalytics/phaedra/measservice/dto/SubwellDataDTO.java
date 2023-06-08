@@ -34,6 +34,6 @@ public class SubwellDataDTO {
     private long measurementId;
     private int wellId;
     private String wellNr;
-    private Map<String, float[]> data;
-
+    private String column;
+    private float[] data;
 }
