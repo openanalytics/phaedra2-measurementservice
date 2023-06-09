@@ -30,7 +30,6 @@ import java.util.Map;
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SubwellDataDTO {
-
     private long measurementId;
     private int wellId;
     private String wellNr;
