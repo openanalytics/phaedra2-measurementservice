@@ -34,7 +34,7 @@ public class UrlFactory {
     public static String getMeasurementsByMeasIds(long... measIds) {
         String url = new StringBuilder(MEAS_SERVICE).append("/measurements").toString();
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
-                .queryParam("measIds", StringUtils.join(measIds,','));
+                .queryParam("ids", StringUtils.join(measIds,','));
         return builder.build().toString();
     }
 
