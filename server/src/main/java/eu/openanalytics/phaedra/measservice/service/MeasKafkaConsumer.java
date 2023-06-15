@@ -90,7 +90,9 @@ public class MeasKafkaConsumer {
 
 
     public void onSaveWellData(String wellData) throws JsonProcessingException {
-        String cleanWellDataString = wellData.replace("\\r", "");
+        logger.info("onSaveWellData -> " + wellData);
+
+        String cleanWellDataString = replace(wellData,"\\r", "");
         ObjectMapper objectMapper = new ObjectMapper();
 
         objectMapper.addHandler(new DeserializationProblemHandler() {
@@ -116,7 +118,9 @@ public class MeasKafkaConsumer {
     }
 
     public void onSaveSubwellData(String subwellData) throws JsonProcessingException {
-        String cleanSubWellDataString = subwellData.replace("\\r", "");
+        logger.info("onSaveSubwellData ->" + subwellData);
+
+        String cleanSubWellDataString = replace(subwellData, "\\r", "");
         ObjectMapper objectMapper = new ObjectMapper();
 
         objectMapper.addHandler(new DeserializationProblemHandler() {
