@@ -218,6 +218,18 @@ public class MeasServiceImpl implements MeasService {
 	}
 
 	@Override
+	public Map<String, float[]> getSubWellData(long measId, int wellNr) {
+		Optional<Measurement> measurement = measRepo.findById(measId);
+		if (!measurement.isPresent()) return null;
+
+		return Arrays.stream(measurement.get().getSubWellColumns())
+				.collect(HashMap::new, (map, column) -> {
+					float[] values = measDataRepo.getSubWellData(measId, wellNr, column);
+					map.put(column, values);
+				}, HashMap::putAll);
+	}
+
+	@Override
 	public float[] getSubWellData(long measId, int wellNr, String column) {
 		if (!measExists(measId)) return null;
 		return measDataRepo.getSubWellData(measId, wellNr, column);
