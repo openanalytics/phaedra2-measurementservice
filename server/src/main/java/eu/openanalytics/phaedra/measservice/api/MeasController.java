@@ -129,6 +129,11 @@ public class MeasController {
         return ResponseEntity.created(null).build();
     }
 
+    @GetMapping(value = "/{measurementId}/subwelldata")
+    public ResponseEntity<Map<String, float[]>> getSubWellData(@PathVariable long measurementId, @RequestParam List<String> columns, @RequestParam int wellNr) {
+        return ResponseEntity.of(Optional.ofNullable(measService.getSubWellData(measurementId, wellNr, columns)));
+    }
+
     @GetMapping(value = "/{measurementId}/subwelldata/{column}")
     public ResponseEntity<Map<Integer, float[]>> getSubWellData(@PathVariable long measurementId, @PathVariable String column) {
         return ResponseEntity.of(Optional.ofNullable(measService.getSubWellData(measurementId, column)));

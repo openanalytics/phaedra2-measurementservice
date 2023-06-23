@@ -185,6 +185,16 @@ public interface MeasService {
 	public float[] getSubWellData(long measId, int wellNr, String column);
 
 	/**
+	 * Retrieve the subwelldata for a measurement for a given well number and list of columns.
+	 *
+	 * @param measId The ID of the measurement to get subwelldata for.
+	 * @param wellNr The well number to get subwelldata for.
+	 * @param columns The name of the columns to get subwelldata for.
+	 * @return The subwelldata, may be null.
+	 */
+	public Map<String, float[]> getSubWellData(long measId, int wellNr, List<String> columns);
+
+	/**
 	 * Retrieve the subwelldata for a measurement for a given column name.
 	 *
 	 * @param measId The ID of the measurement to get subwelldata for.

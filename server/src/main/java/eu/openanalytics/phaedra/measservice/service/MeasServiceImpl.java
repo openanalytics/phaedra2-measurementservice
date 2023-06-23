@@ -235,6 +235,13 @@ public class MeasServiceImpl implements MeasService {
 		return measDataRepo.getSubWellData(measId, wellNr, column);
 	}
 
+	public Map<String, float[]> getSubWellData(long measId, int wellNr, List<String> columns) {
+		if (!measExists(measId)) return null;
+		Map<String, float[]> subWellData = new HashMap<>();
+		columns.forEach(column -> subWellData.put(column, measDataRepo.getSubWellData(measId, wellNr, column)));
+		return subWellData;
+	}
+
 	@Override
 	public Map<Integer, float[]> getSubWellData(long measId, String column) {
 		if (!measExists(measId)) return null;
