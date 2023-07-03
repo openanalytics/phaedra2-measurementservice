@@ -27,8 +27,12 @@ public class UrlFactory {
 
     private static final String MEAS_SERVICE = "http://phaedra-measurement-service:8080/phaedra/measurement-service";
 
-    public static String measurementWell(long measId, String columnName) {
+    public static String measurementWellData(long measId, String columnName) {
         return String.format("%s/measurements/%s/welldata/%s", MEAS_SERVICE, measId, columnName);
+    }
+    
+    public static String measurementSubWellData(long measId, String columnName) {
+        return String.format("%s/measurements/%s/subwelldata/%s", MEAS_SERVICE, measId, columnName);
     }
 
     public static String getMeasurementsByMeasIds(long... measIds) {
