@@ -30,6 +30,10 @@ public class UrlFactory {
     public static String measurementWellData(long measId, String columnName) {
         return String.format("%s/measurements/%s/welldata/%s", MEAS_SERVICE, measId, columnName);
     }
+    
+    public static String measurementSubWellData(long measId, String columnName) {
+        return String.format("%s/measurements/%s/subwelldata/%s", MEAS_SERVICE, measId, columnName);
+    }
 
     public static String measurementSubWellData(long measId, String columnName) {
         return String.format("%s/measurements/%s/subwelldata/%s", MEAS_SERVICE, measId, columnName);
