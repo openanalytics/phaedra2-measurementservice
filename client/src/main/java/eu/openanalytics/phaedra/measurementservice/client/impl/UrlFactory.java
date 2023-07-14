@@ -36,7 +36,7 @@ public class UrlFactory {
     }
 
     public static String getMeasurementsByMeasIds(long... measIds) {
-        String url = new StringBuilder(MEAS_SERVICE).append("/measurements").toString();
+        String url = String.format("%s/measurements", MEAS_SERVICE);
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
                 .queryParam("ids", StringUtils.join(measIds,','));
         return builder.build().toString();
@@ -47,6 +47,6 @@ public class UrlFactory {
     }
 
     public static String getAllMeasurements() {
-        return new StringBuilder(MEAS_SERVICE).append("/measurements").toString();
+        return String.format("%s/measurements", MEAS_SERVICE);
     }
 }
