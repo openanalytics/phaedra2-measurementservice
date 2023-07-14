@@ -51,7 +51,7 @@ public class HttpMeasurementServiceClient implements MeasurementServiceClient {
     @Override
     public float[] getWellData(long measId, String columnName) throws MeasUnresolvableException {
         try {
-            var res = restTemplate.exchange(UrlFactory.measurementWell(measId, columnName), HttpMethod.GET,
+            var res = restTemplate.exchange(UrlFactory.measurementWellData(measId, columnName), HttpMethod.GET,
             		new HttpEntity<>(makeHttpHeaders()), float[].class);
             if (res == null) throw new MeasUnresolvableException("WellData could not be converted");
             return res.getBody();
@@ -66,7 +66,7 @@ public class HttpMeasurementServiceClient implements MeasurementServiceClient {
 	@Override
     public Map<Integer, float[]> getSubWellData(long measId, String columnName) throws MeasUnresolvableException {
     	try {
-            var res = restTemplate.exchange(UrlFactory.measurementWell(measId, columnName), HttpMethod.GET,
+            var res = restTemplate.exchange(UrlFactory.measurementSubWellData(measId, columnName), HttpMethod.GET,
             		new HttpEntity<>(makeHttpHeaders()), Map.class);
             if (res == null) throw new MeasUnresolvableException("WellData could not be converted");
             return res.getBody();
