@@ -78,6 +78,13 @@ public class HttpMeasurementServiceClient implements MeasurementServiceClient {
     }
 
     @Override
+    public MeasurementDTO getMeasurementByMeasId(long measId) {
+        var response = restTemplate.exchange(UrlFactory.getMeasurementsByMeasId(measId), HttpMethod.GET,
+                new HttpEntity<>(makeHttpHeaders()), MeasurementDTO.class);
+        return response.getBody();
+    }
+
+    @Override
     public List<MeasurementDTO> getMeasurementsByMeasIds(long ...measIds) {
         if (measIds != null) {
             var res = restTemplate.exchange(UrlFactory.getMeasurementsByMeasIds(measIds), HttpMethod.GET,

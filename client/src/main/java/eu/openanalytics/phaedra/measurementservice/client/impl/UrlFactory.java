@@ -20,6 +20,7 @@
  */
 package eu.openanalytics.phaedra.measurementservice.client.impl;
 
+import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -31,6 +32,10 @@ public class UrlFactory {
         return String.format("%s/measurements/%s/welldata/%s", MEAS_SERVICE, measId, columnName);
     }
 
+    public static String getAllMeasurements() {
+        return String.format("%s/measurements/%s", MEAS_SERVICE);
+    }
+
     public static String getMeasurementsByMeasIds(long... measIds) {
         String url = new StringBuilder(MEAS_SERVICE).append("/measurements").toString();
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
@@ -38,7 +43,7 @@ public class UrlFactory {
         return builder.build().toString();
     }
 
-    public static String getAllMeasurements() {
-        return new StringBuilder(MEAS_SERVICE).append("/measurements").toString();
+    public static String getMeasurementsByMeasId(long measId) {
+        return String.format("%s/measurements/%s", MEAS_SERVICE, measId);
     }
 }

@@ -31,6 +31,7 @@ public interface MeasurementServiceClient {
     float[] getWellData(long measId, String columnName) throws MeasUnresolvableException;
     Map<Integer, float[]> getSubWellData(long measId, String columnName) throws MeasUnresolvableException;
 
+    MeasurementDTO getMeasurementByMeasId(long measId);
     List<MeasurementDTO> getMeasurementsByMeasIds(long ...measId);
 
 }
