@@ -28,15 +28,20 @@ import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
 @Configuration
 @EnableKafka
 public class KafkaConfig {
+	
     public static final String GROUP_ID = "measurements-service";
 
     // Topics
     public static final String TOPIC_MEASUREMENTS = "measurements";
+    public static final String TOPIC_DATACAPTURE = "datacapture";
 
     // Events
     public static final String EVENT_SAVE_WELL_DATA = "saveWellData";
     public static final String EVENT_SAVE_SUBWELL_DATA = "saveSubwellData";
-
+    
+    public static final String EVENT_NOTIFY_MEASUREMENT_CAPTURED = "notifyMeasurementCaptured";
+    public static final String EVENT_NOTIFY_NEW_MEASUREMENT = "notifyNewMeasurement";
+    
     @Bean
     public RecordFilterStrategy<String, String> saveWellDataFilter() {
         return rec -> !(rec.key().equalsIgnoreCase(EVENT_SAVE_WELL_DATA));
@@ -46,4 +51,10 @@ public class KafkaConfig {
     public RecordFilterStrategy<String, String> saveSubwellDataFilter() {
         return rec -> !(rec.key().equalsIgnoreCase(EVENT_SAVE_SUBWELL_DATA));
     }
+
+    @Bean
+    public RecordFilterStrategy<String, String> notifyMeasCapturedFilter() {
+        return rec -> !(rec.key().equalsIgnoreCase(EVENT_NOTIFY_MEASUREMENT_CAPTURED));
+    }
+
 }

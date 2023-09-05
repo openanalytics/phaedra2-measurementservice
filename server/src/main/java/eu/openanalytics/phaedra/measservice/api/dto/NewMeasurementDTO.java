@@ -45,7 +45,7 @@ public class NewMeasurementDTO {
 	private String[] wellColumns;
 	private String[] subWellColumns;
 	private String[] imageChannels;
-	private Long captureJobId;
+
 	@Transient
 	private Map<String, float[]> welldata;
 
@@ -69,7 +69,6 @@ public class NewMeasurementDTO {
 		meas.setWellColumns(getSubWellColumns());
 		meas.setSubWellColumns(getSubWellColumns());
 		meas.setImageChannels(getImageChannels());
-		meas.setCaptureJobId(getCaptureJobId());
 		return meas;
 	}
 }

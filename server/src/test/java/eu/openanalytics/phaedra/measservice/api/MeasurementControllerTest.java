@@ -20,10 +20,15 @@
  */
 package eu.openanalytics.phaedra.measservice.api;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
-import eu.openanalytics.phaedra.measservice.model.Measurement;
-import eu.openanalytics.phaedra.measservice.support.Containers;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.Date;
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -37,13 +42,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.util.Date;
-import java.util.List;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
+import eu.openanalytics.phaedra.measservice.model.Measurement;
+import eu.openanalytics.phaedra.measservice.support.Containers;
 
 @Testcontainers
 @SpringBootTest
@@ -103,7 +106,6 @@ public class MeasurementControllerTest {
         measurement.setColumns(30);
         measurement.setCreatedBy("smarien");
         measurement.setCreatedOn(new Date());
-        measurement.setCaptureJobId(50L);
 
         String requestBody = objectMapper.writeValueAsString(measurement);
 
@@ -115,12 +117,5 @@ public class MeasurementControllerTest {
         MeasurementDTO measurementDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), MeasurementDTO.class);
         assertThat(measurementDTO).isNotNull();
         assertThat(measurementDTO.getId()).isEqualTo(1L);
-    }
-
-    @Test
-    public void deleteMeasurementByCaptureJobIdNotFound() throws Exception{
-        this.mockMvc.perform(delete("/meas/capture-job/{captureJobId}", 2L))
-                .andDo(print())
-                .andExpect(status().isNotFound());
     }
 }

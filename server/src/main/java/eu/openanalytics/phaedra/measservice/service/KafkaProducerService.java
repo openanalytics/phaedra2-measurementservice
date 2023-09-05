@@ -18,31 +18,25 @@
  * You should have received a copy of the Apache License
  * along with this program.  If not, see <http://www.apache.org/licenses/>
  */
-package eu.openanalytics.phaedra.measservice.dto;
+package eu.openanalytics.phaedra.measservice.service;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Service;
 
-import java.util.Date;
+import eu.openanalytics.phaedra.measservice.config.KafkaConfig;
+import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
 
-@Data
-@NoArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class MeasurementDTO {
+@Service
+public class KafkaProducerService {
+	
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    private Long id;
-    private String name;
-    private String barcode;
-    private String description;
-    private Integer rows;
-    private Integer columns;
-    private Date createdOn;
-    private String createdBy;
-    private Date updatedOn;
-    private String updatedBy;
-    private String[] wellColumns;
-    private String[] subWellColumns;
-    private String[] imageChannels;
+    public KafkaProducerService(KafkaTemplate<String, Object> kafkaTemplate) {
+        this.kafkaTemplate = kafkaTemplate;
+    }
+
+    public void notifyNewMeasurementAvailable(MeasurementDTO meas) {
+    	kafkaTemplate.send(KafkaConfig.TOPIC_MEASUREMENTS, KafkaConfig.EVENT_NOTIFY_NEW_MEASUREMENT, meas);
+    }
 
 }

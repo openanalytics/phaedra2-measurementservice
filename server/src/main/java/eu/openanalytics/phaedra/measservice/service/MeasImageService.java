@@ -32,7 +32,6 @@ import org.springframework.stereotype.Service;
 
 import eu.openanalytics.phaedra.imaging.jp2k.ICodestreamSource;
 import eu.openanalytics.phaedra.imaging.jp2k.ICodestreamSourceDescriptor;
-import eu.openanalytics.phaedra.imaging.jp2k.openjpeg.OpenJPEGLibLoader;
 import eu.openanalytics.phaedra.imaging.jp2k.openjpeg.source.GenericByteSource;
 import eu.openanalytics.phaedra.imaging.render.ImageRenderConfig;
 import eu.openanalytics.phaedra.imaging.render.ImageRenderConfig.ChannelRenderConfig;

@@ -102,30 +102,6 @@ public class MeasServiceTest {
         Optional<MeasurementDTO> measurementDTO = measService.findMeasById(3000L);
         MeasurementDTO get = measurementDTO.get();
         assertThat(get.getBarcode()).isEqualTo("SBETST0001");
-        assertThat(get.getCaptureJobId()).isEqualTo(1L);
     }
 
-    @Test
-    public void existsByCaptureJobId() {
-        boolean comp = measService.measWithCaptureJobIdExists(1L);
-        assertThat(comp).isTrue();
-        boolean comp2 = measService.measWithCaptureJobIdExists(2L);
-        assertThat(comp2).isFalse();
-    }
-
-    @Test
-    public void deleteMeasurementByCaptureJobId() {
-        //Does a measurement with this id exist?
-        boolean comp = measService.measWithCaptureJobIdExists(1L);
-        assertThat(comp).isTrue();
-        //Delete
-        measService.deleteMeasWithCaptureJobId(1L);
-        //Does a measurement with this id exist?
-        boolean comp2 = measService.measWithCaptureJobIdExists(1L);
-        assertThat(comp2).isFalse();
-        //Are all measurements removed now?
-        List<MeasurementDTO> measurementDTOs = measService.getAllMeasurements();
-        assertThat(measurementDTOs.size()).isEqualTo(1);
-        assertThat(measurementDTOs.isEmpty()).isFalse();
-    }
 }

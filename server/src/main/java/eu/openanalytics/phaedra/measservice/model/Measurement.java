@@ -20,16 +20,18 @@
  */
 package eu.openanalytics.phaedra.measservice.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.util.Date;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Table("measurement")
 @Data
@@ -71,7 +73,4 @@ public class Measurement {
 	private String[] subWellColumns;
 	@Column("image_channels")
 	private String[] imageChannels;
-
-	@Column("capture_job_id")
-	private Long captureJobId;
 }

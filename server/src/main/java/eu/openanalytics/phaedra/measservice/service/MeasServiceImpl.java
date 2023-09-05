@@ -20,18 +20,26 @@
  */
 package eu.openanalytics.phaedra.measservice.service;
 
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ForkJoinPool;
+
+import org.apache.commons.lang3.ArrayUtils;
+import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
+
 import com.google.common.primitives.Longs;
+
 import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
 import eu.openanalytics.phaedra.measservice.exception.MeasurementNotFoundException;
 import eu.openanalytics.phaedra.measservice.model.Measurement;
 import eu.openanalytics.phaedra.measservice.repository.MeasDataRepository;
 import eu.openanalytics.phaedra.measservice.repository.MeasRepository;
 import eu.openanalytics.phaedra.util.auth.IAuthorizationService;
-import org.apache.commons.lang3.ArrayUtils;
-import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
-
-import java.util.*;
 
 @Component
 public class MeasServiceImpl implements MeasService {
@@ -65,7 +73,7 @@ public class MeasServiceImpl implements MeasService {
 			updated.setUpdatedOn(new Date());
 			return measRepo.save(updated);
 		}
-		throw new MeasurementNotFoundException(String.format("Mesurement %d not found", measurementDTO.getId()));
+		throw new MeasurementNotFoundException(String.format("Measurement %d not found", measurementDTO.getId()));
 	}
 
 	@Override
@@ -98,26 +106,16 @@ public class MeasServiceImpl implements MeasService {
 	}
 
 	@Override
-	public boolean measWithCaptureJobIdExists(long captureJobId){ return measRepo.existsByCaptureJobId(captureJobId);}
-
-	@Override
 	public void deleteMeas(long measId) {
-		//TODO Deletion should be queued in an async fashion.
 		measRepo.deleteById(measId);
-		measDataRepo.deleteWellData(measId);
-		measDataRepo.deleteSubWellData(measId);
-		measDataRepo.deleteImageData(measId);
-	}
 
-	@Override
-	public void deleteMeasWithCaptureJobId(long captureJobId) {
-		//TODO Deletion should be queued in an async fashion.
-		List<Measurement> measurements = measRepo.getMeasurementByCaptureJobId(captureJobId);
-		measRepo.deleteAll(measurements);
-		//TODO Deletion of all data.
-		/*measDataRepo.deleteWellData(measId);
-		measDataRepo.deleteSubWellData(measId);
-		measDataRepo.deleteImageData(measId);*/
+		// The bulk delete operation is performed async.
+		//TODO Implement deletion in a separate service with queueing and support for restarts
+		ForkJoinPool.commonPool().submit(() -> {
+			measDataRepo.deleteWellData(measId);
+			measDataRepo.deleteSubWellData(measId);
+			measDataRepo.deleteImageData(measId);
+		});
 	}
 
 	@Override

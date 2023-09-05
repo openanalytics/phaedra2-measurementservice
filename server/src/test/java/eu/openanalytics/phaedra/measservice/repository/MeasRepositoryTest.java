@@ -20,8 +20,10 @@
  */
 package eu.openanalytics.phaedra.measservice.repository;
 
-import eu.openanalytics.phaedra.measservice.model.Measurement;
-import eu.openanalytics.phaedra.measservice.support.Containers;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,10 +36,8 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.util.List;
-import java.util.function.Supplier;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import eu.openanalytics.phaedra.measservice.model.Measurement;
+import eu.openanalytics.phaedra.measservice.support.Containers;
 
 @Testcontainers
 @SpringBootTest
@@ -78,12 +78,6 @@ public class MeasRepositoryTest {
     public void findAllByIdsTest() {
         List<Measurement> measurements = measRepository.findAllByIds(new long[]{1000L,2000L,3000L});
         assertThat(measurements.isEmpty()).isFalse();
-        assertThat(measurements.size()).isEqualTo(3);
-    }
-
-    @Test
-    public void getByCaptureJobId() {
-        List<Measurement> measurements = measRepository.getMeasurementByCaptureJobId(1L);
         assertThat(measurements.size()).isEqualTo(3);
     }
 }
