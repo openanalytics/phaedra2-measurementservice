@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,6 +43,8 @@ import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
 import eu.openanalytics.phaedra.measservice.dto.SubwellDataDTO;
 import eu.openanalytics.phaedra.measservice.dto.WellDataDTO;
 import eu.openanalytics.phaedra.measservice.exception.MeasurementConsumerException;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Service
 public class KafkaConsumerService {
@@ -56,15 +59,16 @@ public class KafkaConsumerService {
         this.kafkaProducerService = kafkaProducerService;
     }
 
-    @KafkaListener(topics = TOPIC_DATACAPTURE, groupId = GROUP_ID, filter = "notifyMeasCapturedFilter")
-    public void onMeasCaptured(MeasurementDTO capturedMeas) throws MeasurementConsumerException {
-    	if (measService.measExists(capturedMeas.getId())) {
-    		MeasurementDTO meas = measService.findMeasById(capturedMeas.getId()).get();
+    @KafkaListener(topics = TOPIC_DATACAPTURE, groupId = GROUP_ID, filter = "notifyCaptureJobUpdatedFilter")
+    public void onCaptureJobUpdated(CaptureJobProgressDTO captureJob) throws MeasurementConsumerException {
+    	Long measId = captureJob.getMeasurementId();
+    	if (measId != null && measService.measExists(measId)) {
+    		MeasurementDTO meas = measService.findMeasById(measId).get();
     		kafkaProducerService.notifyNewMeasurementAvailable(meas);
     	}
     }
 
-    @KafkaListener(topics = TOPIC_MEASUREMENTS, groupId = GROUP_ID, filter = "saveWellDataFilter")
+    @KafkaListener(topics = TOPIC_MEASUREMENTS, groupId = GROUP_ID, filter = "requestMeasurementSaveWellDataFilter")
     public void onSaveWellData(String wellData) throws JsonProcessingException {
         String cleanWellDataString = replace(wellData,"\\r", "");
         ObjectMapper objectMapper = new ObjectMapper();
@@ -90,7 +94,7 @@ public class KafkaConsumerService {
             }
         }
     }
-    @KafkaListener(topics = TOPIC_MEASUREMENTS, groupId = GROUP_ID, filter = "saveSubwellDataFilter")
+    @KafkaListener(topics = TOPIC_MEASUREMENTS, groupId = GROUP_ID, filter = "requestMeasurementSaveSubwellDataFilter")
     public void onSaveSubwellData(String subwellData) throws JsonProcessingException {
         String cleanSubWellDataString = replace(subwellData, "\\r", "");
         ObjectMapper objectMapper = new ObjectMapper();
@@ -115,5 +119,17 @@ public class KafkaConsumerService {
                 measService.setMeasSubWellData(subwellDataDTO.getMeasurementId(), subwellDataDTO.getWellId(), subwellDataDTO.getColumn(), subwellDataDTO.getData());
             }
         }
+    }
+    
+    @Data
+    @NoArgsConstructor
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public static class CaptureJobProgressDTO {
+    	private Long id;
+    	private String sourcePath;
+    	private String statusCode;
+    	private String statusMessage;
+    	private Long measurementId;
+    	private String barcode;
     }
 }

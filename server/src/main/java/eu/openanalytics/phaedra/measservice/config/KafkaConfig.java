@@ -36,25 +36,25 @@ public class KafkaConfig {
     public static final String TOPIC_DATACAPTURE = "datacapture";
 
     // Events
-    public static final String EVENT_SAVE_WELL_DATA = "saveWellData";
-    public static final String EVENT_SAVE_SUBWELL_DATA = "saveSubwellData";
+    public static final String EVENT_REQ_MEAS_SAVE_WELL_DATA = "requestMeasurementSaveWellData";
+    public static final String EVENT_REQ_MEAS_SAVE_SUBWELL_DATA = "requestMeasurementSaveSubwellData";
     
-    public static final String EVENT_NOTIFY_MEASUREMENT_CAPTURED = "notifyMeasurementCaptured";
+    public static final String EVENT_NOTIFY_DC_JOB_UPDATED = "notifyCaptureJobUpdated";
     public static final String EVENT_NOTIFY_NEW_MEASUREMENT = "notifyNewMeasurement";
     
     @Bean
-    public RecordFilterStrategy<String, String> saveWellDataFilter() {
-        return rec -> !(rec.key().equalsIgnoreCase(EVENT_SAVE_WELL_DATA));
+    public RecordFilterStrategy<String, String> requestMeasurementSaveWellDataFilter() {
+        return rec -> !(rec.key().equalsIgnoreCase(EVENT_REQ_MEAS_SAVE_WELL_DATA));
     }
 
     @Bean
-    public RecordFilterStrategy<String, String> saveSubwellDataFilter() {
-        return rec -> !(rec.key().equalsIgnoreCase(EVENT_SAVE_SUBWELL_DATA));
+    public RecordFilterStrategy<String, String> requestMeasurementSaveSubwellDataFilter() {
+        return rec -> !(rec.key().equalsIgnoreCase(EVENT_REQ_MEAS_SAVE_SUBWELL_DATA));
     }
 
     @Bean
-    public RecordFilterStrategy<String, String> notifyMeasCapturedFilter() {
-        return rec -> !(rec.key().equalsIgnoreCase(EVENT_NOTIFY_MEASUREMENT_CAPTURED));
+    public RecordFilterStrategy<String, String> notifyCaptureJobUpdatedFilter() {
+        return rec -> !(rec.key().equalsIgnoreCase(EVENT_NOTIFY_DC_JOB_UPDATED));
     }
 
 }
