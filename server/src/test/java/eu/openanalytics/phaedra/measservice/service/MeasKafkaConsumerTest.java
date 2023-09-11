@@ -32,9 +32,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
+import eu.openanalytics.phaedra.measservice.dto.WellDataDTO;
 
 @ExtendWith(MockitoExtension.class)
 //@Testcontainers
@@ -46,14 +46,11 @@ class MeasKafkaConsumerTest {
     @Mock private MeasService measService;
     @InjectMocks private KafkaConsumerService measKafkaConsumer;
 
-    private ObjectMapper objectMapper;
-    private String wellDataJson;
+    private WellDataDTO wellData;
 
     @BeforeEach
     void setUp() {
-        objectMapper = new ObjectMapper();
-        wellDataJson =
-                "{\"measurementId\": 1, \"column\": \"TestColumn\", \"data\": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]}";
+        wellData = new WellDataDTO(1, "TestColumn", new float[] {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f});
     }
 
 //    @Test
@@ -64,9 +61,9 @@ class MeasKafkaConsumerTest {
         when(measService.findMeasById(measurementDTO.getId())).thenReturn(Optional.of(measurementDTO));
 
         // when
-        measKafkaConsumer.onSaveWellData(wellDataJson);
+        measKafkaConsumer.onSaveWellData(wellData);
 
         // then
-        verify(measService).setMeasWellData(measurementDTO.getId(),"TestColumn", new float[] {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f});
+        verify(measService).setMeasWellData(measurementDTO.getId(), wellData.getColumn(), wellData.getData());
     }
 }
