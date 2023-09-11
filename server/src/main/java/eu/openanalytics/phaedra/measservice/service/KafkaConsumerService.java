@@ -25,19 +25,12 @@ import static eu.openanalytics.phaedra.measservice.config.KafkaConfig.TOPIC_DATA
 import static eu.openanalytics.phaedra.measservice.config.KafkaConfig.TOPIC_MEASUREMENTS;
 import static org.apache.commons.lang3.ArrayUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.apache.commons.lang3.StringUtils.replace;
 
-import org.apache.commons.lang3.math.NumberUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler;
 
 import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
 import eu.openanalytics.phaedra.measservice.dto.SubwellDataDTO;
@@ -51,8 +44,6 @@ public class KafkaConsumerService {
 
     private final MeasService measService;
     private final KafkaProducerService kafkaProducerService;
-
-    private final Logger logger = LoggerFactory.getLogger(getClass());
 
     public KafkaConsumerService(MeasService measService, KafkaProducerService kafkaProducerService) {
         this.measService = measService;
@@ -69,55 +60,15 @@ public class KafkaConsumerService {
     }
 
     @KafkaListener(topics = TOPIC_MEASUREMENTS, groupId = GROUP_ID, filter = "requestMeasurementSaveWellDataFilter")
-    public void onSaveWellData(String wellData) throws JsonProcessingException {
-        String cleanWellDataString = replace(wellData,"\\r", "");
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        objectMapper.addHandler(new DeserializationProblemHandler() {
-            @Override
-            public Object handleWeirdStringValue(DeserializationContext ctxt, Class<?> targetType, String valueToConvert, String failureMsg) {
-                logger.info(String.format("Value to convert: %s", valueToConvert));
-                return NumberUtils.isParsable(valueToConvert) ? NumberUtils.createFloat("-1.0") : Float.NaN;
-            }
-
-            @Override
-            public Object handleWeirdNumberValue(DeserializationContext ctxt, Class<?> targetType, Number valueToConvert, String failureMsg) {
-                logger.info(String.format("Value to convert: %s", valueToConvert));
-                return -1;
-            }
-        });
-
-        WellDataDTO wellDataDTO = objectMapper.readValue(cleanWellDataString, WellDataDTO.class);
-        if (isNotBlank(wellDataDTO.getColumn())) {
-            if (isNotEmpty(wellDataDTO.getData())) {
-                measService.setMeasWellData(wellDataDTO.getMeasurementId(), wellDataDTO.getColumn(), wellDataDTO.getData());
-            }
+    public void onSaveWellData(WellDataDTO wellDataDTO) throws JsonProcessingException {
+        if (isNotBlank(wellDataDTO.getColumn()) && isNotEmpty(wellDataDTO.getData())) {
+        	measService.setMeasWellData(wellDataDTO.getMeasurementId(), wellDataDTO.getColumn(), wellDataDTO.getData());
         }
     }
     @KafkaListener(topics = TOPIC_MEASUREMENTS, groupId = GROUP_ID, filter = "requestMeasurementSaveSubwellDataFilter")
-    public void onSaveSubwellData(String subwellData) throws JsonProcessingException {
-        String cleanSubWellDataString = replace(subwellData, "\\r", "");
-        ObjectMapper objectMapper = new ObjectMapper();
-
-        objectMapper.addHandler(new DeserializationProblemHandler() {
-            @Override
-            public Object handleWeirdStringValue(DeserializationContext ctxt, Class<?> targetType, String valueToConvert, String failureMsg) {
-                logger.info(String.format("Value to convert: %s", valueToConvert));
-                return NumberUtils.isParsable(valueToConvert) ? NumberUtils.createFloat("-1.0") : Float.NaN;
-            }
-
-            @Override
-            public Object handleWeirdNumberValue(DeserializationContext ctxt, Class<?> targetType, Number valueToConvert, String failureMsg) {
-                logger.info(String.format("Value to convert: %s", valueToConvert));
-                return -1;
-            }
-        });
-
-        SubwellDataDTO subwellDataDTO = objectMapper.readValue(cleanSubWellDataString, SubwellDataDTO.class);
-        if (subwellDataDTO != null && isNotBlank(subwellDataDTO.getColumn())) {
-            if (isNotEmpty(subwellDataDTO.getData())) {
-                measService.setMeasSubWellData(subwellDataDTO.getMeasurementId(), subwellDataDTO.getWellId(), subwellDataDTO.getColumn(), subwellDataDTO.getData());
-            }
+    public void onSaveSubwellData(SubwellDataDTO subwellData) throws JsonProcessingException {
+        if (subwellData != null && isNotBlank(subwellData.getColumn()) && isNotEmpty(subwellData.getData())) {
+        	measService.setMeasSubWellData(subwellData.getMeasurementId(), subwellData.getWellId(), subwellData.getColumn(), subwellData.getData());
         }
     }
     
