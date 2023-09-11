@@ -23,9 +23,11 @@ package eu.openanalytics.phaedra.measservice.service;
 import static eu.openanalytics.phaedra.measservice.config.KafkaConfig.GROUP_ID;
 import static eu.openanalytics.phaedra.measservice.config.KafkaConfig.TOPIC_DATACAPTURE;
 import static eu.openanalytics.phaedra.measservice.config.KafkaConfig.TOPIC_MEASUREMENTS;
-import static org.apache.commons.lang3.ArrayUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.ArrayUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +47,8 @@ public class KafkaConsumerService {
     private final MeasService measService;
     private final KafkaProducerService kafkaProducerService;
 
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+    
     public KafkaConsumerService(MeasService measService, KafkaProducerService kafkaProducerService) {
         this.measService = measService;
         this.kafkaProducerService = kafkaProducerService;
@@ -61,13 +65,17 @@ public class KafkaConsumerService {
 
     @KafkaListener(topics = TOPIC_MEASUREMENTS, groupId = GROUP_ID, filter = "requestMeasurementSaveWellDataFilter")
     public void onSaveWellData(WellDataDTO wellDataDTO) throws JsonProcessingException {
-        if (isNotBlank(wellDataDTO.getColumn()) && isNotEmpty(wellDataDTO.getData())) {
+        if (isBlank(wellDataDTO.getColumn()) || isEmpty(wellDataDTO.getData())) {
+        	logger.warn(String.format("Ignoring invalid saveWellData request: %s", wellDataDTO));
+        } else {
         	measService.setMeasWellData(wellDataDTO.getMeasurementId(), wellDataDTO.getColumn(), wellDataDTO.getData());
         }
     }
     @KafkaListener(topics = TOPIC_MEASUREMENTS, groupId = GROUP_ID, filter = "requestMeasurementSaveSubwellDataFilter")
     public void onSaveSubwellData(SubwellDataDTO subwellData) throws JsonProcessingException {
-        if (subwellData != null && isNotBlank(subwellData.getColumn()) && isNotEmpty(subwellData.getData())) {
+        if (isBlank(subwellData.getColumn()) || isEmpty(subwellData.getData())) {
+        	logger.warn(String.format("Ignoring invalid saveSubwellData request: %s", subwellData));
+        } else {
         	measService.setMeasSubWellData(subwellData.getMeasurementId(), subwellData.getWellId(), subwellData.getColumn(), subwellData.getData());
         }
     }
