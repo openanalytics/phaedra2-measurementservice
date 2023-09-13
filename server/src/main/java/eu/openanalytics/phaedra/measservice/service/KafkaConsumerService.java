@@ -63,7 +63,7 @@ public class KafkaConsumerService {
     	}
     }
 
-    @KafkaListener(topics = TOPIC_MEASUREMENTS, groupId = GROUP_ID, filter = "requestMeasurementSaveWellDataFilter")
+    @KafkaListener(topics = TOPIC_MEASUREMENTS, groupId = GROUP_ID + "_requestMeasurementSaveWellData", filter = "requestMeasurementSaveWellDataFilter")
     public void onSaveWellData(WellDataDTO wellData) throws JsonProcessingException {
     	logger.info(String.format("Received well data: %s", wellData));
         if (isBlank(wellData.getColumn()) || isEmpty(wellData.getData())) {
@@ -72,7 +72,7 @@ public class KafkaConsumerService {
         	measService.setMeasWellData(wellData.getMeasurementId(), wellData.getColumn(), wellData.getData());
         }
     }
-    @KafkaListener(topics = TOPIC_MEASUREMENTS, groupId = GROUP_ID, filter = "requestMeasurementSaveSubwellDataFilter")
+    @KafkaListener(topics = TOPIC_MEASUREMENTS, groupId = GROUP_ID + "_requestMeasurementSaveSubwellData", filter = "requestMeasurementSaveSubwellDataFilter")
     public void onSaveSubwellData(SubwellDataDTO subwellData) throws JsonProcessingException {
         if (isBlank(subwellData.getColumn()) || isEmpty(subwellData.getData())) {
         	logger.warn(String.format("Ignoring invalid saveSubwellData request: %s", subwellData));
