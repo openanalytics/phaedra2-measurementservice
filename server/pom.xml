@@ -7,24 +7,16 @@
 		<groupId>eu.openanalytics.phaedra</groupId>
 		<artifactId>phaedra2-measurementservice</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
-		<relativePath>../pom.xml</relativePath>
 	</parent>
 
 	<artifactId>phaedra2-measurementservice-server</artifactId>
 	<name>phaedra2-measurementservice-server</name>
-	<packaging>jar</packaging>
 
 	<properties>
-        <java.version>16</java.version>
-        <spring-cloud.version>2021.0.3</spring-cloud.version>
-
-        <maven.compiler.source>${java.version}</maven.compiler.source>
-        <maven.compiler.target>${java.version}</maven.compiler.target>
         <docker.imageName>openanalytics/${project.parent.artifactId}</docker.imageName>
 	</properties>
 
 	<dependencies>
-		<!-- AWS Starter + Autoconfigure -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-aws</artifactId>
@@ -33,29 +25,21 @@
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-aws-autoconfigure</artifactId>
 		</dependency>
-
-		<!-- Apache Commons -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
 		</dependency>
-
-		<!-- Spring Cloud dependencies -->
 		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-kubernetes-fabric8</artifactId>
-		</dependency>
-
-		<!-- Apache kafka dependencies-->
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
 		<dependency>
 			<groupId>org.apache.kafka</groupId>
 			<artifactId>kafka-streams</artifactId>
-			<version>3.3.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.kafka</groupId>
 			<artifactId>spring-kafka</artifactId>
-			<version>2.9.0</version>
 		</dependency>
 
 		<!-- Phaedra dependencies -->
@@ -69,48 +53,18 @@
             <artifactId>phaedra2-imaging</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
-        <dependency>
-			<groupId>eu.openanalytics.phaedra</groupId>
-			<artifactId>phaedra2-commons</artifactId>
-		</dependency>
 
-		<!-- Test dependency -->
+		<!-- Test dependencies -->
 		<dependency>
 			<groupId>org.testcontainers</groupId>
 			<artifactId>junit-jupiter</artifactId>
-			<version>1.16.0</version>
-			<scope>test</scope>
-			<exclusions>
-				<exclusion>
-					<groupId>org.junit.jupiter</groupId>
-					<artifactId>junit-jupiter-api</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.testcontainers</groupId>
 			<artifactId>postgresql</artifactId>
-			<version>1.16.0</version>
-			<scope>test</scope>
 		</dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-        </dependency>
-
+        
     </dependencies>
-
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.springframework.cloud</groupId>
-				<artifactId>spring-cloud-dependencies</artifactId>
-				<version>${spring-cloud.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
 
 	<build>
 		<plugins>
@@ -118,66 +72,25 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
-
-            <plugin>
-                <groupId>io.fabric8</groupId>
-				<artifactId>docker-maven-plugin</artifactId>
-				<version>0.37.0</version>
-				<configuration>
-					<images>
-						<image>
-							<name>${docker.imageName}</name>
-							<build>
-								<dockerFile>${project.basedir}/Dockerfile.app</dockerFile>
-								<tags>
-									<tag>${project.version}</tag>
-								</tags>
-								<args>
-									<JAR_FILE>target/${project.build.finalName}.jar</JAR_FILE>
-								</args>
-							</build>
-						</image>
-                        <image>
-                        	<name>${docker.imageName}.liquibase</name>
-                            <build>
-                                <dockerFile>${project.basedir}/Dockerfile.db</dockerFile>
-                                <tags>
-                                    <tag>${project.version}</tag>
-                                </tags>
-                            </build>
-                        </image>
-					</images>
-				</configuration>
-				<executions>
-					<execution>
-						<phase>install</phase>
-						<goals>
-							<goal>build</goal>
-						</goals>
-					</execution>
-				</executions>
-            </plugin>
-
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.8.7</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>prepare-agent</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>report</id>
-						<phase>prepare-package</phase>
-						<goals>
-							<goal>report</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 		</plugins>
 	</build>
+
+    <profiles>
+        <profile>
+            <id>build.docker.images</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>io.fabric8</groupId>
+                        <artifactId>docker-maven-plugin</artifactId>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
 </project>

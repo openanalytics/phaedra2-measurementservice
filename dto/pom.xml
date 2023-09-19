@@ -6,14 +6,9 @@
         <groupId>eu.openanalytics.phaedra</groupId>
         <artifactId>phaedra2-measurementservice</artifactId>
         <version>0.0.1-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
 
     <artifactId>phaedra2-measurementservice-dto</artifactId>
     <name>phaedra2-measurementservice-dto</name>
-
-    <properties>
-        <java.version>16</java.version>
-    </properties>
 
 </project>

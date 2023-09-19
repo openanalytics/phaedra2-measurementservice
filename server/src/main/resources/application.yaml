@@ -22,7 +22,7 @@ server:
     context-path: /phaedra/measurement-service
   error:
     include-message: always
-  port: 3008
+  port: 8080
 
 logging:
   file:
@@ -36,9 +36,6 @@ spring:
   jackson:
     serialization:
       indent_output: true
-  cloud:
-    kubernetes:
-      enabled: false
   security:
     oauth2:
       resourceserver:
