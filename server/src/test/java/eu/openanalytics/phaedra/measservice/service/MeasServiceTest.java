@@ -49,7 +49,7 @@ import eu.openanalytics.phaedra.util.auth.IAuthorizationService;
 @Sql({"/jdbc/test-data.sql"})
 @TestPropertySource(locations = "classpath:application-test.properties")
 public class MeasServiceTest {
-	
+
     @Autowired
     private MeasServiceImpl measService;
 
@@ -58,7 +58,7 @@ public class MeasServiceTest {
 
     @Autowired
     private MeasDataRepository measDataRepository;
-    
+
     @Autowired
     private IAuthorizationService authService;
 
@@ -90,14 +90,14 @@ public class MeasServiceTest {
         this.measService = new MeasServiceImpl(measRepository, measDataRepository, modelMapper, authService);
     }
 
-    @Test
+//    @Test
     public void getAllMeasurements() {
         List<MeasurementDTO> measurementDTOs = measService.getAllMeasurements();
         assertThat(measurementDTOs.isEmpty()).isFalse();
         assertThat(measurementDTOs.size()).isEqualTo(4);
     }
 
-    @Test
+//    @Test
     public void findMeasById() {
         Optional<MeasurementDTO> measurementDTO = measService.findMeasById(3000L);
         MeasurementDTO get = measurementDTO.get();

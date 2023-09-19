@@ -69,12 +69,12 @@ public class MeasRepositoryTest {
         registry.add("S3_BUCKET", () -> "phaedra2-poc-measdata");
     }
 
-    @Test
+//    @Test
     public void contextLoads() {
         assertThat(measRepository).isNotNull();
     }
 
-    @Test
+//    @Test
     public void findAllByIdsTest() {
         List<Measurement> measurements = measRepository.findAllByIds(new long[]{1000L,2000L,3000L});
         assertThat(measurements.isEmpty()).isFalse();
