@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import eu.openanalytics.phaedra.imaging.jp2k.openjpeg.OpenJPEGLibLoader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
@@ -44,9 +45,9 @@ import eu.openanalytics.phaedra.measservice.image.ImageCodestreamAccessorCache;
 @Service
 public class MeasImageService {
 
-//	static {
-//		OpenJPEGLibLoader.load();
-//	}
+	static {
+		OpenJPEGLibLoader.load();
+	}
 
 	@Autowired
 	private MeasService measService;
