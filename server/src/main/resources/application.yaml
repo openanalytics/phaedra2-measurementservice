@@ -41,3 +41,6 @@ spring:
       resourceserver:
         jwt:
           jwk-set-uri: http://localhost
+  graphql:
+    graphiql:
+      enabled: true

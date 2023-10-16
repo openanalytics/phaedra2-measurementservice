@@ -1,0 +1,22 @@
+scalar Date
+
+type MeasurementDTO {
+    id: ID
+    name: String
+    barcode: String
+    description: String
+    rows: Int
+    columns: Int
+    createdOn: Date
+    createdBy: String
+    updatedOn: Date
+    updatedBy: String
+    wellColumns: [String]
+    subWellColumns:[String]
+    imageChannels: [String]
+}
+
+type Query {
+    measurements: [MeasurementDTO]
+    measurementById(measurementId: ID): MeasurementDTO
+}
