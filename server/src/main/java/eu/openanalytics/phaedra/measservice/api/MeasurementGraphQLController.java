@@ -46,4 +46,9 @@ public class MeasurementGraphQLController {
     public MeasurementDTO measurementById(@Argument Long measurementId) {
         return measService.findMeasById(measurementId).orElse(null);
     }
+
+    @QueryMapping
+    public float[] measurementDataByIdAndWellColumn(@Argument Long measurementId, @Argument String wellColumn) {
+        return measService.getWellData(measurementId, wellColumn);
+    }
 }

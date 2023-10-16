@@ -1,4 +1,5 @@
 scalar Date
+scalar FloatNaN
 
 type MeasurementDTO {
     id: ID
@@ -19,4 +20,5 @@ type MeasurementDTO {
 type Query {
     measurements: [MeasurementDTO]
     measurementById(measurementId: ID): MeasurementDTO
+    measurementDataByIdAndWellColumn(measurementId: ID, wellColumn: String): [FloatNaN]
 }
