@@ -50,5 +50,9 @@
             <id>oa-nexus-snapshots</id>
             <url>https://nexus.openanalytics.eu/repository/snapshots/</url>
         </repository>
+        <repository>
+            <id>oa-nexus-releases</id>
+            <url>https://nexus.openanalytics.eu/repository/releases/</url>
+        </repository>
     </repositories>
 </project>
