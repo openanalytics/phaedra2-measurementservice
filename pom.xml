@@ -5,13 +5,13 @@
     <parent>
         <groupId>eu.openanalytics.phaedra</groupId>
         <artifactId>phaedra2-parent</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
-        <relativePath>../phaedra2-parent</relativePath>
+        <version>2.0.2</version>
     </parent>
     <packaging>pom</packaging>
 
     <artifactId>phaedra2-measurementservice</artifactId>
     <name>phaedra2-measurementservice</name>
+	<version>2.0.2</version>
 
     <modules>
         <module>dto/</module>
@@ -50,6 +50,10 @@
         <repository>
             <id>oa-nexus-snapshots</id>
             <url>https://nexus.openanalytics.eu/repository/snapshots/</url>
+        </repository>
+        <repository>
+            <id>oa-nexus-releases</id>
+            <url>https://nexus.openanalytics.eu/repository/releases/</url>
         </repository>
     </repositories>
 </project>
