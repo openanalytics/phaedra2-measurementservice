@@ -1,7 +1,7 @@
 /**
  * Phaedra II
  *
- * Copyright (C) 2016-2023 Open Analytics
+ * Copyright (C) 2016-2024 Open Analytics
  *
  * ===========================================================================
  *
@@ -48,7 +48,7 @@ public class KafkaConsumerService {
     private final KafkaProducerService kafkaProducerService;
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    
+
     public KafkaConsumerService(MeasService measService, KafkaProducerService kafkaProducerService) {
         this.measService = measService;
         this.kafkaProducerService = kafkaProducerService;
@@ -71,7 +71,8 @@ public class KafkaConsumerService {
         } else {
         	measService.setMeasWellData(wellData.getMeasurementId(), wellData.getColumn(), wellData.getData());
         }
-    }
+    }
+
     @KafkaListener(topics = TOPIC_MEASUREMENTS, groupId = GROUP_ID + "_requestMeasurementSaveSubwellData", filter = "requestMeasurementSaveSubwellDataFilter")
     public void onSaveSubwellData(SubwellDataDTO subwellData) throws JsonProcessingException {
         if (isBlank(subwellData.getColumn()) || isEmpty(subwellData.getData())) {
@@ -80,7 +81,7 @@ public class KafkaConsumerService {
         	measService.setMeasSubWellData(subwellData.getMeasurementId(), subwellData.getWellId(), subwellData.getColumn(), subwellData.getData());
         }
     }
-    
+
     @Data
     @NoArgsConstructor
     @JsonInclude(JsonInclude.Include.NON_NULL)

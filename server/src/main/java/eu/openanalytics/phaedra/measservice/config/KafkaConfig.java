@@ -1,7 +1,7 @@
 /**
  * Phaedra II
  *
- * Copyright (C) 2016-2023 Open Analytics
+ * Copyright (C) 2016-2024 Open Analytics
  *
  * ===========================================================================
  *
@@ -29,7 +29,7 @@ import org.springframework.kafka.support.converter.BytesJsonMessageConverter;
 @Configuration
 @EnableKafka
 public class KafkaConfig {
-	
+
     public static final String GROUP_ID = "measurements-service";
 
     // Topics
@@ -39,10 +39,10 @@ public class KafkaConfig {
     // Events
     public static final String EVENT_REQ_MEAS_SAVE_WELL_DATA = "requestMeasurementSaveWellData";
     public static final String EVENT_REQ_MEAS_SAVE_SUBWELL_DATA = "requestMeasurementSaveSubwellData";
-    
+
     public static final String EVENT_NOTIFY_DC_JOB_UPDATED = "notifyCaptureJobUpdated";
     public static final String EVENT_NOTIFY_NEW_MEASUREMENT = "notifyNewMeasurement";
-    
+
     @Bean
     public RecordFilterStrategy<String, String> requestMeasurementSaveWellDataFilter() {
         return rec -> !(rec.key().equalsIgnoreCase(EVENT_REQ_MEAS_SAVE_WELL_DATA));
