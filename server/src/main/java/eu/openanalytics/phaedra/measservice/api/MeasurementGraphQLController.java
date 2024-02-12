@@ -21,11 +21,13 @@
 package eu.openanalytics.phaedra.measservice.api;
 
 import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
+import eu.openanalytics.phaedra.measservice.dto.WellDataDTO;
 import eu.openanalytics.phaedra.measservice.service.MeasService;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -45,6 +47,13 @@ public class MeasurementGraphQLController {
     @QueryMapping
     public MeasurementDTO measurementById(@Argument Long measurementId) {
         return measService.findMeasById(measurementId).orElse(null);
+    }
+
+    @QueryMapping
+    public List<WellDataDTO> measurementDataById(@Argument Long measurementId) {
+        List<WellDataDTO> result = new ArrayList<>();
+        measService.getWellData(measurementId).forEach((key, value) -> result.add(new WellDataDTO(measurementId, key, value)));
+        return result;
     }
 
     @QueryMapping
