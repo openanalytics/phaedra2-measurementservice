@@ -1,7 +1,7 @@
 /**
  * Phaedra II
  *
- * Copyright (C) 2016-2023 Open Analytics
+ * Copyright (C) 2016-2024 Open Analytics
  *
  * ===========================================================================
  *
@@ -37,8 +37,6 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 
 import eu.openanalytics.phaedra.util.auth.AuthenticationConfigHelper;
 import eu.openanalytics.phaedra.util.auth.AuthorizationServiceFactory;
@@ -66,30 +64,7 @@ public class MeasServiceApplication {
 
 	@Bean
 	public DataSource dataSource() {
-		String url = environment.getProperty("DB_URL");
-		if (url == null || url.trim().isEmpty()) {
-			throw new RuntimeException("No database URL configured: " + environment.getProperty("DB_URL"));
-		}
-		String driverClassName = JDBCUtils.getDriverClassName(url);
-		if (driverClassName == null) {
-			throw new RuntimeException("Unsupported database type: " + url);
-		}
-
-		HikariConfig config = new HikariConfig();
-		config.setAutoCommit(false);
-		config.setMaximumPoolSize(20);
-		config.setConnectionTimeout(60000);
-		config.setJdbcUrl(url);
-		config.setDriverClassName(driverClassName);
-		config.setUsername(environment.getProperty("DB_USERNAME"));
-		config.setPassword(environment.getProperty("DB_PASSWORD"));
-
-		String schema = environment.getProperty("DB_SCHEMA");
-		if (schema != null && !schema.trim().isEmpty()) {
-			config.setConnectionInitSql("set search_path to " + schema);
-		}
-
-		return new HikariDataSource(config);
+		return JDBCUtils.createDataSource(environment);
 	}
 
 	@Bean

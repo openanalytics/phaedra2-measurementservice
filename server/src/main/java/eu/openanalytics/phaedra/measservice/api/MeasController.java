@@ -1,7 +1,7 @@
 /**
  * Phaedra II
  *
- * Copyright (C) 2016-2023 Open Analytics
+ * Copyright (C) 2016-2024 Open Analytics
  *
  * ===========================================================================
  *
@@ -52,8 +52,11 @@ import eu.openanalytics.phaedra.measservice.service.MeasService;
 @RequestMapping("/measurements")
 public class MeasController {
 
-    @Autowired
-    private MeasService measService;
+    private final MeasService measService;
+
+    public MeasController(MeasService measService) {
+        this.measService = measService;
+    }
 
     /**
      * Measurements

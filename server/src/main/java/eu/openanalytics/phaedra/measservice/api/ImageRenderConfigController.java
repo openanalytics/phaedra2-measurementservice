@@ -1,7 +1,7 @@
 /**
  * Phaedra II
  *
- * Copyright (C) 2016-2023 Open Analytics
+ * Copyright (C) 2016-2024 Open Analytics
  *
  * ===========================================================================
  *
@@ -46,7 +46,7 @@ public class ImageRenderConfigController {
 
 	@Autowired
 	private ImageRenderConfigService service;
-	
+
     @PostMapping
     public ResponseEntity<?> createConfig(@RequestBody String renderConfigString, ObjectMapper objectMapper) {
         try {
@@ -57,23 +57,23 @@ public class ImageRenderConfigController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage(), e);
         }
     }
-    
+
     @PutMapping(value = "/{id}")
     public ResponseEntity<?> updateConfig(@PathVariable long id, @RequestBody NamedImageRenderConfig renderConfig) {
     	renderConfig.setId(id);
         return new ResponseEntity<>(service.updateConfig(renderConfig), HttpStatus.OK);
     }
-    
+
     @GetMapping
     public ResponseEntity<List<NamedImageRenderConfig>> getAllConfigs() {
         return ResponseEntity.ok(service.getAllConfigs());
     }
-    
+
     @GetMapping(value = "/{id}")
     public ResponseEntity<NamedImageRenderConfig> getConfig(@PathVariable long id) {
         return ResponseEntity.of(service.getConfigById(id));
     }
-    
+
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<Void> deleteConfig(@PathVariable long id) {
         if (!service.configExists(id)) return ResponseEntity.notFound().build();

@@ -1,7 +1,7 @@
 /**
  * Phaedra II
  *
- * Copyright (C) 2016-2023 Open Analytics
+ * Copyright (C) 2016-2024 Open Analytics
  *
  * ===========================================================================
  *
@@ -39,31 +39,31 @@ public class ImageRenderConfigService {
 	private final ImageRenderConfigRepository repo;
 	private final IAuthorizationService authService;
 	private final ModelMapper modelMapper = new ModelMapper();
-	
+
 	public ImageRenderConfigService(ImageRenderConfigRepository repo, IAuthorizationService authService) {
 		this.repo = repo;
 		this.authService = authService;
 	}
-	
+
 	public NamedImageRenderConfig createConfig(NamedImageRenderConfig config) {
 		config.setCreatedBy(authService.getCurrentPrincipalName());
 		config.setCreatedOn(new Date());
 		return repo.save(config);
 	}
-	
+
 	public Optional<NamedImageRenderConfig> getConfigById(long id) {
 		return repo.findById(id);
 	}
-	
+
 	@Cacheable
 	public Optional<NamedImageRenderConfig> getConfigByName(String name) {
 		return repo.findByName(name).stream().findAny();
 	}
-	
+
 	public boolean configExists(long id) {
 		return repo.existsById(id);
 	}
-	
+
 	public NamedImageRenderConfig updateConfig(NamedImageRenderConfig config) {
 		NamedImageRenderConfig existingConfig = repo.findById(config.getId()).orElse(null);
 		if (existingConfig != null) {
@@ -75,11 +75,11 @@ public class ImageRenderConfigService {
 		}
 		return existingConfig;
 	}
-	
+
 	public List<NamedImageRenderConfig> getAllConfigs() {
 		return (List<NamedImageRenderConfig>) repo.findAll();
 	}
-	
+
 	public void deleteConfig(long id) {
 		repo.deleteById(id);
 	}

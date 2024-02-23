@@ -17,8 +17,15 @@ type MeasurementDTO {
     imageChannels: [String]
 }
 
+type WellDataDTO {
+    measurementId: ID
+    column: String
+    data: [FloatNaN]
+}
+
 type Query {
     measurements: [MeasurementDTO]
     measurementById(measurementId: ID): MeasurementDTO
+    measurementDataById(measurementId: ID): [WellDataDTO]
     measurementDataByIdAndWellColumn(measurementId: ID, wellColumn: String): [FloatNaN]
 }
