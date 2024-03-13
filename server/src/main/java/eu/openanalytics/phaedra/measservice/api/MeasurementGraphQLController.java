@@ -60,4 +60,14 @@ public class MeasurementGraphQLController {
     public float[] measurementDataByIdAndWellColumn(@Argument Long measurementId, @Argument String wellColumn) {
         return measService.getWellData(measurementId, wellColumn);
     }
+
+    @QueryMapping
+    public List<String> getUniqueWellDataColumns() {
+        return measService.getAllUniqueWellDataColumns();
+    }
+
+    @QueryMapping
+    public List<String> getUniqueSubWellDataColumns() {
+        return measService.getAllUniqueSubWellDataColumns();
+    }
 }

@@ -28,4 +28,6 @@ type Query {
     measurementById(measurementId: ID): MeasurementDTO
     measurementDataById(measurementId: ID): [WellDataDTO]
     measurementDataByIdAndWellColumn(measurementId: ID, wellColumn: String): [FloatNaN]
+    getUniqueWellDataColumns: [String]
+    getUniqueSubWellDataColumns: [String]
 }
