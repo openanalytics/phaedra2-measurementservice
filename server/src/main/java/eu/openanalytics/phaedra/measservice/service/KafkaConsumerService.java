@@ -78,7 +78,7 @@ public class KafkaConsumerService {
         if (isBlank(subwellData.getColumn()) || isEmpty(subwellData.getData())) {
         	logger.warn(String.format("Ignoring invalid saveSubwellData request: %s", subwellData));
         } else {
-        	measService.setMeasSubWellData(subwellData.getMeasurementId(), subwellData.getWellId(), subwellData.getColumn(), subwellData.getData());
+        	measService.setMeasSubWellData(subwellData.getMeasurementId(), subwellData.getWellNr(), subwellData.getColumn(), subwellData.getData());
         }
     }
 
