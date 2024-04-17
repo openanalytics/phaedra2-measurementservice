@@ -68,7 +68,11 @@ public class KafkaConsumerService {
         if (isBlank(wellData.getColumn()) || isEmpty(wellData.getData())) {
         	logger.warn(String.format("Ignoring invalid saveWellData request: %s", wellData));
         } else {
-        	measService.setMeasWellData(wellData.getMeasurementId(), wellData.getColumn(), wellData.getData());
+        	try {
+	        	measService.setMeasWellData(wellData.getMeasurementId(), wellData.getColumn(), wellData.getData());
+	        } catch (IllegalArgumentException e) {
+	    		logger.warn(String.format("Ignoring invalid saveWellData request: %s", wellData), e);	
+	    	}
         }
     }
 
@@ -77,7 +81,11 @@ public class KafkaConsumerService {
         if (isBlank(subwellData.getColumn()) || isEmpty(subwellData.getData())) {
         	logger.warn(String.format("Ignoring invalid saveSubwellData request: %s", subwellData));
         } else {
-        	measService.setMeasSubWellData(subwellData.getMeasurementId(), subwellData.getWellNr(), subwellData.getColumn(), subwellData.getData());
+        	try {
+        		measService.setMeasSubWellData(subwellData.getMeasurementId(), subwellData.getWellNr(), subwellData.getColumn(), subwellData.getData());
+        	} catch (IllegalArgumentException e) {
+        		logger.warn(String.format("Ignoring invalid saveSubwellData request: %s", subwellData), e);	
+        	}
         }
     }
 
