@@ -38,4 +38,10 @@ public interface MeasRepository extends CrudRepository<Measurement, Long> {
 	@Query("select * from measurement m where m.created_on >= :date1 and m.created_on <= :date2")
 	List<Measurement> findByCreatedOnRange(Date date1, Date date2);
 
+	@Query(value = "select distinct trim(unnest(well_columns)) AS column_name FROM measurement ORDER BY column_name ASC")
+	List<String> findDistinctWellColumns();
+
+	@Query(value = "select distinct trim(unnest(subwell_columns)) AS column_name FROM measurement ORDER BY column_name ASC")
+	List<String> findDistinctSubWellColumns();
+
 }

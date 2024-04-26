@@ -20,26 +20,19 @@
  */
 package eu.openanalytics.phaedra.measservice.service;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ForkJoinPool;
-
-import org.apache.commons.lang3.ArrayUtils;
-import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
-
 import com.google.common.primitives.Longs;
-
 import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
 import eu.openanalytics.phaedra.measservice.exception.MeasurementNotFoundException;
 import eu.openanalytics.phaedra.measservice.model.Measurement;
 import eu.openanalytics.phaedra.measservice.repository.MeasDataRepository;
 import eu.openanalytics.phaedra.measservice.repository.MeasRepository;
 import eu.openanalytics.phaedra.util.auth.IAuthorizationService;
+import org.apache.commons.lang3.ArrayUtils;
+import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
+
+import java.util.*;
+import java.util.concurrent.ForkJoinPool;
 
 @Component
 public class MeasServiceImpl implements MeasService {
@@ -95,8 +88,8 @@ public class MeasServiceImpl implements MeasService {
 	}
 
 	@Override
-	public List<MeasurementDTO> findMeasByCreatedOnRange(Date date1, Date date2) {
-		List<Measurement> result = measRepo.findByCreatedOnRange(date1, date2);
+	public List<MeasurementDTO> findMeasByCreatedOnRange(Date from, Date to) {
+		List<Measurement> result = measRepo.findByCreatedOnRange(from, to);
 		return result.stream().map(modelMapper::map).toList();
 	}
 
@@ -126,14 +119,13 @@ public class MeasServiceImpl implements MeasService {
 			throw new IllegalArgumentException(String.format("Cannot save welldata: measurement with ID %d does not exist", measId));
 
 		int wellCount = meas.getRows() * meas.getColumns();
-		for (String column: wellData.keySet()) {
-			float[] values = wellData.get(column);
-			int valueCount = values.length;
+		for (Map.Entry<String, float[]> entry : wellData.entrySet()) {
+			int valueCount = entry.getValue().length;
 			if (valueCount != wellCount)
 				throw new IllegalArgumentException(String.format(
 						"Cannot save welldata for measurement %d: column %s has an unexpected count (expected: %d, actual: %d)",
-						measId, column, wellCount, valueCount));
-			}
+						measId, entry.getKey(), wellCount, valueCount));
+		}
 
 		measDataRepo.setWellData(measId, wellData);
 
@@ -162,13 +154,19 @@ public class MeasServiceImpl implements MeasService {
 
 	@Override
 	public float[] getWellData(long measId, String column) {
-		if (!measExists(measId)) return null;
+		if (!measExists(measId)) return new float[0];
 		return measDataRepo.getWellData(measId, column);
 	}
 
 	@Override
 	public Map<String, float[]> getWellData(long measId) {
+		if (!measExists(measId)) return Collections.emptyMap();
 		return measDataRepo.getWellData(measId);
+	}
+
+	@Override
+	public List<String> getAllUniqueWellDataColumns() {
+		return measRepo.findDistinctWellColumns();
 	}
 
 	@Override
@@ -218,7 +216,7 @@ public class MeasServiceImpl implements MeasService {
 	@Override
 	public Map<String, float[]> getSubWellData(long measId, int wellNr) {
 		Optional<Measurement> measurement = measRepo.findById(measId);
-		if (!measurement.isPresent()) return null;
+		if (measurement.isEmpty()) return Collections.emptyMap();
 
 		return Arrays.stream(measurement.get().getSubWellColumns())
 				.collect(HashMap::new, (map, column) -> {
@@ -229,12 +227,12 @@ public class MeasServiceImpl implements MeasService {
 
 	@Override
 	public float[] getSubWellData(long measId, int wellNr, String column) {
-		if (!measExists(measId)) return null;
+		if (!measExists(measId)) return new float[0];
 		return measDataRepo.getSubWellData(measId, wellNr, column);
 	}
 
 	public Map<String, float[]> getSubWellData(long measId, int wellNr, List<String> columns) {
-		if (!measExists(measId)) return null;
+		if (!measExists(measId)) return Collections.emptyMap();
 		Map<String, float[]> subWellData = new HashMap<>();
 		columns.forEach(column -> subWellData.put(column, measDataRepo.getSubWellData(measId, wellNr, column)));
 		return subWellData;
@@ -242,8 +240,13 @@ public class MeasServiceImpl implements MeasService {
 
 	@Override
 	public Map<Integer, float[]> getSubWellData(long measId, String column) {
-		if (!measExists(measId)) return null;
+		if (!measExists(measId)) return Collections.emptyMap();
 		return measDataRepo.getSubWellData(measId, column);
+	}
+
+	@Override
+	public List<String> getAllUniqueSubWellDataColumns() {
+		return measRepo.findDistinctSubWellColumns();
 	}
 
 	@Override
@@ -309,7 +312,7 @@ public class MeasServiceImpl implements MeasService {
 
 	@Override
 	public byte[] getImageData(long measId, int wellNr, String channel) {
-		if (!measExists(measId)) return null;
+		if (!measExists(measId)) return new byte[0];
 		return measDataRepo.getImageData(measId, wellNr, channel);
 	}
 
@@ -321,7 +324,7 @@ public class MeasServiceImpl implements MeasService {
 
 	@Override
 	public Map<String, byte[]> getImageData(long measId, int wellNr) {
-		if (!measExists(measId)) return null;
+		if (!measExists(measId)) return Collections.emptyMap();
 		return measDataRepo.getImageData(measId, wellNr);
 	}
 

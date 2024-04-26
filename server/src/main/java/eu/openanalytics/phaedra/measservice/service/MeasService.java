@@ -20,16 +20,15 @@
  */
 package eu.openanalytics.phaedra.measservice.service;
 
+import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
+import eu.openanalytics.phaedra.measservice.exception.MeasurementNotFoundException;
+import eu.openanalytics.phaedra.measservice.model.Measurement;
+import org.springframework.stereotype.Service;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import org.springframework.stereotype.Service;
-
-import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
-import eu.openanalytics.phaedra.measservice.exception.MeasurementNotFoundException;
-import eu.openanalytics.phaedra.measservice.model.Measurement;
 
 @Service
 public interface MeasService {
@@ -41,7 +40,7 @@ public interface MeasService {
 	 * @param measInfo The information of the new measurement. The ID must be zero.
 	 * @return The input measurement object, with a generated ID added to it.
 	 */
-	public Measurement createNewMeas(Measurement measInfo);
+	Measurement createNewMeas(Measurement measInfo);
 
 	/**
 	 * Update an existing measurement
@@ -54,7 +53,7 @@ public interface MeasService {
 	 * Get all available measurements
 	 * @return List of all available measurements
 	 */
-	public List<MeasurementDTO> getAllMeasurements();
+	List<MeasurementDTO> getAllMeasurements();
 
 	/**
 	 * Find a measurement using its ID.
@@ -62,7 +61,7 @@ public interface MeasService {
 	 * @param measId The ID of the measurement to look for.
 	 * @return An Optional measurement, empty if no matching measurement was found.
 	 */
-	public Optional<MeasurementDTO> findMeasById(long measId);
+	Optional<MeasurementDTO> findMeasById(long measId);
 
 	/**
 	 * Retrieve all the measurements with the measId in the measIds array
@@ -79,7 +78,7 @@ public interface MeasService {
 	 * @param date2 The end date to search for.
 	 * @return A collection of all matching measurements, possibly empty.
 	 */
-	public List<MeasurementDTO> findMeasByCreatedOnRange(Date date1, Date date2);
+	List<MeasurementDTO> findMeasByCreatedOnRange(Date date1, Date date2);
 
 	/**
 	 * Check whether a measurement with the given ID exists.
@@ -87,14 +86,14 @@ public interface MeasService {
 	 * @param measId The ID of the measurement to look for.
 	 * @return True if a measurement exists for the given ID.
 	 */
-	public boolean measExists(long measId);
+	boolean measExists(long measId);
 
 	/**
 	 * Request the permanent deletion of a measurement, including all of its data.
 	 *
 	 * @param measId The ID of the measurement to delete.
 	 */
-	public void deleteMeas(long measId);
+	void deleteMeas(long measId);
 
 	/**
 	 * Add well data to a measurement. Note that this can be done only once:
@@ -103,7 +102,7 @@ public interface MeasService {
 	 * @param measId The ID of the measurement to add well data to.
 	 * @param wellData The well data to add to the measurement.
 	 */
-	public void setMeasWellData(long measId, Map<String, float[]> wellData);
+	void setMeasWellData(long measId, Map<String, float[]> wellData);
 
 	/**
 	 * Add well data to a measurement. Note that this can be done only once:
@@ -113,7 +112,7 @@ public interface MeasService {
 	 * @param column The name of the well data column
 	 * @param data The well data to add to the measurement.
 	 */
-	public void setMeasWellData(long measId, String column, float[] data);
+	void setMeasWellData(long measId, String column, float[] data);
 
 	/**
 	 * Retrieve the welldata for a measurement for a given column name.
@@ -122,7 +121,7 @@ public interface MeasService {
 	 * @param column The name of the column to get welldata for.
 	 * @return The welldata, may be null.
 	 */
-	public float[] getWellData(long measId, String column);
+	float[] getWellData(long measId, String column);
 
 	/**
 	 * Retrieve all the welldata for a measurement.
@@ -130,7 +129,14 @@ public interface MeasService {
 	 * @param measId The ID of the measurement to get welldata for.
 	 * @return The map of welldata, may be empty.
 	 */
-	public Map<String, float[]> getWellData(long measId);
+	Map<String, float[]> getWellData(long measId);
+
+	/**
+	 * Returns all the unique well columns from all the measurements
+	 *
+	 * @return unique list of all the well data columns from all measurements
+	 */
+	List<String> getAllUniqueWellDataColumns();
 
 	/**
 	 * Add subwell data to a measurement.
@@ -140,7 +146,7 @@ public interface MeasService {
 	 * @param column The name of the column to set data for.
 	 * @param subWellData The map of data, containing a float[] for each well number.
 	 */
-	public void setMeasSubWellData(long measId, String column, Map<Integer, float[]> subWellData);
+	void setMeasSubWellData(long measId, String column, Map<Integer, float[]> subWellData);
 
 	/**
 	 * Add subwell data to a measurement for a specific well and column
@@ -149,7 +155,7 @@ public interface MeasService {
 	 * @param column The name of the column to set data for.
 	 * @param subWellData float[] containing the actual subwell data and well number
 	 */
-	public void setMeasSubWellData(long measId, int wellNr, String column, float[] subWellData);
+	void setMeasSubWellData(long measId, int wellNr, String column, float[] subWellData);
 
 	/**
 	 * Retrieve the sub-well data from a measurement for a given well number
@@ -157,7 +163,7 @@ public interface MeasService {
 	 * @param wellNr The selected well number
 	 * @return The sub-well data for the selected well number
 	 */
-	public Map<String, float[]> getSubWellData(long measId, int wellNr);
+	Map<String, float[]> getSubWellData(long measId, int wellNr);
 
 	/**
 	 * Retrieve the subwelldata for a measurement for a given well number and column name.
@@ -167,7 +173,7 @@ public interface MeasService {
 	 * @param column The name of the column to get subwelldata for.
 	 * @return The subwelldata, may be null.
 	 */
-	public float[] getSubWellData(long measId, int wellNr, String column);
+	float[] getSubWellData(long measId, int wellNr, String column);
 
 	/**
 	 * Retrieve the subwelldata for a measurement for a given well number and list of columns.
@@ -177,7 +183,7 @@ public interface MeasService {
 	 * @param columns The name of the columns to get subwelldata for.
 	 * @return The subwelldata, may be null.
 	 */
-	public Map<String, float[]> getSubWellData(long measId, int wellNr, List<String> columns);
+	Map<String, float[]> getSubWellData(long measId, int wellNr, List<String> columns);
 
 	/**
 	 * Retrieve the subwelldata for a measurement for a given column name.
@@ -186,7 +192,14 @@ public interface MeasService {
 	 * @param column The name of the column to get subwelldata for.
 	 * @return The subwelldata, containing a float[] per well nr. May be null.
 	 */
-	public Map<Integer, float[]> getSubWellData(long measId, String column);
+	Map<Integer, float[]> getSubWellData(long measId, String column);
+
+	/**
+	 * Retrieve all unique subwelldata columns from all the measurements
+	 *
+	 * @return all unique subwelldata columns from all the measurements
+	 */
+	List<String> getAllUniqueSubWellDataColumns();
 
 	/**
 	 * Add image data to a measurement.
@@ -196,7 +209,7 @@ public interface MeasService {
 	 * @param wellNr The well nr to add image data for.
 	 * @param imageData The map of data, containing a byte[] for each channel.
 	 */
-	public void setMeasImageData(long measId, int wellNr, Map<String, byte[]> imageData);
+	void setMeasImageData(long measId, int wellNr, Map<String, byte[]> imageData);
 
 	/**
 	 * Add image data to a measurement.
@@ -207,7 +220,7 @@ public interface MeasService {
 	 * @param channelId The ID of the channel to add image data for.
 	 * @param imageData The binary image codestream data.
 	 */
-	public void setMeasImageData(long measId, int wellNr, String channelId, byte[] imageData);
+	void setMeasImageData(long measId, int wellNr, String channelId, byte[] imageData);
 
 	/**
 	 * Retrieve the size of the image data for the given measurement, well nr and channel.
@@ -217,7 +230,7 @@ public interface MeasService {
 	 * @param channel The name of the channel to get image data size for.
 	 * @return The size of the image data, in bytes.
 	 */
-	public long getImageDataSize(long measId, int wellNr, String channel);
+	long getImageDataSize(long measId, int wellNr, String channel);
 
 	/**
 	 * Retrieve the image data for a measurement for a given well nr and channel.
@@ -227,7 +240,7 @@ public interface MeasService {
 	 * @param channel The name of the channel to get image data for.
 	 * @return The image data, may be null.
 	 */
-	public byte[] getImageData(long measId, int wellNr, String channel);
+	byte[] getImageData(long measId, int wellNr, String channel);
 
 	/**
 	 * Retrieve a part of the image data for a measurement for a given well nr and channel.
@@ -239,7 +252,7 @@ public interface MeasService {
 	 * @param len The length of the part to get.
 	 * @return The image data part, may be null.
 	 */
-	public byte[] getImageDataPart(long measId, int wellNr, String channel, long offset, int len);
+	byte[] getImageDataPart(long measId, int wellNr, String channel, long offset, int len);
 
 	/**
 	 * Retrieve the image data for a measurement for a given well nr.
@@ -248,5 +261,5 @@ public interface MeasService {
 	 * @param wellNr The well nr to get image data for.
 	 * @return The image data, containing one byte array per channel. May be null.
 	 */
-	public Map<String, byte[]> getImageData(long measId, int wellNr);
+	Map<String, byte[]> getImageData(long measId, int wellNr);
 }
