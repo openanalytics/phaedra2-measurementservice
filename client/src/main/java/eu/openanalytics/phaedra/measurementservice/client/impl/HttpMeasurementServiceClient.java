@@ -83,8 +83,13 @@ public class HttpMeasurementServiceClient implements MeasurementServiceClient {
             Map<Integer, float[]> allValues = new HashMap<>();
             for (Object key: responseMap.keySet()) {
             	Integer wellNr = Integer.parseInt(String.valueOf(key));
-            	float[] values = (float[]) responseMap.get(key);
-            	allValues.put(wellNr, values);
+            	List<?> values = (List<?>) responseMap.get(key);
+            	
+            	float[] valueArray = new float[values.size()];
+            	for (int i = 0; i < valueArray.length; i++) {
+					valueArray[i] = ((Number) values.get(i)).floatValue();
+				}
+            	allValues.put(wellNr, valueArray);
             }
             return allValues;
         } catch (HttpClientErrorException.NotFound ex) {
