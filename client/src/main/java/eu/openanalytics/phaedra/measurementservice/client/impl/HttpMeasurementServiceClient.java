@@ -22,6 +22,7 @@ package eu.openanalytics.phaedra.measurementservice.client.impl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -60,7 +61,7 @@ public class HttpMeasurementServiceClient implements MeasurementServiceClient {
         try {
             var res = restTemplate.exchange(urlFactory.measurementWellData(measId, columnName), HttpMethod.GET,
             		new HttpEntity<>(makeHttpHeaders()), float[].class);
-            if (res == null) throw new MeasUnresolvableException("WellData could not be converted");
+            if (res == null) throw new MeasUnresolvableException("WellData could not be retrieved");
             return res.getBody();
         } catch (HttpClientErrorException.NotFound ex) {
             throw new MeasUnresolvableException("WellData not found");
@@ -69,18 +70,27 @@ public class HttpMeasurementServiceClient implements MeasurementServiceClient {
         }
     }
 
-    @SuppressWarnings("unchecked")
 	@Override
     public Map<Integer, float[]> getSubWellData(long measId, String columnName) throws MeasUnresolvableException {
     	try {
             var res = restTemplate.exchange(urlFactory.measurementSubWellData(measId, columnName), HttpMethod.GET,
             		new HttpEntity<>(makeHttpHeaders()), Map.class);
-            if (res == null) throw new MeasUnresolvableException("WellData could not be converted");
-            return res.getBody();
+            if (res == null) throw new MeasUnresolvableException("SubwellData could not be retrieved");
+            
+            Map<?,?> responseMap = res.getBody();
+            if (responseMap == null) throw new MeasUnresolvableException("SubwellData could not be retrieved");
+            
+            Map<Integer, float[]> allValues = new HashMap<>();
+            for (Object key: responseMap.keySet()) {
+            	Integer wellNr = Integer.parseInt(String.valueOf(key));
+            	float[] values = (float[]) responseMap.get(key);
+            	allValues.put(wellNr, values);
+            }
+            return allValues;
         } catch (HttpClientErrorException.NotFound ex) {
-            throw new MeasUnresolvableException("WellData not found");
+            throw new MeasUnresolvableException("SubwellData not found");
         } catch (HttpClientErrorException ex) {
-            throw new MeasUnresolvableException("Error while fetching WellData");
+            throw new MeasUnresolvableException("Error while fetching SubwellData");
         }
     }
 
