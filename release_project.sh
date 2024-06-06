@@ -25,15 +25,19 @@ git add dto/pom.xml
 git add client/pom.xml
 git add server/pom.xml
 git commit -m "update:d set version to $release_version"
-git push
 
 # Use got flow maven plugin to release the project
-mvn -B -DskipTestProject=true gitflow:release-start gitflow:release-finish
+mvn -B -DskipTestProject=true -DpushRemote=false gitflow:release-start gitflow:release-finish
 
 # Update parent to latest snapshot version
 mvn versions:update-parent -DallowSnapshots=true -U
 # Update eu.openanalytics.phaedra dependencies with the latest release version
 mvn versions:update-properties -DallowSnapshots=true -Dincludes=eu.openanalytics.phaedra -U
+
+#
+git add pom.xml
+git commit -m "update:d set version to $release_version-SNAPSHOT"
+git push origin develop master --tags
 
 # Clean up, remove pom.xml.versionsBackup files created by mvn versions:set
 find . -name "pom.xml.versionsBackup" -type f | xargs rm
