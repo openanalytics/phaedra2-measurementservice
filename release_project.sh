@@ -36,6 +36,9 @@ mvn versions:update-parent -DallowSnapshots=true -U
 mvn versions:update-properties -DallowSnapshots=true -Dincludes=eu.openanalytics.phaedra -U
 
 #
+git add dto/pom.xml
+git add client/pom.xml
+git add server/pom.xml
 git add pom.xml
 git commit -m "update:d set version to $release_version-SNAPSHOT"
 git push origin develop master --tags
