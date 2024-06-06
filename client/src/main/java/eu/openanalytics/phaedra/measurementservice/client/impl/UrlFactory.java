@@ -25,28 +25,31 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 public class UrlFactory {
 
-    private static final String MEAS_SERVICE = "http://phaedra-measurement-service:8080/phaedra/measurement-service";
-
-    public static String measurementWellData(long measId, String columnName) {
-        return String.format("%s/measurements/%s/welldata/%s", MEAS_SERVICE, measId, columnName);
+    private String baseURL;
+    
+    public UrlFactory(String baseURL) {
+    	this.baseURL = baseURL;
+	}
+    
+    public String measurementWellData(long measId, String columnName) {
+        return String.format("%s/measurements/%s/welldata/%s", baseURL, measId, columnName);
     }
 
-    public static String measurementSubWellData(long measId, String columnName) {
-        return String.format("%s/measurements/%s/subwelldata/%s", MEAS_SERVICE, measId, columnName);
+    public String measurementSubWellData(long measId, String columnName) {
+        return String.format("%s/measurements/%s/subwelldata/%s", baseURL, measId, columnName);
     }
 
-    public static String getMeasurementsByMeasIds(long... measIds) {
-        String url = String.format("%s/measurements", MEAS_SERVICE);
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url)
-                .queryParam("ids", StringUtils.join(measIds,','));
+    public String getMeasurementsByMeasIds(long... measIds) {
+        String url = String.format("%s/measurements", baseURL);
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(url).queryParam("ids", StringUtils.join(measIds,','));
         return builder.build().toString();
     }
 
-    public static String getMeasurementsByMeasId(long measId) {
-        return String.format("%s/measurements/%s", MEAS_SERVICE, measId);
+    public String getMeasurementsByMeasId(long measId) {
+        return String.format("%s/measurements/%s", baseURL, measId);
     }
 
-    public static String getAllMeasurements() {
-        return String.format("%s/measurements", MEAS_SERVICE);
+    public String getAllMeasurements() {
+        return String.format("%s/measurements", baseURL);
     }
 }

@@ -22,9 +22,11 @@ package eu.openanalytics.phaedra.measurementservice.client.impl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -43,17 +45,23 @@ public class HttpMeasurementServiceClient implements MeasurementServiceClient {
     private final PhaedraRestTemplate restTemplate;
     private final IAuthorizationService authService;
 
-    public HttpMeasurementServiceClient(PhaedraRestTemplate restTemplate, IAuthorizationService authService) {
+    private final UrlFactory urlFactory;
+    
+    private static final String PROP_BASE_URL = "phaedra.measurement-service.base-url";
+    private static final String DEFAULT_BASE_URL = "http://phaedra-measurement-service:8080/phaedra/measurement-service";
+    
+    public HttpMeasurementServiceClient(PhaedraRestTemplate restTemplate, IAuthorizationService authService, Environment environment) {
         this.restTemplate = restTemplate;
         this.authService = authService;
+        this.urlFactory = new UrlFactory(environment.getProperty(PROP_BASE_URL, DEFAULT_BASE_URL));
     }
 
     @Override
     public float[] getWellData(long measId, String columnName) throws MeasUnresolvableException {
         try {
-            var res = restTemplate.exchange(UrlFactory.measurementWellData(measId, columnName), HttpMethod.GET,
+            var res = restTemplate.exchange(urlFactory.measurementWellData(measId, columnName), HttpMethod.GET,
             		new HttpEntity<>(makeHttpHeaders()), float[].class);
-            if (res == null) throw new MeasUnresolvableException("WellData could not be converted");
+            if (res == null) throw new MeasUnresolvableException("WellData could not be retrieved");
             return res.getBody();
         } catch (HttpClientErrorException.NotFound ex) {
             throw new MeasUnresolvableException("WellData not found");
@@ -62,24 +70,38 @@ public class HttpMeasurementServiceClient implements MeasurementServiceClient {
         }
     }
 
-    @SuppressWarnings("unchecked")
 	@Override
     public Map<Integer, float[]> getSubWellData(long measId, String columnName) throws MeasUnresolvableException {
     	try {
-            var res = restTemplate.exchange(UrlFactory.measurementSubWellData(measId, columnName), HttpMethod.GET,
+            var res = restTemplate.exchange(urlFactory.measurementSubWellData(measId, columnName), HttpMethod.GET,
             		new HttpEntity<>(makeHttpHeaders()), Map.class);
-            if (res == null) throw new MeasUnresolvableException("WellData could not be converted");
-            return res.getBody();
+            if (res == null) throw new MeasUnresolvableException("SubwellData could not be retrieved");
+            
+            Map<?,?> responseMap = res.getBody();
+            if (responseMap == null) throw new MeasUnresolvableException("SubwellData could not be retrieved");
+            
+            Map<Integer, float[]> allValues = new HashMap<>();
+            for (Object key: responseMap.keySet()) {
+            	Integer wellNr = Integer.parseInt(String.valueOf(key));
+            	List<?> values = (List<?>) responseMap.get(key);
+            	
+            	float[] valueArray = new float[values.size()];
+            	for (int i = 0; i < valueArray.length; i++) {
+					valueArray[i] = ((Number) values.get(i)).floatValue();
+				}
+            	allValues.put(wellNr, valueArray);
+            }
+            return allValues;
         } catch (HttpClientErrorException.NotFound ex) {
-            throw new MeasUnresolvableException("WellData not found");
+            throw new MeasUnresolvableException("SubwellData not found");
         } catch (HttpClientErrorException ex) {
-            throw new MeasUnresolvableException("Error while fetching WellData");
+            throw new MeasUnresolvableException("Error while fetching SubwellData");
         }
     }
 
     @Override
     public MeasurementDTO getMeasurementByMeasId(long measId) {
-        var response = restTemplate.exchange(UrlFactory.getMeasurementsByMeasId(measId), HttpMethod.GET,
+        var response = restTemplate.exchange(urlFactory.getMeasurementsByMeasId(measId), HttpMethod.GET,
                 new HttpEntity<>(makeHttpHeaders()), MeasurementDTO.class);
         return response.getBody();
     }
@@ -87,7 +109,7 @@ public class HttpMeasurementServiceClient implements MeasurementServiceClient {
     @Override
     public List<MeasurementDTO> getMeasurementsByMeasIds(long ...measIds) {
         if (measIds != null) {
-            var res = restTemplate.exchange(UrlFactory.getMeasurementsByMeasIds(measIds), HttpMethod.GET,
+            var res = restTemplate.exchange(urlFactory.getMeasurementsByMeasIds(measIds), HttpMethod.GET,
             		new HttpEntity<>(makeHttpHeaders()), MeasurementDTO[].class);
             MeasurementDTO[] measurements = res.getBody();
             return Arrays.asList(measurements);
