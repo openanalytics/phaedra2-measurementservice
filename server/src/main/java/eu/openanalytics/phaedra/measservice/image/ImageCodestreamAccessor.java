@@ -28,6 +28,12 @@ import org.slf4j.LoggerFactory;
 
 import eu.openanalytics.phaedra.measservice.service.MeasService;
 
+/**
+ * This class provides access to the bytes of a codestream, which is assumed to be remote i.e. not on the local machine, 
+ * and a certain amount of lag (latency) is expected when fetching the bytes.
+ * Therefore, this class maintains a cache of byte "chunks", trying to load only enough bytes to satisfy the codec's need
+ * for rendering an image at a certain scale or region.
+ */
 public class ImageCodestreamAccessor {
 
 	private long measId;
@@ -37,6 +43,7 @@ public class ImageCodestreamAccessor {
 
 	private int chunkSize;
 	private byte[][] data;
+	private long codestreamSize;
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -46,12 +53,19 @@ public class ImageCodestreamAccessor {
 		this.channelId = channelId;
 		this.measService = measService;
 
+		this.codestreamSize = measService.getImageDataSize(measId, wellNr, channelId);
+		
+		// Determine an appropriate chunk size that caches enough, but not too many, bytes.
 		this.chunkSize = 100000;
-		this.data = new byte[100][];
+		if ((int) codestreamSize / chunkSize > 20) chunkSize *= 2;
+		int chunkCount = (int) codestreamSize / chunkSize;
+		if (codestreamSize % chunkSize > 0) chunkCount++;
+		
+		this.data = new byte[chunkCount][];
 	}
 
 	public byte[] getBytes(long offset, int len) throws IOException {
-//		logger.info(String.format("Requested bytes %d + %d for meas %d, well %d, channel %s", offset, len, measId, wellNr, channelId));
+//		logger.debug(String.format("Requested bytes %d + %d for meas %d, well %d, channel %s", offset, len, measId, wellNr, channelId));
 
 		byte[] buffer = new byte[len];
 
@@ -95,7 +109,15 @@ public class ImageCodestreamAccessor {
 	}
 
 	private void fetchChunk(int i) {
-		logger.info(String.format("Fetching chunk %d for meas %d, well %d, channel %s", i, measId, wellNr, channelId));
-		data[i] = measService.getImageDataPart(measId, wellNr, channelId, i * chunkSize, chunkSize);
+		long offset = i * chunkSize;
+		int maxBytesToFetch = (int) (codestreamSize - offset);
+		if (maxBytesToFetch <= 0) data[i] = new byte[0];
+		int len = Math.min(chunkSize, maxBytesToFetch);
+		
+		long startTime = System.currentTimeMillis();
+		data[i] = measService.getImageDataPart(measId, wellNr, channelId, offset, len);
+		long durationMs = System.currentTimeMillis() - startTime;
+		
+		logger.debug(String.format("Remote fetched chunk %d [chunksize=%d, codestreamsize=%d] for meas %d, well %d, channel %s in %d ms", i, chunkSize, codestreamSize, measId, wellNr, channelId, durationMs));
 	}
 }
