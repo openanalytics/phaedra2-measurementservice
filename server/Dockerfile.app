@@ -1,10 +1,10 @@
-FROM registry.openanalytics.eu/proxy/library/eclipse-temurin:21-jre-alpine
+FROM registry.openanalytics.eu/proxy/library/eclipse-temurin:21-jre-jammy
 
 ARG JAR_FILE
 ADD $JAR_FILE /opt/phaedra/service.jar
 
 ENV USER phaedra
-RUN adduser -D -h /home/$USER -s /bin/nologin $USER
+RUN useradd -c 'phaedra user' -m -d /home/$USER -s /bin/nologin $USER
 WORKDIR /opt/phaedra
 USER $USER
 
