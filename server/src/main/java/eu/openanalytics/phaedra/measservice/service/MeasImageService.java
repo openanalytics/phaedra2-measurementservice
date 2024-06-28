@@ -62,7 +62,7 @@ public class MeasImageService {
 		ICodestreamSourceDescriptor source = createCodestreamSourceDescriptor(measId, wellNr, channel);
 		if (source == null) return null;
 
-		ImageRenderConfig cfg = obtainImageRenderConfig(Collections.singletonList(channel), renderConfigId, renderConfig);
+		ImageRenderConfig cfg = generateFullRenderConfig(Collections.singletonList(channel), renderConfigId, renderConfig);
 		return renderService.renderImage(new ICodestreamSourceDescriptor[] { source }, cfg);
 	}
 
@@ -82,7 +82,7 @@ public class MeasImageService {
 		}
 		if (availableChannels.isEmpty()) return null;
 
-		ImageRenderConfig cfg = obtainImageRenderConfig(availableChannels, renderConfigId, renderConfig);
+		ImageRenderConfig cfg = generateFullRenderConfig(availableChannels, renderConfigId, renderConfig);
 		return renderService.renderImage(sources.stream().toArray(i -> new ICodestreamSourceDescriptor[i]), cfg);
 	}
 
@@ -106,20 +106,20 @@ public class MeasImageService {
 		}
 		if (availableChannels.isEmpty()) return null;
 
-		ImageRenderConfig cfg = obtainImageRenderConfig(availableChannels, renderConfigId, renderConfig);
+		ImageRenderConfig cfg = generateFullRenderConfig(availableChannels, renderConfigId, renderConfig);
 		return renderService.renderImage(sources.stream().toArray(i -> new ICodestreamSourceDescriptor[i]), cfg);
 	}
 
-	private ImageRenderConfig obtainImageRenderConfig(List<String> channels, Long baseConfigId, ImageRenderConfig additionalConfig) {
-		ImageRenderConfig cfg = null;
+	private ImageRenderConfig generateFullRenderConfig(List<String> channelsToRender, Long baseConfigId, ImageRenderConfig additionalConfig) {
+		// Start from a default config
+		ImageRenderConfig cfg = new ImageRenderConfig(channelsToRender.stream().toArray(i -> new String[i])).withDefaults();
 
-		// First, load or generate a base config.
-		if (baseConfigId == null) {
-			cfg = new ImageRenderConfig(channels.stream().toArray(i -> new String[i]));
-		} else {
-			cfg = ImageRenderConfigUtils.copy(renderConfigService.getConfigById(baseConfigId)
+		// If there's a base config, load it and merge it into the default config.
+		if (baseConfigId != null) {
+			ImageRenderConfig baseConfig = renderConfigService.getConfigById(baseConfigId)
 					.map(c -> c.getConfig())
-					.orElseThrow(() -> new IllegalArgumentException("No image render config found with ID " + baseConfigId)));
+					.orElseThrow(() -> new IllegalArgumentException("No image render config found with ID " + baseConfigId));
+			ImageRenderConfigUtils.merge(baseConfig, cfg);
 		}
 
 		// Then, apply additionalConfig, if any.
@@ -129,14 +129,14 @@ public class MeasImageService {
 
 		// Finally, filter and sort channel configs so they match the requested channels.
 		List<ChannelRenderConfig> filteredChannelConfigs = new ArrayList<>();
-		for (String channel: channels) {
-			ChannelRenderConfig channelConfig = Arrays.stream(cfg.channelConfigs)
-					.filter(c -> channel.equalsIgnoreCase(c.name))
-					.findAny().orElse(new ChannelRenderConfig(channel));
+		for (String channel: channelsToRender) {
+			ChannelRenderConfig channelConfig = Arrays.stream(cfg.channelConfigs).filter(c -> channel.equalsIgnoreCase(c.name)).findAny().orElse(new ChannelRenderConfig(channel).withDefaults());
 			filteredChannelConfigs.add(channelConfig);
 		}
 		cfg.channelConfigs = filteredChannelConfigs.stream().toArray(i -> new ChannelRenderConfig[i]);
 
+		System.out.println("Resulting config: " + cfg.toString());
+		
 		return cfg;
 	}
 
