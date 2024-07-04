@@ -38,6 +38,7 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
+import eu.openanalytics.phaedra.imaging.render.ImageRenderService;
 import eu.openanalytics.phaedra.util.auth.AuthenticationConfigHelper;
 import eu.openanalytics.phaedra.util.auth.AuthorizationServiceFactory;
 import eu.openanalytics.phaedra.util.auth.IAuthorizationService;
@@ -87,6 +88,11 @@ public class MeasServiceApplication {
 		return new OpenAPI().addServersItem(server);
 	}
 
+	@Bean
+	public ImageRenderService renderService() {
+		return new ImageRenderService();
+	}
+	
 	@Bean
 	public IAuthorizationService authService() {
 		return AuthorizationServiceFactory.create();
