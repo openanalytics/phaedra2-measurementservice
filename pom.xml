@@ -10,7 +10,7 @@
     <packaging>pom</packaging>
 
     <artifactId>phaedra2-measurementservice</artifactId>
-    <name>phaedra2-measurementservice</name>
+    <name>Phaedra2 Measurement Service</name>
 	<version>2.4.0-SNAPSHOT</version>
 
     <modules>
