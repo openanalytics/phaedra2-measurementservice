@@ -70,7 +70,7 @@ public class KafkaConsumerService {
         } else {
         	try {
 	        	measService.setMeasWellData(wellData.getMeasurementId(), wellData.getColumn(), wellData.getData());
-	        } catch (IllegalArgumentException e) {
+	        } catch (RuntimeException e) {
 	    		logger.warn(String.format("Ignoring invalid saveWellData request: %s", wellData), e);	
 	    	}
         }
@@ -83,7 +83,7 @@ public class KafkaConsumerService {
         } else {
         	try {
         		measService.setMeasSubWellData(subwellData.getMeasurementId(), subwellData.getWellNr(), subwellData.getColumn(), subwellData.getData());
-        	} catch (IllegalArgumentException e) {
+        	} catch (RuntimeException e) {
         		logger.warn(String.format("Ignoring invalid saveSubwellData request: %s", subwellData), e);	
         	}
         }
