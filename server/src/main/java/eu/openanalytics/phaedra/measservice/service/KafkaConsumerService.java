@@ -76,7 +76,7 @@ public class KafkaConsumerService {
         }
     }
 
-    @KafkaListener(topics = TOPIC_MEASUREMENTS, groupId = GROUP_ID + "_requestMeasurementSaveSubwellData", filter = "requestMeasurementSaveSubwellDataFilter")
+    @KafkaListener(topics = TOPIC_MEASUREMENTS, groupId = GROUP_ID + "_requestMeasurementSaveSubwellData", filter = "requestMeasurementSaveSubwellDataFilter", concurrency = "5")
     public void onSaveSubwellData(SubwellDataDTO subwellData) throws JsonProcessingException {
         if (isBlank(subwellData.getColumn()) || isEmpty(subwellData.getData())) {
         	logger.warn(String.format("Ignoring invalid saveSubwellData request: %s", subwellData));

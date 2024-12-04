@@ -201,11 +201,12 @@ public class MeasServiceImpl implements MeasService {
 
 	@Override
 	public void setMeasSubWellData(long measId, int wellNr, String column, float[] subWellData) {
-		Measurement meas = measRepo.findById(measId).orElse(null);
-
-		if (meas == null) {
-			throw new IllegalArgumentException(String.format("Cannot save subwelldata: measurement with ID %d does not exist", measId));
-		}
+		//TODO This check is disabled for now, because it is a performance issue as this method can be invoked a million times per plate. Caching should be enabled.
+//		Measurement meas = measRepo.findById(measId).orElse(null);
+//		if (meas == null) {
+//			throw new IllegalArgumentException(String.format("Cannot save subwelldata: measurement with ID %d does not exist", measId));
+//		}
+		
 		if (subWellData == null || ArrayUtils.isEmpty(subWellData)) {
 			throw new IllegalArgumentException("Cannot save subwelldata: no data provided");
 		}
