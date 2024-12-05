@@ -198,6 +198,23 @@ public class MeasServiceImpl implements MeasService {
 		meas.setSubWellColumns(subWellColumns);
 		measRepo.save(meas);
 	}
+	
+	@Override
+	public void setMeasSubWellData(long measId, int wellNr, Map<String, float[]> subWellData) {
+		Measurement meas = measRepo.findById(measId).orElse(null);
+		if (meas == null) {
+			throw new IllegalArgumentException(String.format("Cannot save subwelldata: measurement with ID %d does not exist", measId));
+		}
+		if (subWellData == null || subWellData.isEmpty()) {
+			throw new IllegalArgumentException("Cannot save subwelldata: no data provided");
+		}
+		int wellCount = meas.getRows() * meas.getColumns();
+		if (wellNr < 1 || wellNr > wellCount) {
+			throw new IllegalArgumentException(String.format("Cannot save subwelldata: invalid wellNr (wellNr: %d, wellCount: %d)", wellNr, wellCount));
+		}
+		
+		measDataRepo.putSubWellData(measId, wellNr, subWellData);
+	}
 
 	@Override
 	public void setMeasSubWellData(long measId, int wellNr, String column, float[] subWellData) {

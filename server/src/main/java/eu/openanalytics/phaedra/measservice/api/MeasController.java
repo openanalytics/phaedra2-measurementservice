@@ -20,21 +20,29 @@
  */
 package eu.openanalytics.phaedra.measservice.api;
 
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import eu.openanalytics.phaedra.measservice.api.dto.NewMeasurementDTO;
 import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
 import eu.openanalytics.phaedra.measservice.exception.MeasurementNotFoundException;
 import eu.openanalytics.phaedra.measservice.model.Measurement;
 import eu.openanalytics.phaedra.measservice.service.MeasService;
-import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/measurements")
@@ -132,6 +140,12 @@ public class MeasController {
     @PostMapping(value = "/{measurementId}/subwelldata/{column}")
     public ResponseEntity<Void> setSubWellData(@PathVariable long measurementId, @PathVariable String column, @RequestBody Map<Integer, float[]> dataMap) {
         measService.setMeasSubWellData(measurementId, column, dataMap);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+    
+    @PostMapping(value = "/{measurementId}/subwelldata/well/{wellNr}")
+    public ResponseEntity<Void> setSubWellData(@PathVariable long measurementId, @PathVariable int wellNr, @RequestBody Map<String, float[]> dataMap) {
+        measService.setMeasSubWellData(measurementId, wellNr, dataMap);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
