@@ -87,6 +87,12 @@ public class MeasDataRepository {
 		});
 	}
 
+	public void putSubWellData(long measId, int wellNr, Map<String, float[]> data) {
+		data.keySet().parallelStream().forEach(column -> {
+			putSubWellData(measId, wellNr, column, data.get(column));
+		});
+	}
+	
 	public void putSubWellData(long measId, int wellNr, String column, float[] data) {
 		String key = String.format("%s.%s.%d", PREFIX_SW_DATA, column, wellNr);
 		try {
