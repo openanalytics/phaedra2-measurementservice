@@ -26,8 +26,12 @@ import static eu.openanalytics.phaedra.measservice.config.KafkaConfig.TOPIC_MEAS
 import static org.apache.commons.lang3.ArrayUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
@@ -44,14 +48,18 @@ import lombok.NoArgsConstructor;
 @Service
 public class KafkaConsumerService {
 
+	@Value("${meas-service.kafka.processing-threads:20}")
+	private int processingThreads;
+	
     private final MeasService measService;
     private final KafkaProducerService kafkaProducerService;
-
+    private final ExecutorService asyncMessageExecutor;
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
     public KafkaConsumerService(MeasService measService, KafkaProducerService kafkaProducerService) {
         this.measService = measService;
         this.kafkaProducerService = kafkaProducerService;
+        this.asyncMessageExecutor = Executors.newFixedThreadPool(processingThreads);
     }
 
     @KafkaListener(topics = TOPIC_DATACAPTURE, groupId = GROUP_ID, filter = "notifyCaptureJobUpdatedFilter")
@@ -68,24 +76,28 @@ public class KafkaConsumerService {
         if (isBlank(wellData.getColumn()) || isEmpty(wellData.getData())) {
         	logger.warn(String.format("Ignoring invalid saveWellData request: %s", wellData));
         } else {
-        	try {
-	        	measService.setMeasWellData(wellData.getMeasurementId(), wellData.getColumn(), wellData.getData());
-	        } catch (RuntimeException e) {
-	    		logger.warn(String.format("Ignoring invalid saveWellData request: %s", wellData), e);	
-	    	}
+        	asyncMessageExecutor.submit(() -> {
+	        	try {
+		        	measService.setMeasWellData(wellData.getMeasurementId(), wellData.getColumn(), wellData.getData());
+		        } catch (RuntimeException e) {
+		    		logger.warn("Ignoring invalid saveWellData request", e);
+		    	}
+        	});
         }
     }
 
-    @KafkaListener(topics = TOPIC_MEASUREMENTS, groupId = GROUP_ID + "_requestMeasurementSaveSubwellData", filter = "requestMeasurementSaveSubwellDataFilter", concurrency = "5")
+    @KafkaListener(topics = TOPIC_MEASUREMENTS, groupId = GROUP_ID + "_requestMeasurementSaveSubwellData", filter = "requestMeasurementSaveSubwellDataFilter")
     public void onSaveSubwellData(SubwellDataDTO subwellData) throws JsonProcessingException {
         if (isBlank(subwellData.getColumn()) || isEmpty(subwellData.getData())) {
         	logger.warn(String.format("Ignoring invalid saveSubwellData request: %s", subwellData));
         } else {
-        	try {
-        		measService.setMeasSubWellData(subwellData.getMeasurementId(), subwellData.getWellNr(), subwellData.getColumn(), subwellData.getData());
-        	} catch (RuntimeException e) {
-        		logger.warn(String.format("Ignoring invalid saveSubwellData request: %s", subwellData), e);	
-        	}
+        	asyncMessageExecutor.submit(() -> {
+        		try {
+        			measService.setMeasSubWellData(subwellData.getMeasurementId(), subwellData.getWellNr(), subwellData.getColumn(), subwellData.getData());
+        		} catch (RuntimeException e) {
+        			logger.warn("Ignoring invalid saveSubwellData request", e);
+        		}
+        	});
         }
     }
 

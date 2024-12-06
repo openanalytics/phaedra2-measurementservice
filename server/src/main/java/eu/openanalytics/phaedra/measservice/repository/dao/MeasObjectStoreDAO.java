@@ -32,6 +32,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Executors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -71,6 +72,9 @@ public class MeasObjectStoreDAO {
 	@Value("${meas-service.s3.upload-temp-file-threshold:10000}")
 	private int uploadTempFileThreshold;
 	
+	@Value("${meas-service.s3.threads:100}")
+	private int s3Threads;
+	
 	@Value("${meas-service.s3.bucket-name}")
 	private String bucketName;
 	
@@ -85,6 +89,7 @@ public class MeasObjectStoreDAO {
 		
 		transferMgr = TransferManagerBuilder
 				.standard()
+				.withExecutorFactory(() -> Executors.newFixedThreadPool(s3Threads))
 				.withS3Client(s3Client)
 				.build();
 	}
