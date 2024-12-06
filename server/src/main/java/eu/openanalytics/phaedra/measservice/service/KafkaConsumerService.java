@@ -31,7 +31,6 @@ import java.util.concurrent.Executors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
@@ -48,9 +47,6 @@ import lombok.NoArgsConstructor;
 @Service
 public class KafkaConsumerService {
 
-	@Value("${meas-service.kafka.processing-threads:20}")
-	private int processingThreads;
-	
     private final MeasService measService;
     private final KafkaProducerService kafkaProducerService;
     private final ExecutorService asyncMessageExecutor;
@@ -59,7 +55,7 @@ public class KafkaConsumerService {
     public KafkaConsumerService(MeasService measService, KafkaProducerService kafkaProducerService) {
         this.measService = measService;
         this.kafkaProducerService = kafkaProducerService;
-        this.asyncMessageExecutor = Executors.newFixedThreadPool(processingThreads);
+        this.asyncMessageExecutor = Executors.newFixedThreadPool(20);
     }
 
     @KafkaListener(topics = TOPIC_DATACAPTURE, groupId = GROUP_ID, filter = "notifyCaptureJobUpdatedFilter")
