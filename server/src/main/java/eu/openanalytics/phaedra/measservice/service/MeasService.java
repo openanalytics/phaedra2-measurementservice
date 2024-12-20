@@ -149,6 +149,15 @@ public interface MeasService {
 	void setMeasSubWellData(long measId, String column, Map<Integer, float[]> subWellData);
 
 	/**
+	 * Add subwell data to a measurement for the given well.
+	 *
+	 * @param measId The ID of the measurement to add subwell data to.
+	 * @param wellNr The well number of the subwell data
+	 * @param subWellData The map of data, containing a float[] for each meas column.
+	 */
+	void setMeasSubWellData(long measId, int wellNr, Map<String, float[]> subWellData);
+	
+	/**
 	 * Add subwell data to a measurement for a specific well and column
 	 * @param measId The ID of the measurement to add subwell data to.
 	 * @param wellNr The well number of the subwell data
