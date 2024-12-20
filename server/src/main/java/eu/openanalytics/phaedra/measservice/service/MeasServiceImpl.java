@@ -198,14 +198,32 @@ public class MeasServiceImpl implements MeasService {
 		meas.setSubWellColumns(subWellColumns);
 		measRepo.save(meas);
 	}
-
+	
 	@Override
-	public void setMeasSubWellData(long measId, int wellNr, String column, float[] subWellData) {
+	public void setMeasSubWellData(long measId, int wellNr, Map<String, float[]> subWellData) {
 		Measurement meas = measRepo.findById(measId).orElse(null);
-
 		if (meas == null) {
 			throw new IllegalArgumentException(String.format("Cannot save subwelldata: measurement with ID %d does not exist", measId));
 		}
+		if (subWellData == null || subWellData.isEmpty()) {
+			throw new IllegalArgumentException("Cannot save subwelldata: no data provided");
+		}
+		int wellCount = meas.getRows() * meas.getColumns();
+		if (wellNr < 1 || wellNr > wellCount) {
+			throw new IllegalArgumentException(String.format("Cannot save subwelldata: invalid wellNr (wellNr: %d, wellCount: %d)", wellNr, wellCount));
+		}
+		
+		measDataRepo.putSubWellData(measId, wellNr, subWellData);
+	}
+
+	@Override
+	public void setMeasSubWellData(long measId, int wellNr, String column, float[] subWellData) {
+		//TODO This check is disabled for now, because it is a performance issue as this method can be invoked a million times per plate. Caching should be enabled.
+//		Measurement meas = measRepo.findById(measId).orElse(null);
+//		if (meas == null) {
+//			throw new IllegalArgumentException(String.format("Cannot save subwelldata: measurement with ID %d does not exist", measId));
+//		}
+		
 		if (subWellData == null || ArrayUtils.isEmpty(subWellData)) {
 			throw new IllegalArgumentException("Cannot save subwelldata: no data provided");
 		}

@@ -32,6 +32,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Executors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,6 +45,7 @@ import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
@@ -67,6 +69,12 @@ public class MeasObjectStoreDAO {
 	@Value("${meas-service.s3.upload-retry-delay:1000}")
 	private int uploadRetryDelayMs;
 	
+	@Value("${meas-service.s3.upload-temp-file-threshold:10000}")
+	private int uploadTempFileThreshold;
+	
+	@Value("${meas-service.s3.threads:100}")
+	private int s3Threads;
+	
 	@Value("${meas-service.s3.bucket-name}")
 	private String bucketName;
 	
@@ -81,6 +89,7 @@ public class MeasObjectStoreDAO {
 		
 		transferMgr = TransferManagerBuilder
 				.standard()
+				.withExecutorFactory(() -> Executors.newFixedThreadPool(s3Threads))
 				.withS3Client(s3Client)
 				.build();
 	}
@@ -146,9 +155,13 @@ public class MeasObjectStoreDAO {
 	public void putMeasObjectRaw(long measId, String key, byte[] value) throws IOException {
 		String s3key = makeS3Key(measId, key);
 		
-		File tempFile = File.createTempFile("meas-data", null);
-		try (OutputStream out = new FileOutputStream(tempFile)) {
-			StreamUtils.copy(value, out);
+		boolean useTempFile = value.length > uploadTempFileThreshold;
+		File tempFile = null;
+		if (useTempFile) {
+			tempFile = File.createTempFile("meas-data", null);
+			try (OutputStream out = new FileOutputStream(tempFile)) {
+				StreamUtils.copy(value, out);
+			}
 		}
 		
 		// By using a file instead of a stream, TransferManager can optimize the upload: multipart parallel uploads with auto-retrying.
@@ -158,7 +171,14 @@ public class MeasObjectStoreDAO {
 			int currentTry = 1;
 			while (currentTry <= uploadMaxTries) {
 				try {
-					Upload upload = transferMgr.upload(bucketName, s3key, tempFile);
+					Upload upload = null;
+					if (useTempFile) {
+						upload = transferMgr.upload(bucketName, s3key, tempFile);
+					} else {
+						ObjectMetadata mtdt = new ObjectMetadata();
+						mtdt.setContentLength(value.length);
+						upload = transferMgr.upload(bucketName, s3key, new ByteArrayInputStream(value), mtdt);
+					}
 					upload.waitForCompletion();
 					return;
 				} catch (Exception e) {
@@ -170,7 +190,7 @@ public class MeasObjectStoreDAO {
 				}
 			}
 		} finally {
-			tempFile.delete();
+			if (useTempFile) tempFile.delete();
 		}
 		throw new IOException(String.format("Failed to upload data to S3 for meas %d and key %s", measId, key), caughtException);		
 	}
