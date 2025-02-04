@@ -22,6 +22,9 @@ package eu.openanalytics.phaedra.measservice;
 
 import javax.sql.DataSource;
 
+import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.auth.AWSCredentialsProviderChain;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
@@ -75,9 +78,16 @@ public class MeasServiceApplication {
 		String username = environment.getProperty("S3_USERNAME");
 		String password = environment.getProperty("S3_PASSWORD");
 
+		AWSCredentialsProvider credentialsProvider;
+		if (username != null && password != null) {
+			credentialsProvider = new AWSStaticCredentialsProvider(new BasicAWSCredentials(username, password));
+		} else {
+			credentialsProvider = new DefaultAWSCredentialsProviderChain();
+		}
+
 		return AmazonS3ClientBuilder.standard()
 				.withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(endpoint, region))
-				.withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(username, password)))
+				.withCredentials(credentialsProvider)
 				.enablePathStyleAccess()
 				.build();
 	}
