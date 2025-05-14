@@ -23,8 +23,14 @@ type WellDataDTO {
     data: [FloatNaN]
 }
 
+input FilterOptions {
+    ids: [ID]
+    from: Date
+    to: Date
+}
+
 type Query {
-    measurements: [MeasurementDTO]
+    measurements(filter: FilterOptions): [MeasurementDTO]
     measurementById(measurementId: ID): MeasurementDTO
     measurementDataById(measurementId: ID): [WellDataDTO]
     measurementDataByIdAndWellColumn(measurementId: ID, wellColumn: String): [FloatNaN]

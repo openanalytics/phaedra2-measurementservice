@@ -22,13 +22,14 @@ package eu.openanalytics.phaedra.measservice.api;
 
 import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
 import eu.openanalytics.phaedra.measservice.dto.WellDataDTO;
+import eu.openanalytics.phaedra.measservice.record.FilterOptions;
 import eu.openanalytics.phaedra.measservice.service.MeasService;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Controller
 public class MeasurementGraphQLController {
@@ -40,7 +41,15 @@ public class MeasurementGraphQLController {
     }
 
     @QueryMapping
-    public List<MeasurementDTO> measurements() {
+    public List<MeasurementDTO> measurements(@Argument FilterOptions filter) {
+        if (filter != null) {
+            if (CollectionUtils.isNotEmpty(filter.ids())) {
+                return measService.getMeasurementsByIds(filter.ids());
+            }
+            if (filter.from() != null || filter.to() != null) {
+                return measService.findMeasByCreatedOnRange(filter.from(), filter.to());
+            }
+        }
         return measService.getAllMeasurements();
     }
 
@@ -55,6 +64,8 @@ public class MeasurementGraphQLController {
         measService.getWellData(measurementId).forEach((key, value) -> result.add(new WellDataDTO(measurementId, key, value)));
         return result;
     }
+
+
 
     @QueryMapping
     public float[] measurementDataByIdAndWellColumn(@Argument Long measurementId, @Argument String wellColumn) {
