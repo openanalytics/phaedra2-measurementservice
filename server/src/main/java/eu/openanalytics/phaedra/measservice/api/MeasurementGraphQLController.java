@@ -65,8 +65,6 @@ public class MeasurementGraphQLController {
         return result;
     }
 
-
-
     @QueryMapping
     public float[] measurementDataByIdAndWellColumn(@Argument Long measurementId, @Argument String wellColumn) {
         return measService.getWellData(measurementId, wellColumn);
