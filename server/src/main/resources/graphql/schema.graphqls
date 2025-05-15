@@ -33,7 +33,7 @@ type Query {
     measurements(filter: FilterOptions): [MeasurementDTO]
     measurementById(measurementId: ID): MeasurementDTO
     measurementDataById(measurementId: ID): [WellDataDTO]
-    measurementDataByIdAndWellColumn(measurementId: ID, wellColumn: String): [FloatNaN]
+    measurementDataByIdAndWellColumn(measurementId: ID, wellColumn: String): WellDataDTO
     getUniqueWellDataColumns: [String]
     getUniqueSubWellDataColumns: [String]
 }
