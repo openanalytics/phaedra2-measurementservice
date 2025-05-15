@@ -21,6 +21,7 @@
 package eu.openanalytics.phaedra.measservice.api;
 
 import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
+import eu.openanalytics.phaedra.measservice.dto.SubwellDataDTO;
 import eu.openanalytics.phaedra.measservice.dto.WellDataDTO;
 import eu.openanalytics.phaedra.measservice.record.FilterOptions;
 import eu.openanalytics.phaedra.measservice.service.MeasService;
@@ -73,6 +74,38 @@ public class MeasurementGraphQLController {
     @QueryMapping
     public List<String> getUniqueWellDataColumns() {
         return measService.getAllUniqueWellDataColumns();
+    }
+
+    @QueryMapping
+    public List<SubwellDataDTO> measurementSubWellDataByIdAndWellNr(@Argument Long measurementId,
+        @Argument Integer wellNr) {
+        List<SubwellDataDTO> result = new ArrayList<>();
+        measService.getSubWellData(measurementId, wellNr)
+            .forEach((column, value) ->
+                result.add(new SubwellDataDTO(measurementId, wellNr, column, value)));
+        return result;
+    }
+
+    @QueryMapping
+    public List<SubwellDataDTO> measurementSubWellDataByIdAndColumns(@Argument Long measurementId,
+        @Argument List<String> columns) {
+        List<SubwellDataDTO> result = new ArrayList<>();
+        for (String column : columns) {
+            measService.getSubWellData(measurementId, column)
+                .forEach((wellNr, value) ->
+                    result.add(new SubwellDataDTO(measurementId, wellNr, column, value)));
+        }
+        return result;
+    }
+
+    @QueryMapping
+    public List<SubwellDataDTO> measurementSubWellDataByIdAndWellNrAndColumns(
+        @Argument Long measurementId, @Argument Integer wellNr, @Argument List<String> columns) {
+        List<SubwellDataDTO> result = new ArrayList<>();
+        measService.getSubWellData(measurementId, wellNr, columns)
+            .forEach((column, value) ->
+                result.add(new SubwellDataDTO(measurementId, wellNr, column, value)));
+        return result;
     }
 
     @QueryMapping

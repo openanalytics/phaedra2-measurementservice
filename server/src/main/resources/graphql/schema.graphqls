@@ -23,6 +23,13 @@ type WellDataDTO {
     data: [FloatNaN]
 }
 
+type SubwellDataDTO {
+    measurementId: ID
+    wellNr: Int
+    column: String
+    data: [FloatNaN]
+}
+
 input FilterOptions {
     ids: [ID]
     from: Date
@@ -34,6 +41,9 @@ type Query {
     measurementById(measurementId: ID): MeasurementDTO
     measurementDataById(measurementId: ID): [WellDataDTO]
     measurementDataByIdAndWellColumn(measurementId: ID, wellColumn: String): WellDataDTO
+    measurementSubWellDataByIdAndWellNr(measurementId: ID, wellNr: Int): [SubwellDataDTO]
+    measurementSubWellDataByIdAndColumns(measurementId: ID, columns: [String]): [SubwellDataDTO]
+    measurementSubWellDataByIdAndWellNrAndColumns(measurementId: ID, wellNr: Int, columns: [String]): [SubwellDataDTO]
     getUniqueWellDataColumns: [String]
     getUniqueSubWellDataColumns: [String]
 }
