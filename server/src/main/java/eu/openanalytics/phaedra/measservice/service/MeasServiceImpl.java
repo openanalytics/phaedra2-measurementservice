@@ -24,14 +24,14 @@ import com.google.common.primitives.Longs;
 import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
 import eu.openanalytics.phaedra.measservice.exception.MeasurementNotFoundException;
 import eu.openanalytics.phaedra.measservice.model.Measurement;
+import eu.openanalytics.phaedra.measservice.record.PropertyRecord;
 import eu.openanalytics.phaedra.measservice.repository.MeasDataRepository;
 import eu.openanalytics.phaedra.measservice.repository.MeasRepository;
 import eu.openanalytics.phaedra.metadataservice.client.MetadataServiceGraphQlClient;
 import eu.openanalytics.phaedra.metadataservice.dto.MetadataDTO;
+import eu.openanalytics.phaedra.metadataservice.dto.PropertyDTO;
 import eu.openanalytics.phaedra.metadataservice.dto.TagDTO;
 import eu.openanalytics.phaedra.metadataservice.enumeration.ObjectClass;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import eu.openanalytics.phaedra.util.auth.IAuthorizationService;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -408,7 +408,11 @@ public class MeasServiceImpl implements MeasService {
 					measurementDTO.setTags(metadata.getTags().stream()
 							.map(TagDTO::getTag)
 							.toList());
-					measurementDTO.setProperties(metadata.getProperties());
+					List<PropertyRecord> properties = new ArrayList<>(metadata.getProperties().size());
+					for (PropertyDTO property : metadata.getProperties()) {
+						properties.add(new PropertyRecord(property.getPropertyName(), property.getPropertyValue()));
+					}
+					measurementDTO.setProperties(properties);
 				}
 			}
 		}

@@ -21,6 +21,7 @@
 package eu.openanalytics.phaedra.measservice.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import eu.openanalytics.phaedra.measservice.record.PropertyRecord;
 import eu.openanalytics.phaedra.metadataservice.dto.PropertyDTO;
 import java.util.List;
 import lombok.Data;
@@ -47,5 +48,5 @@ public class MeasurementDTO {
     private String[] subWellColumns;
     private String[] imageChannels;
     private List<String> tags;
-    private List<PropertyDTO> properties;
+    private List<PropertyRecord> properties;
 }

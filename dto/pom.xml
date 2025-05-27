@@ -12,16 +12,4 @@
   <artifactId>phaedra2-measurementservice-dto</artifactId>
   <name>phaedra2-measurementservice-dto</name>
 
-  <properties>
-    <phaedra2-metadataservice-dto.version>2.8.0-SNAPSHOT</phaedra2-metadataservice-dto.version>
-  </properties>
-
-  <dependencies>
-    <dependency>
-      <groupId>eu.openanalytics.phaedra</groupId>
-      <artifactId>phaedra2-metadataservice-dto</artifactId>
-      <version>${phaedra2-metadataservice-dto.version}</version>
-    </dependency>
-  </dependencies>
-
 </project>

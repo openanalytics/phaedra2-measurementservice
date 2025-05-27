@@ -16,14 +16,12 @@ type MeasurementDTO {
     subWellColumns:[String]
     imageChannels: [String]
     tags: [String]
-    properties: [PropertyDTO]
+    properties: [PropertyRecord]
 }
 
-type PropertyDTO {
-    propertyId: ID
+type PropertyRecord {
     propertyName: String
     propertyValue: String
-    actor: Actor
 }
 
 type WellDataDTO {
