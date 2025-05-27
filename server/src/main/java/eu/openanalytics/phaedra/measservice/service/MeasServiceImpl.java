@@ -30,6 +30,8 @@ import eu.openanalytics.phaedra.metadataservice.client.MetadataServiceGraphQlCli
 import eu.openanalytics.phaedra.metadataservice.dto.MetadataDTO;
 import eu.openanalytics.phaedra.metadataservice.dto.TagDTO;
 import eu.openanalytics.phaedra.metadataservice.enumeration.ObjectClass;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import eu.openanalytics.phaedra.util.auth.IAuthorizationService;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,20 +44,23 @@ import java.util.Optional;
 import java.util.concurrent.ForkJoinPool;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-@Component
+@Service
 public class MeasServiceImpl implements MeasService {
 
 	private final MeasRepository measRepo;
 	private final MeasDataRepository measDataRepo;
 	private final ModelMapper modelMapper;
 	private final IAuthorizationService authService;
-
 	private final MetadataServiceGraphQlClient metadataServiceGraphQlClient;
 
-	public MeasServiceImpl(MeasRepository measRepo, MeasDataRepository measDataRepo, ModelMapper modelMapper, IAuthorizationService authService,
+	public MeasServiceImpl(
+			MeasRepository measRepo,
+			MeasDataRepository measDataRepo,
+			ModelMapper modelMapper,
+			IAuthorizationService authService,
       MetadataServiceGraphQlClient metadataServiceGraphQlClient) {
 		this.measRepo = measRepo;
 		this.measDataRepo = measDataRepo;

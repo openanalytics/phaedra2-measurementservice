@@ -20,6 +20,7 @@
  */
 package eu.openanalytics.phaedra.measservice;
 
+import eu.openanalytics.phaedra.metadataservice.client.config.MetadataServiceClientAutoConfiguration;
 import javax.sql.DataSource;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
@@ -29,6 +30,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -53,6 +55,7 @@ import io.swagger.v3.oas.models.servers.Server;
 @EnableCaching
 @EnableWebSecurity
 @SpringBootApplication
+@Import({MetadataServiceClientAutoConfiguration.class})
 public class MeasServiceApplication {
 
 	private final Environment environment;
@@ -102,7 +105,7 @@ public class MeasServiceApplication {
 	public ImageRenderService renderService() {
 		return new ImageRenderService();
 	}
-	
+
 	@Bean
 	public IAuthorizationService authService() {
 		return AuthorizationServiceFactory.create();
