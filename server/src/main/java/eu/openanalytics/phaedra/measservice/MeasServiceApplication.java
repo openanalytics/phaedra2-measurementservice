@@ -20,12 +20,23 @@
  */
 package eu.openanalytics.phaedra.measservice;
 
-import eu.openanalytics.phaedra.metadataservice.client.config.MetadataServiceClientAutoConfiguration;
-import javax.sql.DataSource;
-
 import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.AWSCredentialsProviderChain;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import eu.openanalytics.phaedra.imaging.render.ImageRenderService;
+import eu.openanalytics.phaedra.metadataservice.client.config.MetadataServiceClientAutoConfiguration;
+import eu.openanalytics.phaedra.util.PhaedraRestTemplate;
+import eu.openanalytics.phaedra.util.auth.AuthenticationConfigHelper;
+import eu.openanalytics.phaedra.util.auth.AuthorizationServiceFactory;
+import eu.openanalytics.phaedra.util.auth.IAuthorizationService;
+import eu.openanalytics.phaedra.util.jdbc.JDBCUtils;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.servers.Server;
+import javax.sql.DataSource;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
@@ -36,20 +47,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
-
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-
-import eu.openanalytics.phaedra.imaging.render.ImageRenderService;
-import eu.openanalytics.phaedra.util.auth.AuthenticationConfigHelper;
-import eu.openanalytics.phaedra.util.auth.AuthorizationServiceFactory;
-import eu.openanalytics.phaedra.util.auth.IAuthorizationService;
-import eu.openanalytics.phaedra.util.jdbc.JDBCUtils;
-import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.servers.Server;
 
 @EnableScheduling
 @EnableCaching
@@ -114,5 +111,10 @@ public class MeasServiceApplication {
 	@Bean
 	public SecurityFilterChain httpSecurity(HttpSecurity http) throws Exception {
 		return AuthenticationConfigHelper.configure(http);
+	}
+
+	@Bean
+	public PhaedraRestTemplate restTemplate() {
+		return new PhaedraRestTemplate();
 	}
 }
