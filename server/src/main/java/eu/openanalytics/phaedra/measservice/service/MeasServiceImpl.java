@@ -122,7 +122,11 @@ public class MeasServiceImpl implements MeasService {
 	@Override
 	public List<MeasurementDTO> findMeasByCreatedOnRange(Date from, Date to) {
 		List<Measurement> result = measRepo.findByCreatedOnRange(from, to);
-		return result.stream().map(modelMapper::map).toList();
+		List<MeasurementDTO> measDTOs = result.stream().map(modelMapper::map).toList();
+
+		enrichWithMetadata(measDTOs);
+
+		return measDTOs;
 	}
 
 	@Override
