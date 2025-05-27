@@ -22,12 +22,10 @@ package eu.openanalytics.phaedra.measservice.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import eu.openanalytics.phaedra.measservice.record.PropertyRecord;
-import eu.openanalytics.phaedra.metadataservice.dto.PropertyDTO;
+import java.util.Date;
 import java.util.List;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.Date;
 
 @Data
 @NoArgsConstructor
