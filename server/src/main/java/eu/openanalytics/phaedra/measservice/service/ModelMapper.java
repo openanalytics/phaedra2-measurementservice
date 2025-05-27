@@ -38,7 +38,6 @@ public class ModelMapper {
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
         modelMapper.createTypeMap(Measurement.class, MeasurementDTO.class)
                 .setPropertyCondition(Conditions.isNotNull());
-        modelMapper.validate();
     }
 
     MeasurementDTO map(Measurement measurement) {

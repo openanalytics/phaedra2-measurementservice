@@ -26,13 +26,24 @@ import eu.openanalytics.phaedra.measservice.exception.MeasurementNotFoundExcepti
 import eu.openanalytics.phaedra.measservice.model.Measurement;
 import eu.openanalytics.phaedra.measservice.repository.MeasDataRepository;
 import eu.openanalytics.phaedra.measservice.repository.MeasRepository;
+import eu.openanalytics.phaedra.metadataservice.client.MetadataServiceGraphQlClient;
+import eu.openanalytics.phaedra.metadataservice.dto.MetadataDTO;
+import eu.openanalytics.phaedra.metadataservice.dto.TagDTO;
+import eu.openanalytics.phaedra.metadataservice.enumeration.ObjectClass;
 import eu.openanalytics.phaedra.util.auth.IAuthorizationService;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ForkJoinPool;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
-
-import java.util.*;
-import java.util.concurrent.ForkJoinPool;
 
 @Component
 public class MeasServiceImpl implements MeasService {
@@ -42,12 +53,16 @@ public class MeasServiceImpl implements MeasService {
 	private final ModelMapper modelMapper;
 	private final IAuthorizationService authService;
 
-	public MeasServiceImpl(MeasRepository measRepo, MeasDataRepository measDataRepo, ModelMapper modelMapper, IAuthorizationService authService) {
+	private final MetadataServiceGraphQlClient metadataServiceGraphQlClient;
+
+	public MeasServiceImpl(MeasRepository measRepo, MeasDataRepository measDataRepo, ModelMapper modelMapper, IAuthorizationService authService,
+      MetadataServiceGraphQlClient metadataServiceGraphQlClient) {
 		this.measRepo = measRepo;
 		this.measDataRepo = measDataRepo;
 		this.modelMapper = modelMapper;
 		this.authService = authService;
-	}
+    this.metadataServiceGraphQlClient = metadataServiceGraphQlClient;
+  }
 
 	@Override
 	public Measurement createNewMeas(Measurement measurement) {
@@ -72,19 +87,31 @@ public class MeasServiceImpl implements MeasService {
 	@Override
 	public List<MeasurementDTO> getAllMeasurements() {
 		List<Measurement> result = (List<Measurement>) measRepo.findAll();
-		return result.stream().map(modelMapper::map).toList();
+		List<MeasurementDTO> measDTOs = result.stream().map(modelMapper::map).toList();
+
+		enrichWithMetadata(measDTOs);
+
+		return measDTOs;
 	}
 
 	@Override
 	public Optional<MeasurementDTO> findMeasById(long measId) {
 		Optional<Measurement> measurement = measRepo.findById(measId);
-		return measurement.map(modelMapper::map);
+		Optional<MeasurementDTO> measurementDTO = measurement.map(modelMapper::map);
+
+		enrichWithMetadata(measurementDTO.map(Arrays::asList).orElse(Collections.emptyList()));
+
+		return measurementDTO;
 	}
 
 	@Override
 	public List<MeasurementDTO> getMeasurementsByIds(List<Long> measIds) {
 		List<Measurement> result = measRepo.findAllByIds(Longs.toArray(measIds));
-		return result.stream().map(modelMapper::map).toList();
+		List<MeasurementDTO> measDTOs = result.stream().map(modelMapper::map).toList();
+
+		enrichWithMetadata(measDTOs);
+
+		return measDTOs;
 	}
 
 	@Override
@@ -198,7 +225,7 @@ public class MeasServiceImpl implements MeasService {
 		meas.setSubWellColumns(subWellColumns);
 		measRepo.save(meas);
 	}
-	
+
 	@Override
 	public void setMeasSubWellData(long measId, int wellNr, Map<String, float[]> subWellData) {
 		Measurement meas = measRepo.findById(measId).orElse(null);
@@ -212,7 +239,7 @@ public class MeasServiceImpl implements MeasService {
 		if (wellNr < 1 || wellNr > wellCount) {
 			throw new IllegalArgumentException(String.format("Cannot save subwelldata: invalid wellNr (wellNr: %d, wellCount: %d)", wellNr, wellCount));
 		}
-		
+
 		measDataRepo.putSubWellData(measId, wellNr, subWellData);
 	}
 
@@ -223,7 +250,7 @@ public class MeasServiceImpl implements MeasService {
 //		if (meas == null) {
 //			throw new IllegalArgumentException(String.format("Cannot save subwelldata: measurement with ID %d does not exist", measId));
 //		}
-		
+
 		if (subWellData == null || ArrayUtils.isEmpty(subWellData)) {
 			throw new IllegalArgumentException("Cannot save subwelldata: no data provided");
 		}
@@ -357,5 +384,28 @@ public class MeasServiceImpl implements MeasService {
 		Assert.hasText(meas.getBarcode(), "Measurement barcode cannot be empty");
 		Assert.hasText(meas.getCreatedBy(), "Measurement creator cannot be empty");
 		Assert.notNull(meas.getCreatedOn(), "Measurement creation date cannot be null");
+	}
+
+	private void enrichWithMetadata(List<MeasurementDTO> measurements) {
+		if (CollectionUtils.isNotEmpty(measurements)) {
+			Map<Long, MeasurementDTO> measIdMap = new HashMap<>();
+			List<Long> measIds = new ArrayList<>(measurements.size());
+			for (MeasurementDTO measurement : measurements) {
+				measIdMap.put(measurement.getId(), measurement);
+				measIds.add(measurement.getId());
+			}
+
+			List<MetadataDTO> measurementMetadataList = metadataServiceGraphQlClient.getMetadata(measIds, ObjectClass.MEASUREMENT);
+
+			for (MetadataDTO metadata : measurementMetadataList) {
+				MeasurementDTO measurementDTO = measIdMap.get(metadata.getObjectId());
+				if (measurementDTO != null) {
+					measurementDTO.setTags(metadata.getTags().stream()
+							.map(TagDTO::getTag)
+							.toList());
+					measurementDTO.setProperties(metadata.getProperties());
+				}
+			}
+		}
 	}
 }
