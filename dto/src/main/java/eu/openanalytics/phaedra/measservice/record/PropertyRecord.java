@@ -18,17 +18,7 @@
  * You should have received a copy of the Apache License
  * along with this program.  If not, see <http://www.apache.org/licenses/>
  */
-package eu.openanalytics.phaedra.measservice.exception;
+package eu.openanalytics.phaedra.measservice.record;
 
-import eu.openanalytics.phaedra.util.exceptionhandling.UserVisibleException;
-
-public class MeasurementConsumerException extends UserVisibleException {
-
-	private static final long serialVersionUID = -803175638758168966L;
-
-	public MeasurementConsumerException(String msg) {
-        super(String.format("An error during measurement creation step: " + msg));
-    }
-
-
+public record PropertyRecord(String propertyName, String propertyValue) {
 }

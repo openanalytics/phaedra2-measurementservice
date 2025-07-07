@@ -15,6 +15,13 @@ type MeasurementDTO {
     wellColumns: [String]
     subWellColumns:[String]
     imageChannels: [String]
+    tags: [String]
+    properties: [PropertyRecord]
+}
+
+type PropertyRecord {
+    propertyName: String
+    propertyValue: String
 }
 
 type WellDataDTO {
@@ -23,11 +30,27 @@ type WellDataDTO {
     data: [FloatNaN]
 }
 
+type SubwellDataDTO {
+    measurementId: ID
+    wellNr: Int
+    column: String
+    data: [FloatNaN]
+}
+
+input FilterOptions {
+    ids: [ID]
+    from: Date
+    to: Date
+}
+
 type Query {
-    measurements: [MeasurementDTO]
+    measurements(filter: FilterOptions): [MeasurementDTO]
     measurementById(measurementId: ID): MeasurementDTO
     measurementDataById(measurementId: ID): [WellDataDTO]
-    measurementDataByIdAndWellColumn(measurementId: ID, wellColumn: String): [FloatNaN]
+    measurementDataByIdAndWellColumn(measurementId: ID, wellColumn: String): WellDataDTO
+    measurementSubWellDataByIdAndWellNr(measurementId: ID, wellNr: Int): [SubwellDataDTO]
+    measurementSubWellDataByIdAndColumns(measurementId: ID, columns: [String]): [SubwellDataDTO]
+    measurementSubWellDataByIdAndWellNrAndColumns(measurementId: ID, wellNr: Int, columns: [String]): [SubwellDataDTO]
     getUniqueWellDataColumns: [String]
     getUniqueSubWellDataColumns: [String]
 }

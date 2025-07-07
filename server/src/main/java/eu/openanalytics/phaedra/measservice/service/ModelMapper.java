@@ -1,7 +1,7 @@
 /**
  * Phaedra II
  *
- * Copyright (C) 2016-2024 Open Analytics
+ * Copyright (C) 2016-2025 Open Analytics
  *
  * ===========================================================================
  *
@@ -38,7 +38,6 @@ public class ModelMapper {
         modelMapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
         modelMapper.createTypeMap(Measurement.class, MeasurementDTO.class)
                 .setPropertyCondition(Conditions.isNotNull());
-        modelMapper.validate();
     }
 
     MeasurementDTO map(Measurement measurement) {

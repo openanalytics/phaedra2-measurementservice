@@ -1,7 +1,7 @@
 /**
  * Phaedra II
  *
- * Copyright (C) 2016-2024 Open Analytics
+ * Copyright (C) 2016-2025 Open Analytics
  *
  * ===========================================================================
  *
@@ -22,6 +22,7 @@ package eu.openanalytics.phaedra.measservice.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import eu.openanalytics.phaedra.metadataservice.client.MetadataServiceGraphQlClient;
 import java.util.List;
 import java.util.Optional;
 
@@ -62,6 +63,9 @@ public class MeasServiceTest {
     @Autowired
     private IAuthorizationService authService;
 
+    @Autowired
+    private MetadataServiceGraphQlClient metadataServiceGraphQlClient;
+
     @Autowired ModelMapper modelMapper;
 
     @Container
@@ -87,7 +91,8 @@ public class MeasServiceTest {
 
     @BeforeEach
     void before() {
-        this.measService = new MeasServiceImpl(measRepository, measDataRepository, modelMapper, authService);
+        this.measService = new MeasServiceImpl(measRepository, measDataRepository, modelMapper,
+            authService, metadataServiceGraphQlClient);
     }
 
 //    @Test

@@ -1,7 +1,7 @@
 /**
  * Phaedra II
  *
- * Copyright (C) 2016-2024 Open Analytics
+ * Copyright (C) 2016-2025 Open Analytics
  *
  * ===========================================================================
  *
@@ -21,10 +21,11 @@
 package eu.openanalytics.phaedra.measservice.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import eu.openanalytics.phaedra.measservice.record.PropertyRecord;
+import java.util.Date;
+import java.util.List;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.Date;
 
 @Data
 @NoArgsConstructor
@@ -44,5 +45,6 @@ public class MeasurementDTO {
     private String[] wellColumns;
     private String[] subWellColumns;
     private String[] imageChannels;
-
+    private List<String> tags;
+    private List<PropertyRecord> properties;
 }
