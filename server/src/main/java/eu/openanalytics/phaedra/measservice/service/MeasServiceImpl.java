@@ -20,6 +20,9 @@
  */
 package eu.openanalytics.phaedra.measservice.service;
 
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+
 import com.google.common.primitives.Longs;
 import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
 import eu.openanalytics.phaedra.measservice.exception.MeasurementNotFoundException;
@@ -42,7 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ForkJoinPool;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
@@ -104,9 +106,7 @@ public class MeasServiceImpl implements MeasService {
 		Optional<Measurement> measurement = measRepo.findById(measId);
 		Optional<MeasurementDTO> measurementDTO = measurement.map(modelMapper::map);
 
-		enrichWithMetadata(measurementDTO.map(Arrays::asList).orElse(Collections.emptyList()));
-
-		return measurementDTO;
+		return enrichWithMetadata(measurementDTO);
 	}
 
 	@Override
@@ -395,29 +395,44 @@ public class MeasServiceImpl implements MeasService {
 		Assert.notNull(meas.getCreatedOn(), "Measurement creation date cannot be null");
 	}
 
+	private List<PropertyRecord> convertToPropertyRecords(List<PropertyDTO> properties) {
+		if (isEmpty(properties)) {
+			return new ArrayList<>(); // or return null, depending on requirements
+		}
+
+		return properties.stream()
+				.map(property -> new PropertyRecord(
+						property.getPropertyName(),
+						property.getPropertyValue()))
+				.collect(toList());
+
+	}
+
+	private Optional<MeasurementDTO> enrichWithMetadata(Optional<MeasurementDTO> measurementDTO) {
+		if (measurementDTO.isPresent()) {
+			enrichWithMetadata(List.of(measurementDTO.get()));
+		}
+		return measurementDTO;
+	}
+
 	private void enrichWithMetadata(List<MeasurementDTO> measurements) {
-		if (CollectionUtils.isNotEmpty(measurements)) {
-			Map<Long, MeasurementDTO> measIdMap = new HashMap<>();
-			List<Long> measIds = new ArrayList<>(measurements.size());
-			for (MeasurementDTO measurement : measurements) {
-				measIdMap.put(measurement.getId(), measurement);
-				measIds.add(measurement.getId());
-			}
+		if (isEmpty(measurements)) {
+			return;
+		}
 
-			List<MetadataDTO> measurementMetadataList = metadataServiceGraphQlClient.getMetadata(measIds, ObjectClass.MEASUREMENT);
+		Map<Long, MeasurementDTO> measIdMap = new HashMap<>();
+		for (MeasurementDTO measurement : measurements) {
+			measIdMap.put(measurement.getId(), measurement);
+		}
+		List<Long> measIds = new ArrayList<>(measIdMap.keySet());
 
-			for (MetadataDTO metadata : measurementMetadataList) {
-				MeasurementDTO measurementDTO = measIdMap.get(metadata.getObjectId());
-				if (measurementDTO != null) {
-					measurementDTO.setTags(metadata.getTags().stream()
-							.map(TagDTO::getTag)
-							.toList());
-					List<PropertyRecord> properties = new ArrayList<>(metadata.getProperties().size());
-					for (PropertyDTO property : metadata.getProperties()) {
-						properties.add(new PropertyRecord(property.getPropertyName(), property.getPropertyValue()));
-					}
-					measurementDTO.setProperties(properties);
-				}
+		List<MetadataDTO> measurementMetadataList = metadataServiceGraphQlClient.getMetadata(measIds, ObjectClass.MEASUREMENT);
+
+		for (MetadataDTO metadata : measurementMetadataList) {
+			MeasurementDTO measurementDTO = measIdMap.get(metadata.getObjectId());
+			if (measurementDTO != null) {
+				measurementDTO.setTags(metadata.getTags().stream().map(TagDTO::getTag).toList());
+				measurementDTO.setProperties(convertToPropertyRecords(metadata.getProperties()));
 			}
 		}
 	}
