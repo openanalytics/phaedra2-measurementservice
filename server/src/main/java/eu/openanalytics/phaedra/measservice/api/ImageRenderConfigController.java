@@ -66,7 +66,8 @@ public class ImageRenderConfigController {
 
     @GetMapping
     public ResponseEntity<List<NamedImageRenderConfig>> getAllConfigs() {
-        return ResponseEntity.ok(service.getAllConfigs());
+        List<NamedImageRenderConfig> configs = service.getAllConfigs();
+        return ResponseEntity.ok(configs);
     }
 
     @GetMapping(value = "/{id}")
