@@ -67,7 +67,7 @@ public class MeasServiceApplication {
 	}
 
 	public static void main(String[] args) {
-		System.setProperty("phaedra2.imaging.openjpeg.decode.threads", "2");
+		System.setProperty("phaedra2.imaging.openjpeg.decode.threads", "16");
 		SpringApplication app = new SpringApplication(MeasServiceApplication.class);
 		app.run(args);
 	}
