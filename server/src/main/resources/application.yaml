@@ -60,3 +60,9 @@ management:
     web:
       exposure:
         include: metrics,threaddump,heapdump,health,info
+
+  phaedra2:
+    imaging:
+      openjpeg:
+        decode:
+          threads: 2
