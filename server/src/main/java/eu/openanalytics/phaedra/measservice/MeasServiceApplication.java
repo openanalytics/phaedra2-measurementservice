@@ -67,6 +67,7 @@ public class MeasServiceApplication {
 	}
 
 	public static void main(String[] args) {
+		System.setProperty("phaedra2.imaging.openjpeg.decode.threads", "2");
 		SpringApplication app = new SpringApplication(MeasServiceApplication.class);
 		app.run(args);
 	}
@@ -112,7 +113,7 @@ public class MeasServiceApplication {
     public ClientCredentialsTokenGenerator ccTokenGenerator(ClientRegistrationRepository clientRegistrationRepository) {
     	return new ClientCredentialsTokenGenerator("keycloak", clientRegistrationRepository);
     }
-	
+
 	@Bean
 	public IAuthorizationService authService(ClientCredentialsTokenGenerator ccTokenGenerator) {
 		return AuthorizationServiceFactory.create(ccTokenGenerator);
