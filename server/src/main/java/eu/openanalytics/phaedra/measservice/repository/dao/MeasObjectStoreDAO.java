@@ -134,7 +134,6 @@ public class MeasObjectStoreDAO {
 		return getMeasObjectRaw(measId, key, -1, -1);
 	}
 
-	@Cacheable(value="measObjectCache", key="#measId + '_' + #key")
 	public byte[] getMeasObjectRaw(long measId, String key, long offset, int len) throws IOException {
 		String s3key = makeS3Key(measId, key);
 		GetObjectRequest request = new GetObjectRequest(bucketName, s3key);
