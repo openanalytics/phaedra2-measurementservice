@@ -36,6 +36,8 @@ import java.util.concurrent.Executors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
 
@@ -122,12 +124,13 @@ public class MeasObjectStoreDAO {
 		String s3key = makeS3Key(measId, key);
 		return s3Client.getObjectMetadata(bucketName, s3key).getContentLength();
 	}
-	
+
 	public Object getMeasObject(long measId, String key) throws IOException {
 		byte[] bytes = getMeasObjectRaw(measId, key);
 		return deserializeObjectFromStream(new ByteArrayInputStream(bytes));
 	}
 
+	@Cacheable(value="measObjectCache", key="#measId + '_' + #key")
 	public byte[] getMeasObjectRaw(long measId, String key) throws IOException {
 		return getMeasObjectRaw(measId, key, -1, -1);
 	}

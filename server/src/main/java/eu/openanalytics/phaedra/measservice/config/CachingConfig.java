@@ -20,25 +20,25 @@
  */
 package eu.openanalytics.phaedra.measservice.config;
 
+import com.github.benmanes.caffeine.cache.Caffeine;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.graphql.server.webmvc.GraphiQlHandler;
-import org.springframework.web.servlet.function.RouterFunction;
-import org.springframework.web.servlet.function.RouterFunctions;
-import org.springframework.web.servlet.function.ServerResponse;
 
 @Configuration
-public class GraphiQlConfiguration {
+@EnableCaching
+public class CachingConfig {
+    @Bean
+    public Caffeine caffeineConfig() {
+        return Caffeine.newBuilder().maximumSize(1000);
+    }
 
-  @Bean
-  @Order(0)
-  public RouterFunction<ServerResponse> graphiQlRouterFunction() {
-    RouterFunctions.Builder builder = RouterFunctions.route();
-    ClassPathResource graphiQlPage = new ClassPathResource("graphiql/index.html");
-    GraphiQlHandler graphiQLHandler = new GraphiQlHandler("/graphql", "", graphiQlPage);
-    builder = builder.GET("/graphiql", graphiQLHandler::handleRequest);
-    return builder.build();
-  }
+    @Bean
+    public CacheManager cacheManager(Caffeine caffeine) {
+        CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager();
+        caffeineCacheManager.setCaffeine(caffeine);
+        return caffeineCacheManager;
+    }
 }
