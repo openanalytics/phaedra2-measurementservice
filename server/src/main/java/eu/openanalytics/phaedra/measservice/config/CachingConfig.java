@@ -31,9 +31,8 @@ import org.springframework.context.annotation.PropertySource;
 
 @Configuration
 @EnableCaching
-@PropertySource("classpath:application.yaml")
 public class CachingConfig {
-    @Value("${phaedra2.measurement.cache.size}")
+    @Value("${phaedra2.measurement.cache.size:1000}")
     private int cacheSize;
 
     @Bean
