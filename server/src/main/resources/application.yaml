@@ -66,3 +66,6 @@ management:
       openjpeg:
         decode:
           threads: 2
+logging:
+  level:
+    org.springframework.cache: TRACE
