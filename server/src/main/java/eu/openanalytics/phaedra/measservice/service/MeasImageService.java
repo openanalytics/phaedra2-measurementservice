@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import eu.openanalytics.phaedra.imaging.jp2k.ICodestreamSource;
@@ -53,7 +54,8 @@ public class MeasImageService {
 
 	@Autowired
 	private ImageRenderService renderService;
-	
+
+	@Cacheable(value = "meas_image", key = "{#measId, #wellNr, #channel, #renderConfigId, #renderConfig.hashCode()}" )
 	public byte[] renderImage(long measId, int wellNr, String channel, Long renderConfigId, ImageRenderConfig renderConfig) throws IOException {
 
 		MeasurementDTO meas = measService.findMeasById(measId).orElse(null);
@@ -66,6 +68,7 @@ public class MeasImageService {
 		return renderService.renderImage(new ICodestreamSourceDescriptor[] { source }, cfg);
 	}
 
+	@Cacheable(value = "meas_image", key = "{#measId, #wellNr, #channels.hashCode(), #renderConfigId, #renderConfig.hashCode()}")
 	public byte[] renderImage(long measId, int wellNr, List<String> channels, Long renderConfigId, ImageRenderConfig renderConfig) throws IOException {
 
 		MeasurementDTO meas = measService.findMeasById(measId).orElse(null);
@@ -86,6 +89,7 @@ public class MeasImageService {
 		return renderService.renderImage(sources.stream().toArray(i -> new ICodestreamSourceDescriptor[i]), cfg);
 	}
 
+	@Cacheable(value = "meas_image", key = "{#measId, #wellNr, #renderConfigId, #renderConfig.hashCode()}")
 	public byte[] renderImage(long measId, int wellNr, Long renderConfigId, ImageRenderConfig renderConfig) throws IOException {
 
 		MeasurementDTO meas = measService.findMeasById(measId).orElse(null);
@@ -96,7 +100,7 @@ public class MeasImageService {
 
 		String[] channels = meas.getImageChannels();
 		if (channels == null) return null;
-		
+
 		for (int i = 0; i < channels.length; i++) {
 			String channel = channels[i];
 			ICodestreamSourceDescriptor source = createCodestreamSourceDescriptor(measId, wellNr, channel);
@@ -136,7 +140,7 @@ public class MeasImageService {
 		cfg.channelConfigs = filteredChannelConfigs.stream().toArray(i -> new ChannelRenderConfig[i]);
 
 		System.out.println("Resulting config: " + cfg.toString());
-		
+
 		return cfg;
 	}
 
@@ -147,17 +151,17 @@ public class MeasImageService {
 		ImageCodestreamAccessor codestreamAccessor = codestreamAccessorCache.getCodestreamAccessor(measId, wellNr, channel);
 		return new CodestreamSourceDescriptor(codestreamSize, codestreamAccessor);
 	}
-	
+
 	private static class CodestreamSourceDescriptor implements ICodestreamSourceDescriptor {
 
 		private long codestreamSize;
 		private ImageCodestreamAccessor codestreamAccessor;
-		
+
 		public CodestreamSourceDescriptor(long codestreamSize, ImageCodestreamAccessor codestreamAccessor) {
 			this.codestreamSize = codestreamSize;
 			this.codestreamAccessor = codestreamAccessor;
 		}
-		
+
 		@Override
 		public ICodestreamSource create() throws IOException {
 			return new ICodestreamSource() {
@@ -171,6 +175,6 @@ public class MeasImageService {
 				}
 			};
 		}
-		
+
 	}
 }
