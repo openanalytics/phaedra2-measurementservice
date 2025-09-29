@@ -22,7 +22,6 @@ package eu.openanalytics.phaedra.measservice;
 
 import javax.sql.DataSource;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
@@ -62,17 +61,18 @@ import io.swagger.v3.oas.models.servers.Server;
 @Import({MetadataServiceClientAutoConfiguration.class})
 @PropertySource("classpath:application.yaml")
 public class MeasServiceApplication {
-	private static int decode_threads;
 
 	private final Environment environment;
 
 	public MeasServiceApplication(Environment environment) {
 		this.environment = environment;
-		decode_threads = Integer.parseInt(environment.getProperty("phaedra2.imaging.openjpeg.decode.threads", "2"));
+		
+		// Propagate the Spring property to a System property for phaedra2-imaging to use
+		int decodeThreads = Integer.parseInt(environment.getProperty("phaedra2.imaging.openjpeg.decode.threads", "2"));
+		System.setProperty("phaedra2.imaging.openjpeg.decode.threads", String.valueOf(decodeThreads));
 	}
 
 	public static void main(String[] args) {
-		System.setProperty("phaedra2.imaging.openjpeg.decode.threads", String.valueOf(decode_threads));
 		SpringApplication app = new SpringApplication(MeasServiceApplication.class);
 		app.run(args);
 	}
