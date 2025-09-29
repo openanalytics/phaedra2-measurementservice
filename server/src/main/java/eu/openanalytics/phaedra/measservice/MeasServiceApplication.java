@@ -68,7 +68,7 @@ public class MeasServiceApplication {
 
 	public MeasServiceApplication(Environment environment) {
 		this.environment = environment;
-		decode_threads = Integer.parseInt(this.environment.getProperty("PHAEDRA2_IMAGING_OPENJPEG_DECODE_THREADS", "2"));
+		decode_threads = Integer.parseInt(environment.getProperty("phaedra2.imaging.openjpeg.decode.threads", "2"));
 	}
 
 	public static void main(String[] args) {
