@@ -25,6 +25,8 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.data.util.Pair;
@@ -35,6 +37,8 @@ import eu.openanalytics.phaedra.measservice.repository.dao.MeasWelldataDAO;
 
 @Repository
 public class MeasDataRepository {
+
+	private final Logger logger = LoggerFactory.getLogger(getClass());
 
 	private static final String PREFIX_SW_DATA = "subwelldata";
 	private static final String PREFIX_IMAGE_DATA = "imagedata";
@@ -221,13 +225,18 @@ public class MeasDataRepository {
 
 			return Arrays.stream(keys).parallel().map(k -> {
 				try {
+					long start = System.currentTimeMillis();
+
 					String channel = k.substring(k.lastIndexOf('.') + 1);
 					byte[] values = objectStoreDAO.getMeasObjectRaw(measId, k);
+					long duration = System.currentTimeMillis() - start;
+					logger.info("Retrieved image data in {} ms", duration);
 					return Pair.of(channel, values);
 				} catch (IOException e) {
 					throw new RecoverableDataAccessException(
 							String.format("Failed to retrieve image data for measurement %d, well %d", measId, wellNr), e);
 				}
+
 			}).collect(Collectors.toMap(p -> p.getFirst(), p -> p.getSecond()));
 		} catch (IOException e) {
 			throw new RecoverableDataAccessException(

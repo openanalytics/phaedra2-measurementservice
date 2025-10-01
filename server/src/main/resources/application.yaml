@@ -53,9 +53,23 @@ spring:
   graphql:
     graphiql:
       enabled: true
+      path: /graphiql
 
 management:
   endpoints:
     web:
       exposure:
         include: metrics,threaddump,heapdump,health,info
+
+phaedra2:
+  imaging:
+    openjpeg:
+      decode:
+        threads: 4
+  measurement:
+    cache:
+      size: 1000
+
+logging:
+  level:
+    org.springframework.cache: TRACE

@@ -36,6 +36,8 @@ import java.util.concurrent.Executors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
 
@@ -60,40 +62,40 @@ public class MeasObjectStoreDAO {
 
 	@Autowired
 	private AmazonS3 s3Client;
-	
+
 	private TransferManager transferMgr;
-	
+
 	@Value("${meas-service.s3.upload-max-tries:5}")
 	private int uploadMaxTries;
-	
+
 	@Value("${meas-service.s3.upload-retry-delay:1000}")
 	private int uploadRetryDelayMs;
-	
+
 	@Value("${meas-service.s3.upload-temp-file-threshold:10000}")
 	private int uploadTempFileThreshold;
-	
+
 	@Value("${meas-service.s3.threads:100}")
 	private int s3Threads;
-	
+
 	@Value("${meas-service.s3.bucket-name}")
 	private String bucketName;
-	
+
 	@Value("${meas-service.s3.enable-sse:false}")
 	private boolean enableSSE;
-	
+
 	@PostConstruct
 	public void init() {
 		if (!s3Client.doesBucketExistV2(bucketName)) {
 			s3Client.createBucket(bucketName);
 		}
-		
+
 		transferMgr = TransferManagerBuilder
 				.standard()
 				.withExecutorFactory(() -> Executors.newFixedThreadPool(s3Threads))
 				.withS3Client(s3Client)
 				.build();
 	}
-	
+
 	public String[] listMeasObjects(long measId, String prefix) throws IOException {
 		String s3Prefix = makeS3Key(measId, prefix);
 		List<S3ObjectSummary> objects = new ArrayList<>();
@@ -104,25 +106,25 @@ public class MeasObjectStoreDAO {
 			req.setBucketName(bucketName);
 			req.setPrefix(s3Prefix);
 			if (continuationToken != null) req.setContinuationToken(continuationToken);
-			
+
 			ListObjectsV2Result results = s3Client.listObjectsV2(req);
 			objects.addAll(results.getObjectSummaries());
 			continuationToken = (results.isTruncated()) ? results.getContinuationToken() : null;
 		} while (continuationToken != null);
-		
+
 		return objects.stream().map(o -> unmakeS3Key(o.getKey())).toArray(i -> new String[i]);
 	}
-	
+
 	public boolean measObjectExists(long measId, String key) throws IOException {
 		String s3key = makeS3Key(measId, key);
 		return s3Client.doesObjectExist(bucketName, s3key);
 	}
-	
+
 	public long getMeasObjectSize(long measId, String key) throws IOException {
 		String s3key = makeS3Key(measId, key);
 		return s3Client.getObjectMetadata(bucketName, s3key).getContentLength();
 	}
-	
+
 	public Object getMeasObject(long measId, String key) throws IOException {
 		byte[] bytes = getMeasObjectRaw(measId, key);
 		return deserializeObjectFromStream(new ByteArrayInputStream(bytes));
@@ -131,7 +133,7 @@ public class MeasObjectStoreDAO {
 	public byte[] getMeasObjectRaw(long measId, String key) throws IOException {
 		return getMeasObjectRaw(measId, key, -1, -1);
 	}
-	
+
 	public byte[] getMeasObjectRaw(long measId, String key, long offset, int len) throws IOException {
 		String s3key = makeS3Key(measId, key);
 		GetObjectRequest request = new GetObjectRequest(bucketName, s3key);
@@ -147,14 +149,14 @@ public class MeasObjectStoreDAO {
 			throw new IOException(e);
 		}
 	}
-	
+
 	public void putMeasObject(long measId, String key, Object value) throws IOException {
 		putMeasObjectRaw(measId, key, serializeObject(value));
 	}
-	
+
 	public void putMeasObjectRaw(long measId, String key, byte[] value) throws IOException {
 		String s3key = makeS3Key(measId, key);
-		
+
 		boolean useTempFile = value.length > uploadTempFileThreshold;
 		File tempFile = null;
 		if (useTempFile) {
@@ -163,7 +165,7 @@ public class MeasObjectStoreDAO {
 				StreamUtils.copy(value, out);
 			}
 		}
-		
+
 		// By using a file instead of a stream, TransferManager can optimize the upload: multipart parallel uploads with auto-retrying.
 		// Still, additional retrying is applied here to deal with 400 (Request Timeout) errors which are not retried by the TransferManager.
 		Exception caughtException = null;
@@ -192,7 +194,7 @@ public class MeasObjectStoreDAO {
 		} finally {
 			if (useTempFile) tempFile.delete();
 		}
-		throw new IOException(String.format("Failed to upload data to S3 for meas %d and key %s", measId, key), caughtException);		
+		throw new IOException(String.format("Failed to upload data to S3 for meas %d and key %s", measId, key), caughtException);
 	}
 
 	public void deleteMeasObject(long measId, String key) throws IOException {
@@ -214,7 +216,7 @@ public class MeasObjectStoreDAO {
 	 * Non-public
 	 * **********
 	 */
-	
+
 	private String makeS3Key(long measId, String objectKey) {
 		if (objectKey == null) throw new IllegalArgumentException("Null object key specified");
 		StringBuilder sb = new StringBuilder();
@@ -223,18 +225,18 @@ public class MeasObjectStoreDAO {
 		sb.append(objectKey);
 		return sb.toString();
 	}
-	
+
 	private String unmakeS3Key(String s3Key) {
 		return s3Key.substring(s3Key.indexOf('/') + 1);
 	}
-	
+
 	private String reverse(long measId) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(measId);
 		sb.reverse();
 		return sb.toString();
 	}
-	
+
 	private byte[] serializeObject(Object o) throws IOException {
 		byte[] bytes = null;
 		try (ByteArrayOutputStream os = new ByteArrayOutputStream()) {
@@ -245,7 +247,7 @@ public class MeasObjectStoreDAO {
 		}
 		return bytes;
 	}
-	
+
 	private Object deserializeObjectFromStream(InputStream input) throws IOException {
 		ObjectInputStream ois = new ObjectInputStream(input);
 		Object object = null;
