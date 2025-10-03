@@ -27,17 +27,16 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.env.Environment;
 
 @Configuration
 @EnableCaching
 public class CachingConfig {
-    @Value("${phaedra2.measurement.cache.size:1000}")
-    private int cacheSize;
+
 
     @Bean
-    public Caffeine caffeineConfig() {
-        return Caffeine.newBuilder().maximumSize(cacheSize);
+    public Caffeine caffeineConfig(Environment environment) {
+        return Caffeine.newBuilder().maximumSize(Long.parseLong(environment.getProperty("phaedra2.measurement.cache.size", "1000")));
     }
 
     @Bean
