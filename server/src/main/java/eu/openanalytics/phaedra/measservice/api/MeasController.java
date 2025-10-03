@@ -196,14 +196,4 @@ public class MeasController {
     public ResponseEntity<byte[]> getImageData(@PathVariable long measurementId, @PathVariable int wellNr, @PathVariable String channel) {
         return ResponseEntity.of(Optional.ofNullable(measService.getImageData(measurementId, wellNr, channel)));
     }
-
-    /**
-     * Clear Cache
-     * ************
-     */
-    @CacheEvict(value = { "meas_image" }, allEntries = true)
-    @PostMapping(value = "/clearcache")
-    public ResponseEntity<Void> clearCache() {
-        return ResponseEntity.ok().build();
-    }
 }

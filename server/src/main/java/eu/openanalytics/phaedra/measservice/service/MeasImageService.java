@@ -26,8 +26,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -55,6 +57,13 @@ public class MeasImageService {
 
 	@Autowired
 	private ImageRenderService renderService;
+
+	static Logger logger = org.slf4j.LoggerFactory.getLogger(MeasImageService.class);
+
+	@CacheEvict(value = "meas_image", allEntries = true)
+	public void clearCache() {
+		logger.info("clearing cache");
+	}
 
 	@Cacheable(value = "meas_image", key = "{#measId, #wellNr, #channel, #renderConfigId, #renderConfig.hashCode()}" )
 	public byte[] renderImage(long measId, int wellNr, String channel, Long renderConfigId, ImageRenderConfig renderConfig) throws IOException {
