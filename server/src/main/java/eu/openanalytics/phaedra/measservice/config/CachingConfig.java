@@ -21,7 +21,6 @@
 package eu.openanalytics.phaedra.measservice.config;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
@@ -29,14 +28,15 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
+
 @Configuration
 @EnableCaching
 public class CachingConfig {
-
-
     @Bean
     public Caffeine caffeineConfig(Environment environment) {
-        return Caffeine.newBuilder().maximumSize(Long.parseLong(environment.getProperty("phaedra2.measurement.cache.size", "1000")));
+        return Caffeine.newBuilder()
+                .maximumSize(Long.parseLong(environment.getProperty("phaedra2.measurement.cache.size", "1000")))
+                .expireAfterAccess(Integer.parseInt(environment.getProperty("phaedra2.measurement.cache.ttl", "10")), java.util.concurrent.TimeUnit.MINUTES);
     }
 
     @Bean
@@ -45,4 +45,5 @@ public class CachingConfig {
         caffeineCacheManager.setCaffeine(caffeine);
         return caffeineCacheManager;
     }
+
 }
