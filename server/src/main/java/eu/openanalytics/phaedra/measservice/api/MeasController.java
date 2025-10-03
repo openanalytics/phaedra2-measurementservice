@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -194,5 +195,14 @@ public class MeasController {
     @GetMapping(value = "/{measurementId}/imagedata/{wellNr}/{channel}")
     public ResponseEntity<byte[]> getImageData(@PathVariable long measurementId, @PathVariable int wellNr, @PathVariable String channel) {
         return ResponseEntity.of(Optional.ofNullable(measService.getImageData(measurementId, wellNr, channel)));
+    }
+
+    /**
+     * Clear Cache
+     * ************
+     */
+    @PostMapping(value = "/clearcache")
+    public ResponseEntity<Void> clearCache() {
+        return ResponseEntity.ok().build();
     }
 }

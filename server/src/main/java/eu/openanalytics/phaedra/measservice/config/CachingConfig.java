@@ -35,9 +35,12 @@ public class CachingConfig {
     @Value("${phaedra2.measurement.cache.size:1000}")
     private int cacheSize;
 
+    @Value("${phaedra2.measurement.cache.ttl:10}")
+    private int ttl;
+
     @Bean
     public Caffeine caffeineConfig() {
-        return Caffeine.newBuilder().maximumSize(cacheSize);
+        return Caffeine.newBuilder().maximumSize(cacheSize).expireAfterAccess(ttl, java.util.concurrent.TimeUnit.MINUTES);
     }
 
     @Bean
