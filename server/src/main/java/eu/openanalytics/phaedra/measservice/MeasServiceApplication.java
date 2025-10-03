@@ -62,8 +62,8 @@ import io.swagger.v3.oas.models.servers.Server;
 @Import({MetadataServiceClientAutoConfiguration.class})
 @PropertySource("classpath:application.yaml")
 public class MeasServiceApplication {
-	@Value("${phaedra2.imaging.openjpeg.decode.threads}")
-	private static int decode_threads;
+	@Value("${phaedra2.imaging.openjpeg.decode.threads:4}")
+	private int decode_threads;
 
 	private final Environment environment;
 
@@ -72,7 +72,7 @@ public class MeasServiceApplication {
 	}
 
 	public static void main(String[] args) {
-		System.setProperty("phaedra2.imaging.openjpeg.decode.threads", String.valueOf(decode_threads));
+		System.setProperty("phaedra2.imaging.openjpeg.decode.threads", "4");
 		SpringApplication app = new SpringApplication(MeasServiceApplication.class);
 		app.run(args);
 	}
