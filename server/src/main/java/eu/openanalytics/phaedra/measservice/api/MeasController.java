@@ -201,6 +201,7 @@ public class MeasController {
      * Clear Cache
      * ************
      */
+    @CacheEvict(value = { "meas_image" }, allEntries = true)
     @PostMapping(value = "/clearcache")
     public ResponseEntity<Void> clearCache() {
         return ResponseEntity.ok().build();
