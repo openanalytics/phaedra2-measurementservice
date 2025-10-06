@@ -80,4 +80,15 @@ public class MeasImageController {
 		measImageService.clearCache();
 		return ResponseEntity.ok().build();
 	}
+
+	@GetMapping(value = "memoryusage")
+	public ResponseEntity<Long> getCacheMemoryUsage() {
+		// Get the Java runtime
+		Runtime runtime = Runtime.getRuntime();
+		// Run the garbage collector
+		runtime.gc();
+		// Calculate the used memory
+		long usage = runtime.totalMemory() - runtime.freeMemory();
+		return ResponseEntity.ok(usage/1000000);
+	}
 }
