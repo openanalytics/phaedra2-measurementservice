@@ -35,8 +35,8 @@ public class CachingConfig {
     @Bean
     public Caffeine caffeineConfig(Environment environment) {
         return Caffeine.newBuilder()
-                .maximumSize(Long.parseLong(environment.getProperty("phaedra2.measurement.cache.size", "1000")))
-                .expireAfterAccess(Integer.parseInt(environment.getProperty("phaedra2.measurement.cache.ttl", "10")), java.util.concurrent.TimeUnit.MINUTES);
+                .maximumSize(Long.parseLong(environment.getProperty("PHAEDRA2_MEASUREMENT_CACHE_SIZE", "1000")))
+                .expireAfterAccess(Integer.parseInt(environment.getProperty("PHAEDRA2_MEASUREMENT_CACHE_TTL", "10")), java.util.concurrent.TimeUnit.MINUTES);
     }
 
     @Bean
