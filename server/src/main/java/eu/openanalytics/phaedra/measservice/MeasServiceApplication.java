@@ -27,7 +27,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -59,14 +58,13 @@ import io.swagger.v3.oas.models.servers.Server;
 @EnableWebSecurity
 @SpringBootApplication
 @Import({MetadataServiceClientAutoConfiguration.class})
-@PropertySource("classpath:application.yaml")
 public class MeasServiceApplication {
 
 	private final Environment environment;
 
 	public MeasServiceApplication(Environment environment) {
 		this.environment = environment;
-		
+
 		// Propagate the Spring property to a System property for phaedra2-imaging to use
 		int decodeThreads = Integer.parseInt(environment.getProperty("phaedra2.imaging.openjpeg.decode.threads", "2"));
 		System.setProperty("phaedra2.imaging.openjpeg.decode.threads", String.valueOf(decodeThreads));
