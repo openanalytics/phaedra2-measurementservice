@@ -23,6 +23,9 @@ server:
   servlet:
     context-path: /phaedra/measurement-service
   port: 8080
+  compression:
+    enabled: true
+    mime-types: image/png,image/jpeg,application/json
 
 spring:
   application:
