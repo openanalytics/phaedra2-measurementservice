@@ -63,28 +63,3 @@ public class CachingConfig {
     }
 
 }
-
-/*
-public Caffeine<Object, Object> caffeineConfig(Environment environment) {
-    long maxBytes = Long.parseLong(environment.getProperty("PHAEDRA2_MEASUREMENT_CACHE_MAX_BYTES", "104857600")); // 100MB
-
-    return Caffeine.newBuilder()
-        .maximumWeight(maxBytes)
-        .weigher((key, value) -> {
-            // Estimate object size in bytes — you must decide how to compute this
-            return estimateSizeInBytes(value);
-        })
-        .expireAfterAccess(
-            Integer.parseInt(environment.getProperty("PHAEDRA2_MEASUREMENT_CACHE_TTL", "10")),
-            TimeUnit.MINUTES
-        );
-}
-
-// Example heuristic
-private int estimateSizeInBytes(Object value) {
-    // Can use a rough estimate — or something like ObjectGraphMeasurer
-    if (value instanceof byte[]) return ((byte[]) value).length;
-    if (value instanceof Collection<?>) return ((Collection<?>) value).size() * 256; // arbitrary per-element estimate
-    return 1024; // fallback default
-}
- */
