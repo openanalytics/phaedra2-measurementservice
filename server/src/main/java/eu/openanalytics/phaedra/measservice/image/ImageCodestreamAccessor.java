@@ -23,6 +23,7 @@ package eu.openanalytics.phaedra.measservice.image;
 import java.io.IOException;
 import java.util.stream.IntStream;
 
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +44,8 @@ public class ImageCodestreamAccessor {
 
 	private int chunkSize;
 	private byte[][] data;
-	private long codestreamSize;
+	@Getter
+    private long codestreamSize;
 
 	private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -100,7 +102,7 @@ public class ImageCodestreamAccessor {
 		return buffer;
 	}
 
-	private void growDataArray() {
+    private void growDataArray() {
 		byte[][] newData = new byte[data.length * 2][];
 		for (int i = 0; i < data.length; i++) {
 			newData[i] = data[i];
