@@ -21,6 +21,7 @@
 package eu.openanalytics.phaedra.measservice.config;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
+import eu.openanalytics.phaedra.measservice.image.ImageCodestreamAccessor;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
@@ -34,9 +35,24 @@ import org.springframework.core.env.Environment;
 public class CachingConfig {
     @Bean
     public Caffeine caffeineConfig(Environment environment) {
+        long maxBytes = Long.parseLong(environment.getProperty("PHAEDRA2_MEASUREMENT_CACHE_MAX_BYTES", "6000000000")); // 6GB
+
         return Caffeine.newBuilder()
-                .maximumSize(Long.parseLong(environment.getProperty("PHAEDRA2_MEASUREMENT_CACHE_SIZE", "1000")))
+                .maximumWeight(maxBytes)
+                .weigher((key, value) -> {
+                    // Estimate object size in bytes — you must decide how to compute this
+                    return estimateSizeInBytes(value);
+                })
                 .expireAfterAccess(Integer.parseInt(environment.getProperty("PHAEDRA2_MEASUREMENT_CACHE_TTL", "10")), java.util.concurrent.TimeUnit.MINUTES);
+    }
+
+    private int estimateSizeInBytes(Object value) {
+        if (value instanceof byte[]) {
+            return ((byte[]) value).length;
+        } else {
+            ImageCodestreamAccessor codestream = (ImageCodestreamAccessor) value;
+            return (int) codestream.getCodestreamSize();
+        }
     }
 
     @Bean
