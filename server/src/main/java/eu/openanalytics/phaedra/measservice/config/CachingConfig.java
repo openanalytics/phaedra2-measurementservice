@@ -35,7 +35,8 @@ import org.springframework.core.env.Environment;
 public class CachingConfig {
     @Bean
     public Caffeine caffeineConfig(Environment environment) {
-        long maxBytes = Long.parseLong(environment.getProperty("PHAEDRA2_MEASUREMENT_CACHE_MAX_SIZE", "6000000000")); // 6GB
+        long maxBytes = Long.parseLong(environment.getProperty("PHAEDRA2_MEASUREMENT_CACHE_MAX_BYTES", "6000000000")); // 6GB
+
         return Caffeine.newBuilder()
                 .maximumWeight(maxBytes)
                 .weigher((key, value) -> {
@@ -46,7 +47,6 @@ public class CachingConfig {
     }
 
     private int estimateSizeInBytes(Object value) {
-        // Can use a rough estimate — or something like ObjectGraphMeasurer
         if (value instanceof byte[]) {
             return ((byte[]) value).length;
         } else {
