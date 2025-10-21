@@ -62,7 +62,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: *
+        include: metrics,threaddump,heapdump,health,info
 
 logging:
   level:
