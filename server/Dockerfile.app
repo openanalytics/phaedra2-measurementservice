@@ -8,4 +8,4 @@ RUN useradd -c 'phaedra user' -m -d /home/$USER -s /bin/nologin $USER
 WORKDIR /opt/phaedra
 USER $USER
 
-CMD ["java", "-jar", "-Xmx8g", "-XX:+UseG1GC", "-XX:G1HeapRegionSize=32m", "-XX:InitiatingHeapOccupancyPercent=45", "-XX:MaxGCPauseMillis=200", "-XX:+UseStringDeduplication", "-XX:+AlwaysPreTouch", "/opt/phaedra/service.jar", "--spring.jmx.enabled=false"]
+CMD ["java", "-jar", "-Xmx8g", "-XX:+UseG1GC", "-XX:G1HeapRegionSize=32m", "-XX:MaxGCPauseMillis=200", "-XX:+UseStringDeduplication", "/opt/phaedra/service.jar", "--spring.jmx.enabled=false"]
