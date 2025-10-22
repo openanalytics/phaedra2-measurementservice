@@ -32,7 +32,7 @@ public class ImageCodestreamAccessorCache {
 	@Autowired
 	private MeasService measService;
 
-	@Cacheable("codestream_accessors")
+//	@Cacheable("codestream_accessors")
 	public ImageCodestreamAccessor getCodestreamAccessor(long measId, int wellNr, String channel) {
 		return new ImageCodestreamAccessor(measId, wellNr, channel, measService);
 	}
