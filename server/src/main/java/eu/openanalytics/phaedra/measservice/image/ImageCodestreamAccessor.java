@@ -30,96 +30,118 @@ import org.slf4j.LoggerFactory;
 import eu.openanalytics.phaedra.measservice.service.MeasService;
 
 /**
- * This class provides access to the bytes of a codestream, which is assumed to be remote i.e. not on the local machine, 
+ * This class provides access to the bytes of a codestream, which is assumed to be remote i.e. not on the local machine,
  * and a certain amount of lag (latency) is expected when fetching the bytes.
  * Therefore, this class maintains a cache of byte "chunks", trying to load only enough bytes to satisfy the codec's need
  * for rendering an image at a certain scale or region.
  */
 public class ImageCodestreamAccessor {
 
-	private long measId;
-	private int wellNr;
-	private String channelId;
-	private MeasService measService;
+  private long measId;
+  private int wellNr;
+  private String channelId;
+  private MeasService measService;
 
-	private int chunkSize;
-	private byte[][] data;
-	@Getter
-    private long codestreamSize;
+  private int chunkSize;
+  private byte[][] data;
+  @Getter
+  private long codestreamSize;
 
-	private final Logger logger = LoggerFactory.getLogger(getClass());
+  private final Logger logger = LoggerFactory.getLogger(getClass());
 
-	public ImageCodestreamAccessor(long measId, int wellNr, String channelId, MeasService measService) {
-		this.measId = measId;
-		this.wellNr = wellNr;
-		this.channelId = channelId;
-		this.measService = measService;
+  public ImageCodestreamAccessor(long measId, int wellNr, String channelId,
+      MeasService measService) {
+    this.measId = measId;
+    this.wellNr = wellNr;
+    this.channelId = channelId;
+    this.measService = measService;
 
-		this.codestreamSize = measService.getImageDataSize(measId, wellNr, channelId);
-		
-		// Determine an appropriate chunk size that caches enough, but not too many, bytes.
-		this.chunkSize = 100000;
-		if ((int) codestreamSize / chunkSize > 20) chunkSize *= 2;
-		int chunkCount = (int) codestreamSize / chunkSize;
-		if (codestreamSize % chunkSize > 0) chunkCount++;
-		
-		this.data = new byte[chunkCount][];
-	}
+    this.codestreamSize = measService.getImageDataSize(measId, wellNr, channelId);
 
-	public byte[] getBytes(long offset, int len) throws IOException {
+    // Determine an appropriate chunk size that caches enough, but not too many, bytes.
+    this.chunkSize = 100000;
+    if ((int) codestreamSize / chunkSize > 20) {
+      chunkSize *= 2;
+    }
+    int chunkCount = (int) codestreamSize / chunkSize;
+    if (codestreamSize % chunkSize > 0) {
+      chunkCount++;
+    }
+
+    this.data = new byte[chunkCount][];
+  }
+
+  public byte[] getBytes(long offset, int len) throws IOException {
 //		logger.debug(String.format("Requested bytes %d + %d for meas %d, well %d, channel %s", offset, len, measId, wellNr, channelId));
 
-		byte[] buffer = new byte[len];
+    byte[] buffer = new byte[len];
 
-		int startChunkIndex = (int) (offset / chunkSize);
-		int endChunkIndex = (int) ((offset + len) / chunkSize);
-		if (endChunkIndex >= data.length) growDataArray();
+    int startChunkIndex = (int) (offset / chunkSize);
+    int endChunkIndex = (int) ((offset + len) / chunkSize);
+    if (endChunkIndex >= data.length) {
+      growDataArray();
+    }
 
-		int bufferOffset = 0;
-		int remainingLen = len;
+    int bufferOffset = 0;
+    int remainingLen = len;
 
-		// Fetch any missing chunks, in parallel.
-		IntStream.rangeClosed(startChunkIndex, endChunkIndex)
-				.filter(i -> data[i] == null)
-				.parallel()
-				.forEach(i -> fetchChunk(i));
+    // Fetch any missing chunks, in parallel.
+    IntStream.rangeClosed(startChunkIndex, endChunkIndex)
+        .filter(i -> data[i] == null)
+        .parallel()
+        .forEach(i -> fetchChunk(i));
 
-		// Copy the relevant parts of the chunks into the response buffer.
-		for (int i = startChunkIndex; i <= endChunkIndex; i++) {
-			int posInChunk = (i == startChunkIndex) ? (int) (offset % chunkSize) : 0;
-			int lenInChunk = Math.min(remainingLen, data[i].length - posInChunk);
+    // Copy the relevant parts of the chunks into the response buffer.
+    for (int i = startChunkIndex; i <= endChunkIndex; i++) {
+      int posInChunk = (i == startChunkIndex) ? (int) (offset % chunkSize) : 0;
+      int lenInChunk = Math.min(remainingLen, data[i].length - posInChunk);
 
-			try {
-				System.arraycopy(data[i], posInChunk, buffer, bufferOffset, lenInChunk);
-			} catch (Exception e) {
-				logger.error(String.format("Image byte copy failed: chunk %d, %d bytes out of %d", i, lenInChunk, data[i].length), e);
-			}
+      try {
+        System.arraycopy(data[i], posInChunk, buffer, bufferOffset, lenInChunk);
+      } catch (Exception e) {
+        logger.error(
+            String.format("Image byte copy failed: chunk %d, %d bytes out of %d", i, lenInChunk,
+                data[i].length), e);
+      }
 
-			bufferOffset += lenInChunk;
-			remainingLen -= lenInChunk;
-		}
+      bufferOffset += lenInChunk;
+      remainingLen -= lenInChunk;
+    }
 
-		return buffer;
-	}
+    return buffer;
+  }
 
-    private void growDataArray() {
-		byte[][] newData = new byte[data.length * 2][];
-		for (int i = 0; i < data.length; i++) {
-			newData[i] = data[i];
-		}
-		data = newData;
-	}
+  private static final int MAX_CHUNKS = 1000;
 
-	private void fetchChunk(int i) {
-		long offset = i * chunkSize;
-		int maxBytesToFetch = (int) (codestreamSize - offset);
-		if (maxBytesToFetch <= 0) data[i] = new byte[0];
-		int len = Math.min(chunkSize, maxBytesToFetch);
-		
-		long startTime = System.currentTimeMillis();
-		data[i] = measService.getImageDataPart(measId, wellNr, channelId, offset, len);
-		long durationMs = System.currentTimeMillis() - startTime;
-		
-		logger.debug(String.format("Remote fetched chunk %d [chunksize=%d, codestreamsize=%d] for meas %d, well %d, channel %s in %d ms", i, chunkSize, codestreamSize, measId, wellNr, channelId, durationMs));
-	}
+  private void growDataArray() {
+    if (data.length >= MAX_CHUNKS) {
+      logger.warn("Maximum chunk limit reached for image codestream accessor");
+      return;
+    }
+    int newSize = Math.min(data.length * 2, MAX_CHUNKS);
+    byte[][] newData = new byte[newSize][];
+    System.arraycopy(data, 0, newData, 0, data.length);
+//    byte[][] newData = new byte[data.length * 2][];
+//    for (int i = 0; i < data.length; i++) {
+//      newData[i] = data[i];
+//    }
+    data = newData;
+  }
+
+  private void fetchChunk(int i) {
+    long offset = i * chunkSize;
+    int maxBytesToFetch = (int) (codestreamSize - offset);
+    if (maxBytesToFetch <= 0) {
+      data[i] = new byte[0];
+    }
+    int len = Math.min(chunkSize, maxBytesToFetch);
+
+    long startTime = System.currentTimeMillis();
+    data[i] = measService.getImageDataPart(measId, wellNr, channelId, offset, len);
+    long durationMs = System.currentTimeMillis() - startTime;
+
+    logger.debug(String.format(
+        "Remote fetched chunk %d [chunksize=%d, codestreamsize=%d] for meas %d, well %d, channel %s in %d ms",
+        i, chunkSize, codestreamSize, measId, wellNr, channelId, durationMs));
+  }
 }

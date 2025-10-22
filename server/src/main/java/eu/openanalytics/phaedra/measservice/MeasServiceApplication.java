@@ -107,7 +107,7 @@ public class MeasServiceApplication {
 		return new OpenAPI().addServersItem(server);
 	}
 
-	@Bean
+  @Bean(destroyMethod = "close")
 	public ImageRenderService renderService() {
 		return new ImageRenderService();
 	}

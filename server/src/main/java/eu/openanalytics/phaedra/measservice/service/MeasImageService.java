@@ -65,7 +65,10 @@ public class MeasImageService {
 		logger.info("clearing cache");
 	}
 
-	@Cacheable(value = "meas_image", key = "{#measId, #wellNr, #channel, #renderConfigId, #renderConfig.hashCode()}" )
+//	@Cacheable(value = "meas_image", key = "{#measId, #wellNr, #channel, #renderConfigId, #renderConfig.hashCode()}" )
+  @Cacheable(value = "meas_image",
+    key = "T(java.lang.String).format('%d-%d-%s-%s', #measId, #wellNr, #channel, #renderConfigId ?: 'none')",
+    condition = "#result != null && #result.length < 10485760")
 	public byte[] renderImage(long measId, int wellNr, String channel, Long renderConfigId, ImageRenderConfig renderConfig) throws IOException {
 
 		MeasurementDTO meas = measService.findMeasById(measId).orElse(null);
@@ -78,7 +81,10 @@ public class MeasImageService {
 		return renderService.renderImage(new ICodestreamSourceDescriptor[] { source }, cfg);
 	}
 
-	@Cacheable(value = "meas_image", key = "{#measId, #wellNr, #channels.hashCode(), #renderConfigId, #renderConfig.hashCode()}")
+//	@Cacheable(value = "meas_image", key = "{#measId, #wellNr, #channels.hashCode(), #renderConfigId, #renderConfig.hashCode()}")
+  @Cacheable(value = "meas_image",
+    key = "T(java.lang.String).format('%d-%d-%s-%s', #measId, #wellNr, #channels.hashCode(), #renderConfigId ?: 'none')",
+    condition = "#result != null && #result.length < 10485760")
 	public byte[] renderImage(long measId, int wellNr, List<String> channels, Long renderConfigId, ImageRenderConfig renderConfig) throws IOException {
 
 		MeasurementDTO meas = measService.findMeasById(measId).orElse(null);
@@ -99,7 +105,10 @@ public class MeasImageService {
 		return renderService.renderImage(sources.stream().toArray(i -> new ICodestreamSourceDescriptor[i]), cfg);
 	}
 
-	@Cacheable(value = "meas_image", key = "{#measId, #wellNr, #renderConfigId, #renderConfig.hashCode()}")
+//	@Cacheable(value = "meas_image", key = "{#measId, #wellNr, #renderConfigId, #renderConfig.hashCode()}")
+  @Cacheable(value = "meas_image",
+    key = "T(java.lang.String).format('%d-%d-%s', #measId, #wellNr, #renderConfigId ?: 'none')",
+    condition = "#result != null && #result.length < 10485760")
 	public byte[] renderImage(long measId, int wellNr, Long renderConfigId, ImageRenderConfig renderConfig) throws IOException {
 
 		MeasurementDTO meas = measService.findMeasById(measId).orElse(null);
