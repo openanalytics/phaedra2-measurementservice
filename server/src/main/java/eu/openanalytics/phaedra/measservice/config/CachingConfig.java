@@ -29,34 +29,42 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
-
 @Configuration
 @EnableCaching
 public class CachingConfig {
-    @Bean
-    public Caffeine caffeineConfig(Environment environment) {
-        //long maxBytes = Long.parseLong(environment.getProperty("PHAEDRA2_MEASUREMENT_CACHE_MAX_BYTES", "1.000.000.000")); // 6GB
 
-        return Caffeine.newBuilder()
-                .maximumWeight(0)
-                .weigher((key, value) -> estimateSizeInBytes(value))
-                .expireAfterAccess(Integer.parseInt(environment.getProperty("PHAEDRA2_MEASUREMENT_CACHE_TTL", "10")), java.util.concurrent.TimeUnit.MINUTES);
-    }
+  @Bean
+  public Caffeine caffeineConfig(Environment environment) {
+    long maxBytes = Long.parseLong(
+        environment.getProperty("PHAEDRA2_MEASUREMENT_CACHE_MAX_BYTES", "500000000")); // 500MB
 
-    private int estimateSizeInBytes(Object value) {
-        if (value instanceof byte[]) {
-            return ((byte[]) value).length;
-        } else {
-            ImageCodestreamAccessor codestream = (ImageCodestreamAccessor) value;
-            return (int) codestream.getCodestreamSize();
-        }
-    }
+    return Caffeine.newBuilder()
+        .maximumWeight(maxBytes)
+        .weigher((key, value) -> estimateSizeInBytes(value))
+        .expireAfterAccess(
+            Integer.parseInt(environment.getProperty("PHAEDRA2_MEASUREMENT_CACHE_TTL", "5")),
+            java.util.concurrent.TimeUnit.MINUTES)
+        .removalListener((key, value, cause) -> {
+          if (cause != null && cause.wasEvicted()) {
+            System.out.println("Cache entry removed: " + key + " (" + cause + ")");
+          }
+        });
+  }
 
-    @Bean
-    public CacheManager cacheManager(Caffeine caffeine) {
-        CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager();
-        caffeineCacheManager.setCaffeine(caffeine);
-        return caffeineCacheManager;
+  private int estimateSizeInBytes(Object value) {
+    if (value instanceof byte[]) {
+      return ((byte[]) value).length;
+    } else {
+      ImageCodestreamAccessor codestream = (ImageCodestreamAccessor) value;
+      return (int) codestream.getCodestreamSize();
     }
+  }
+
+  @Bean
+  public CacheManager cacheManager(Caffeine caffeine) {
+    CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager();
+    caffeineCacheManager.setCaffeine(caffeine);
+    return caffeineCacheManager;
+  }
 
 }
