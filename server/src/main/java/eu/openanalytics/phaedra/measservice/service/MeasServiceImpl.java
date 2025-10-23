@@ -56,19 +56,16 @@ public class MeasServiceImpl implements MeasService {
 	private final MeasDataRepository measDataRepo;
 	private final ModelMapper modelMapper;
 	private final IAuthorizationService authService;
-	private final MetadataServiceGraphQlClient metadataServiceGraphQlClient;
 
 	public MeasServiceImpl(
 			MeasRepository measRepo,
 			MeasDataRepository measDataRepo,
 			ModelMapper modelMapper,
-			IAuthorizationService authService,
-      MetadataServiceGraphQlClient metadataServiceGraphQlClient) {
+			IAuthorizationService authService) {
 		this.measRepo = measRepo;
 		this.measDataRepo = measDataRepo;
 		this.modelMapper = modelMapper;
 		this.authService = authService;
-    this.metadataServiceGraphQlClient = metadataServiceGraphQlClient;
   }
 
 	@Override
@@ -94,39 +91,25 @@ public class MeasServiceImpl implements MeasService {
 	@Override
 	public List<MeasurementDTO> getAllMeasurements() {
 		List<Measurement> result = (List<Measurement>) measRepo.findAll();
-		List<MeasurementDTO> measDTOs = result.stream().map(modelMapper::map).toList();
-
-		enrichWithMetadata(measDTOs);
-
-		return measDTOs;
+		return result.stream().map(modelMapper::map).toList();
 	}
 
 	@Override
 	public Optional<MeasurementDTO> findMeasById(long measId) {
 		Optional<Measurement> measurement = measRepo.findById(measId);
-		Optional<MeasurementDTO> measurementDTO = measurement.map(modelMapper::map);
-
-		return enrichWithMetadata(measurementDTO);
+        return measurement.map(modelMapper::map);
 	}
 
 	@Override
 	public List<MeasurementDTO> getMeasurementsByIds(List<Long> measIds) {
 		List<Measurement> result = measRepo.findAllByIds(Longs.toArray(measIds));
-		List<MeasurementDTO> measDTOs = result.stream().map(modelMapper::map).toList();
-
-		enrichWithMetadata(measDTOs);
-
-		return measDTOs;
+		return result.stream().map(modelMapper::map).toList();
 	}
 
 	@Override
 	public List<MeasurementDTO> findMeasByCreatedOnRange(Date from, Date to) {
 		List<Measurement> result = measRepo.findByCreatedOnRange(from, to);
-		List<MeasurementDTO> measDTOs = result.stream().map(modelMapper::map).toList();
-
-		enrichWithMetadata(measDTOs);
-
-		return measDTOs;
+        return result.stream().map(modelMapper::map).toList();
 	}
 
 	@Override
@@ -408,32 +391,32 @@ public class MeasServiceImpl implements MeasService {
 
 	}
 
-	private Optional<MeasurementDTO> enrichWithMetadata(Optional<MeasurementDTO> measurementDTO) {
-		if (measurementDTO.isPresent()) {
-			enrichWithMetadata(List.of(measurementDTO.get()));
-		}
-		return measurementDTO;
-	}
+//	private Optional<MeasurementDTO> enrichWithMetadata(Optional<MeasurementDTO> measurementDTO) {
+//		if (measurementDTO.isPresent()) {
+//			enrichWithMetadata(List.of(measurementDTO.get()));
+//		}
+//		return measurementDTO;
+//	}
 
-	private void enrichWithMetadata(List<MeasurementDTO> measurements) {
-		if (isEmpty(measurements)) {
-			return;
-		}
-
-		Map<Long, MeasurementDTO> measIdMap = new HashMap<>();
-		for (MeasurementDTO measurement : measurements) {
-			measIdMap.put(measurement.getId(), measurement);
-		}
-		List<Long> measIds = new ArrayList<>(measIdMap.keySet());
-
-		List<MetadataDTO> measurementMetadataList = metadataServiceGraphQlClient.getMetadata(measIds, ObjectClass.MEASUREMENT);
-
-		for (MetadataDTO metadata : measurementMetadataList) {
-			MeasurementDTO measurementDTO = measIdMap.get(metadata.getObjectId());
-			if (measurementDTO != null) {
-				measurementDTO.setTags(metadata.getTags().stream().map(TagDTO::getTag).toList());
-				measurementDTO.setProperties(convertToPropertyRecords(metadata.getProperties()));
-			}
-		}
-	}
+//	private void enrichWithMetadata(List<MeasurementDTO> measurements) {
+//		if (isEmpty(measurements)) {
+//			return;
+//		}
+//
+//		Map<Long, MeasurementDTO> measIdMap = new HashMap<>();
+//		for (MeasurementDTO measurement : measurements) {
+//			measIdMap.put(measurement.getId(), measurement);
+//		}
+//		List<Long> measIds = new ArrayList<>(measIdMap.keySet());
+//
+//		List<MetadataDTO> measurementMetadataList = metadataServiceGraphQlClient.getMetadata(measIds, ObjectClass.MEASUREMENT);
+//
+//		for (MetadataDTO metadata : measurementMetadataList) {
+//			MeasurementDTO measurementDTO = measIdMap.get(metadata.getObjectId());
+//			if (measurementDTO != null) {
+//				measurementDTO.setTags(metadata.getTags().stream().map(TagDTO::getTag).toList());
+//				measurementDTO.setProperties(convertToPropertyRecords(metadata.getProperties()));
+//			}
+//		}
+//	}
 }

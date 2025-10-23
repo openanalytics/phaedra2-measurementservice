@@ -40,12 +40,12 @@ public class Containers {
     public static final PostgreSQLContainer<?> postgreSQLContainer;
 
     static {
-        postgreSQLContainer = new PostgreSQLContainer<>(DockerImageName.parse("registry.openanalytics.eu/library/postgres:13-alpine")
-                .asCompatibleSubstituteFor(PostgreSQLContainer.IMAGE))
-                .withUrlParam("currentSchema","measservice");
+        DockerImageName pgImage = DockerImageName.parse("registry.openanalytics.eu/library/postgres:13-alpine").asCompatibleSubstituteFor("postgres");
+        postgreSQLContainer = new PostgreSQLContainer<>(pgImage).withUrlParam("currentSchema","measservice");
 
-        postgreSQLContainer.start();
         try {
+            postgreSQLContainer.start();
+
             var connection = postgreSQLContainer.createConnection("");
             connection.createStatement().executeUpdate("create schema measservice");
             connection.setSchema("measservice");
@@ -57,5 +57,5 @@ public class Containers {
             e.printStackTrace();
         }
     }
-
 }
+

@@ -92,7 +92,7 @@ public class MeasServiceTest {
     @BeforeEach
     void before() {
         this.measService = new MeasServiceImpl(measRepository, measDataRepository, modelMapper,
-            authService, metadataServiceGraphQlClient);
+            authService);
     }
 
 //    @Test
