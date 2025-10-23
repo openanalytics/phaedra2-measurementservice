@@ -44,49 +44,9 @@ public class MeasurementGraphQLControllerTest extends AbstractControllerTest {
 
     @Test
     public void getMeasurementsTest() {
-        when(metadataServiceGraphQlClient.getMetadata(List.of(1000L, 2000L, 3000L, 4000L), ObjectClass.MEASUREMENT))
-                .thenReturn(List.of(
-                        new MetadataDTO(1000L,
-                                List.of(
-                                        new TagDTO(1L, "MeasTest1", null, null),
-                                        new TagDTO(2L, "MeasTest2", null, null)
-                                ),
-                                List.of(
-                                        new PropertyDTO("TestProperty1", "PropertyValue1", 1000L, ObjectClass.MEASUREMENT),
-                                        new PropertyDTO("TestProperty2", "PropertyValue2", 1000L, ObjectClass.MEASUREMENT)
-                                )
-                        ),
-                        new MetadataDTO(2000L,
-                                List.of(
-                                        new TagDTO(3L, "MeasTest1", null, null),
-                                        new TagDTO(4L, "MeasTest2", null, null)
-                                ),
-                                List.of(
-                                        new PropertyDTO("TestProperty1", "PropertyValue1", 2000L, ObjectClass.MEASUREMENT),
-                                        new PropertyDTO("TestProperty2", "PropertyValue2", 2000L, ObjectClass.MEASUREMENT)
-                                )
-                        ),
-                        new MetadataDTO(3000L,
-                                List.of(
-                                        new TagDTO(5L, "MeasTest1", null, null),
-                                        new TagDTO(6L, "MeasTest2", null, null)
-                                ),
-                                List.of(
-                                        new PropertyDTO("TestProperty1", "PropertyValue1", 3000L, ObjectClass.MEASUREMENT),
-                                        new PropertyDTO("TestProperty2", "PropertyValue2", 3000L, ObjectClass.MEASUREMENT)
-                                )
-                        ),
-                        new MetadataDTO(4000L,
-                                List.of(
-                                        new TagDTO(7L, "MeasTest1", null, null),
-                                        new TagDTO(8L, "MeasTest2", null, null)
-                                ),
-                                List.of(
-                                        new PropertyDTO("TestProperty1", "PropertyValue1", 4000L, ObjectClass.MEASUREMENT),
-                                        new PropertyDTO("TestProperty2", "PropertyValue2", 4000L, ObjectClass.MEASUREMENT)
-                                )
-                        ))
-                );
+        List<Long> testMeasurementIds = createTestMeasurementIds();
+        when(metadataServiceGraphQlClient.getMetadata(testMeasurementIds, ObjectClass.MEASUREMENT))
+                .thenReturn(createTestMetadata());
         String document = """
                     {
                         measurements {
@@ -109,5 +69,31 @@ public class MeasurementGraphQLControllerTest extends AbstractControllerTest {
         assertThat(result.stream().map(MeasurementDTO::getId).toList()).containsExactlyInAnyOrder(1000L, 2000L, 3000L, 4000L);
         assertThat(result.stream().map(MeasurementDTO::getTags).toList()).isNotEmpty();
         assertThat(result.stream().map(MeasurementDTO::getProperties).toList()).isNotEmpty();
+    }
+
+    private List<Long> createTestMeasurementIds() {
+        return List.of(1000L, 2000L, 3000L, 4000L);
+    }
+
+    private List<MetadataDTO> createTestMetadata() {
+        return List.of(
+                createMetadataForMeasurement(1000L, 1L, 2L),
+                createMetadataForMeasurement(2000L, 3L, 4L),
+                createMetadataForMeasurement(3000L, 5L, 6L),
+                createMetadataForMeasurement(4000L, 7L, 8L)
+        );
+    }
+
+    private MetadataDTO createMetadataForMeasurement(Long measurementId, Long firstTagId, Long secondTagId) {
+        return new MetadataDTO(measurementId,
+                List.of(
+                        new TagDTO(firstTagId, "MeasTest_%d".formatted(firstTagId), null, null),
+                        new TagDTO(secondTagId, "MeasTest_%d".formatted(secondTagId), null, null)
+                ),
+                List.of(
+                        new PropertyDTO("TestProperty1", "PropertyValue1", measurementId, ObjectClass.MEASUREMENT),
+                        new PropertyDTO("TestProperty2", "PropertyValue2", measurementId, ObjectClass.MEASUREMENT)
+                )
+        );
     }
 }
