@@ -29,12 +29,6 @@
             <groupId>eu.openanalytics.phaedra</groupId>
             <artifactId>phaedra2-imaging</artifactId>
             <version>${phaedra2-imaging.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.squareup.okhttp3</groupId>
-                    <artifactId>okhttp</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>eu.openanalytics.phaedra</groupId>
