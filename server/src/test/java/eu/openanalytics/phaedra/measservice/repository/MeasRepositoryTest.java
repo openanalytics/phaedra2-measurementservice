@@ -24,9 +24,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
+import eu.openanalytics.phaedra.util.auth.ClientCredentialsTokenGenerator;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
@@ -41,6 +46,10 @@ import eu.openanalytics.phaedra.measservice.support.Containers;
 
 @Testcontainers
 @SpringBootTest
+@EnableAutoConfiguration(exclude = {
+        SecurityAutoConfiguration.class,
+        OAuth2ClientAutoConfiguration.class
+})
 @Sql({"/jdbc/test-data.sql"})
 @TestPropertySource(locations = "classpath:application-test.properties")
 public class MeasRepositoryTest {
@@ -48,19 +57,14 @@ public class MeasRepositoryTest {
     @Autowired
     private MeasRepository measRepository;
 
-    @Container
-    private static JdbcDatabaseContainer postgreSQLContainer = new PostgreSQLContainer("postgres:13-alpine")
-            .withDatabaseName("phaedra2")
-            .withUrlParam("currentSchema","measservice")
-            .withPassword("inmemory")
-            .withUsername("inmemory");
+    @MockBean
+    public ClientCredentialsTokenGenerator ccTokenGenerator;
 
     @DynamicPropertySource
     static void registerPgProperties(DynamicPropertyRegistry registry) {
         registry.add("DB_URL", Containers.postgreSQLContainer::getJdbcUrl);
-        registry.add("DB_USERNAME", Containers.postgreSQLContainer::getUsername);
+        registry.add("DB_USER", Containers.postgreSQLContainer::getUsername);
         registry.add("DB_PASSWORD", Containers.postgreSQLContainer::getPassword);
-        registry.add("DB_SCHEMA", () -> "measservice");
 
         registry.add("S3_ENDPOINT", () -> "https://s3.amazonaws.com");
         registry.add("S3_REGION", () -> "eu-west-1");
@@ -69,12 +73,12 @@ public class MeasRepositoryTest {
         registry.add("S3_BUCKET", () -> "phaedra2-poc-measdata");
     }
 
-//    @Test
+    @Test
     public void contextLoads() {
         assertThat(measRepository).isNotNull();
     }
 
-//    @Test
+    @Test
     public void findAllByIdsTest() {
         List<Measurement> measurements = measRepository.findAllByIds(new long[]{1000L,2000L,3000L});
         assertThat(measurements.isEmpty()).isFalse();

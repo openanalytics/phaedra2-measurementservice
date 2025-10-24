@@ -26,10 +26,15 @@ import eu.openanalytics.phaedra.metadataservice.client.MetadataServiceGraphQlCli
 import java.util.List;
 import java.util.Optional;
 
+import eu.openanalytics.phaedra.util.auth.ClientCredentialsTokenGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
@@ -47,6 +52,10 @@ import eu.openanalytics.phaedra.util.auth.IAuthorizationService;
 
 @Testcontainers
 @SpringBootTest
+@EnableAutoConfiguration(exclude = {
+        SecurityAutoConfiguration.class,
+        OAuth2ClientAutoConfiguration.class
+})
 @Sql({"/jdbc/test-data.sql"})
 @TestPropertySource(locations = "classpath:application-test.properties")
 public class MeasServiceTest {
@@ -55,32 +64,16 @@ public class MeasServiceTest {
     private MeasServiceImpl measService;
 
     @Autowired
-    private MeasRepository measRepository;
+    private ModelMapper modelMapper;
 
-    @Autowired
-    private MeasDataRepository measDataRepository;
-
-    @Autowired
-    private IAuthorizationService authService;
-
-    @Autowired
-    private MetadataServiceGraphQlClient metadataServiceGraphQlClient;
-
-    @Autowired ModelMapper modelMapper;
-
-    @Container
-    private static JdbcDatabaseContainer postgreSQLContainer = new PostgreSQLContainer("postgres:13-alpine")
-            .withDatabaseName("phaedra2")
-            .withUrlParam("currentSchema","measservice")
-            .withPassword("inmemory")
-            .withUsername("inmemory");
+    @MockBean
+    public ClientCredentialsTokenGenerator ccTokenGenerator;
 
     @DynamicPropertySource
     static void registerPgProperties(DynamicPropertyRegistry registry) {
         registry.add("DB_URL", Containers.postgreSQLContainer::getJdbcUrl);
-        registry.add("DB_USERNAME", Containers.postgreSQLContainer::getUsername);
+        registry.add("DB_USER", Containers.postgreSQLContainer::getUsername);
         registry.add("DB_PASSWORD", Containers.postgreSQLContainer::getPassword);
-        registry.add("DB_SCHEMA", () -> "measservice");
 
         registry.add("S3_ENDPOINT", () -> "https://s3.amazonaws.com");
         registry.add("S3_REGION", () -> "eu-west-1");
@@ -89,20 +82,20 @@ public class MeasServiceTest {
         registry.add("S3_BUCKET", () -> "phaedra2-poc-measdata");
     }
 
-    @BeforeEach
-    void before() {
-        this.measService = new MeasServiceImpl(measRepository, measDataRepository, modelMapper,
-            authService);
+    @Test
+    public void contextLoads() {
+        assertThat(measService).isNotNull();
+        assertThat(modelMapper).isNotNull();
     }
 
-//    @Test
+    @Test
     public void getAllMeasurements() {
         List<MeasurementDTO> measurementDTOs = measService.getAllMeasurements();
         assertThat(measurementDTOs.isEmpty()).isFalse();
         assertThat(measurementDTOs.size()).isEqualTo(4);
     }
 
-//    @Test
+    @Test
     public void findMeasById() {
         Optional<MeasurementDTO> measurementDTO = measService.findMeasById(3000L);
         MeasurementDTO get = measurementDTO.get();
