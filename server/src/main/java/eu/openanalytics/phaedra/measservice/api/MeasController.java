@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import eu.openanalytics.phaedra.measservice.service.ModelMapper;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.HttpStatus;
@@ -50,9 +51,11 @@ import eu.openanalytics.phaedra.measservice.service.MeasService;
 public class MeasController {
 
     private final MeasService measService;
+    private final ModelMapper modelMapper;
 
-    public MeasController(MeasService measService) {
+    public MeasController(MeasService measService, ModelMapper modelMapper) {
         this.measService = measService;
+        this.modelMapper = modelMapper;
     }
 
     /**
@@ -61,22 +64,24 @@ public class MeasController {
      */
 
     @PostMapping
-    public ResponseEntity<Measurement> createMeasurement(@RequestBody NewMeasurementDTO measurementDTO) {
-        Measurement meas = measService.createNewMeas(measurementDTO.asMeasurement());
+    public ResponseEntity<MeasurementDTO> createMeasurement(@RequestBody NewMeasurementDTO measurementDTO) {
+        Measurement newMeasurement = measService.createNewMeas(measurementDTO.asMeasurement());
         if (measurementDTO.getWelldata() != null && !measurementDTO.getWelldata().isEmpty()) {
-            measService.setMeasWellData(meas.getId(), measurementDTO.getWelldata());
+            measService.setMeasWellData(newMeasurement.getId(), measurementDTO.getWelldata());
         }
-        return new ResponseEntity<>(meas, HttpStatus.CREATED);
+        MeasurementDTO response = this.modelMapper.map(newMeasurement);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @PutMapping(value = "/{measurementId}")
-    public ResponseEntity<Measurement> updateMeasurement(@PathVariable long measurementId, @RequestBody MeasurementDTO measurementDTO) {
+    public ResponseEntity<MeasurementDTO> updateMeasurement(@PathVariable long measurementId, @RequestBody MeasurementDTO measurementDTO) {
         if (measurementId != measurementDTO.getId())
             return ResponseEntity.badRequest().build();
 
         try {
-            Measurement measurement = measService.updateMeasurement(measurementDTO);
-            return new ResponseEntity<>(measurement, HttpStatus.OK);
+            Measurement updatedMeasurement = measService.updateMeasurement(measurementDTO);
+            MeasurementDTO response = this.modelMapper.map(updatedMeasurement);
+            return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (MeasurementNotFoundException e) {
             return ResponseEntity.notFound().build();
         }
@@ -143,7 +148,7 @@ public class MeasController {
         measService.setMeasSubWellData(measurementId, column, dataMap);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
-    
+
     @PostMapping(value = "/{measurementId}/subwelldata/well/{wellNr}")
     public ResponseEntity<Void> setSubWellData(@PathVariable long measurementId, @PathVariable int wellNr, @RequestBody Map<String, float[]> dataMap) {
         measService.setMeasSubWellData(measurementId, wellNr, dataMap);
