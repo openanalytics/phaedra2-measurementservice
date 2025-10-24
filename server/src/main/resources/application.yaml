@@ -30,6 +30,9 @@ spring:
   jackson:
     serialization:
       indent_output: true
+  cloud:
+    kubernetes:
+      enabled: true
   security:
     oauth2:
       client:
