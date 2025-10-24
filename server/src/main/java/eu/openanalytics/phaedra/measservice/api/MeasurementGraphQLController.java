@@ -24,21 +24,32 @@ import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
 import eu.openanalytics.phaedra.measservice.dto.SubwellDataDTO;
 import eu.openanalytics.phaedra.measservice.dto.WellDataDTO;
 import eu.openanalytics.phaedra.measservice.record.FilterOptions;
+import eu.openanalytics.phaedra.measservice.record.PropertyRecord;
 import eu.openanalytics.phaedra.measservice.service.MeasService;
-import java.util.ArrayList;
-import java.util.List;
+import eu.openanalytics.phaedra.metadataservice.client.MetadataServiceGraphQlClient;
+import eu.openanalytics.phaedra.metadataservice.dto.MetadataDTO;
+import eu.openanalytics.phaedra.metadataservice.dto.TagDTO;
+import eu.openanalytics.phaedra.metadataservice.enumeration.ObjectClass;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.graphql.data.method.annotation.Argument;
+import org.springframework.graphql.data.method.annotation.BatchMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 public class MeasurementGraphQLController {
 
     private final MeasService measService;
+    private final MetadataServiceGraphQlClient metadataServiceGraphQlClient;
 
-    public MeasurementGraphQLController(MeasService measService) {
+    public MeasurementGraphQLController(MeasService measService, MetadataServiceGraphQlClient metadataServiceGraphQlClient) {
         this.measService = measService;
+        this.metadataServiceGraphQlClient = metadataServiceGraphQlClient;
     }
 
     @QueryMapping
@@ -78,38 +89,86 @@ public class MeasurementGraphQLController {
 
     @QueryMapping
     public List<SubwellDataDTO> measurementSubWellDataByIdAndWellNr(@Argument Long measurementId,
-        @Argument Integer wellNr) {
+                                                                    @Argument Integer wellNr) {
         List<SubwellDataDTO> result = new ArrayList<>();
         measService.getSubWellData(measurementId, wellNr)
-            .forEach((column, value) ->
-                result.add(new SubwellDataDTO(measurementId, wellNr, column, value)));
+                .forEach((column, value) ->
+                        result.add(new SubwellDataDTO(measurementId, wellNr, column, value)));
         return result;
     }
 
     @QueryMapping
     public List<SubwellDataDTO> measurementSubWellDataByIdAndColumns(@Argument Long measurementId,
-        @Argument List<String> columns) {
+                                                                     @Argument List<String> columns) {
         List<SubwellDataDTO> result = new ArrayList<>();
         for (String column : columns) {
             measService.getSubWellData(measurementId, column)
-                .forEach((wellNr, value) ->
-                    result.add(new SubwellDataDTO(measurementId, wellNr, column, value)));
+                    .forEach((wellNr, value) ->
+                            result.add(new SubwellDataDTO(measurementId, wellNr, column, value)));
         }
         return result;
     }
 
     @QueryMapping
     public List<SubwellDataDTO> measurementSubWellDataByIdAndWellNrAndColumns(
-        @Argument Long measurementId, @Argument Integer wellNr, @Argument List<String> columns) {
+            @Argument Long measurementId, @Argument Integer wellNr, @Argument List<String> columns) {
         List<SubwellDataDTO> result = new ArrayList<>();
         measService.getSubWellData(measurementId, wellNr, columns)
-            .forEach((column, value) ->
-                result.add(new SubwellDataDTO(measurementId, wellNr, column, value)));
+                .forEach((column, value) ->
+                        result.add(new SubwellDataDTO(measurementId, wellNr, column, value)));
         return result;
     }
 
     @QueryMapping
     public List<String> getUniqueSubWellDataColumns() {
         return measService.getAllUniqueSubWellDataColumns();
+    }
+
+    @BatchMapping(typeName = "MeasurementDTO", field = "tags")
+    public Map<MeasurementDTO, List<String>> tags(List<MeasurementDTO> measurements) {
+        List<Long> measurementIds = measurements.stream()
+                .map(MeasurementDTO::getId)
+                .toList();
+
+        List<MetadataDTO> metadataResults = metadataServiceGraphQlClient.getMetadata(measurementIds, ObjectClass.MEASUREMENT);
+
+        Map<Long, List<String>> tagsMap = metadataResults.stream()
+                .collect(Collectors.toMap(
+                        MetadataDTO::getObjectId,
+                        metadata -> metadata.getTags().stream()
+                                .map(TagDTO::getTag)
+                                .toList(),
+                        (existing, replacement) -> existing // Handle duplicates
+                ));
+
+        return measurements.stream()
+                .collect(Collectors.toMap(
+                        measurement -> measurement,
+                        measurement -> tagsMap.getOrDefault(measurement.getId(), List.of())
+                ));
+    }
+
+    @BatchMapping(typeName = "MeasurementDTO", field = "properties")
+    public Map<MeasurementDTO, List<PropertyRecord>> properties(List<MeasurementDTO> measurements) {
+        List<Long> measurementIds = measurements.stream()
+                .map(MeasurementDTO::getId)
+                .toList();
+
+        List<MetadataDTO> metadataResults = metadataServiceGraphQlClient.getMetadata(measurementIds, ObjectClass.MEASUREMENT);
+
+        Map<Long, List<PropertyRecord>> propertiesMap = metadataResults.stream()
+                .collect(Collectors.toMap(
+                        MetadataDTO::getObjectId,
+                        metadata -> metadata.getProperties().stream()
+                                .map(propertyDTO -> new PropertyRecord(propertyDTO.getPropertyName(), propertyDTO.getPropertyValue()))
+                                .toList(),
+                        (existing, replacement) -> existing // Handle duplicates
+                ));
+
+        return measurements.stream()
+                .collect(Collectors.toMap(
+                        measurement -> measurement,
+                        measurement -> propertiesMap.getOrDefault(measurement.getId(), List.of())
+                ));
     }
 }

@@ -18,47 +18,55 @@
  * You should have received a copy of the Apache License
  * along with this program.  If not, see <http://www.apache.org/licenses/>
  */
-package eu.openanalytics.phaedra.measservice.repository;
+package eu.openanalytics.phaedra.measservice.support;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.List;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import eu.openanalytics.phaedra.metadataservice.client.MetadataServiceClient;
 import eu.openanalytics.phaedra.util.auth.ClientCredentialsTokenGenerator;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.oauth2.client.servlet.OAuth2ClientAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.graphql.test.tester.HttpGraphQlTester;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
-import org.testcontainers.containers.JdbcDatabaseContainer;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
+import org.springframework.test.web.reactive.server.WebTestClient;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import eu.openanalytics.phaedra.measservice.model.Measurement;
-import eu.openanalytics.phaedra.measservice.support.Containers;
+import java.util.Collections;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
 
 @Testcontainers
-@SpringBootTest
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@Sql({"/jdbc/test-data.sql"})
 @EnableAutoConfiguration(exclude = {
         SecurityAutoConfiguration.class,
         OAuth2ClientAutoConfiguration.class
 })
-@Sql({"/jdbc/test-data.sql"})
 @TestPropertySource(locations = "classpath:application-test.properties")
-public class MeasRepositoryTest {
+abstract public class AbstractControllerTest {
+
+    @LocalServerPort
+    private int port;
+
+    protected WebTestClient restWebTestClient;
+    protected HttpGraphQlTester httpGraphQlTester;
 
     @Autowired
-    private MeasRepository measRepository;
+    protected ObjectMapper objectMapper;
 
     @MockBean
-    public ClientCredentialsTokenGenerator ccTokenGenerator;
+    private ClientCredentialsTokenGenerator ccTokenGenerator;
 
     @DynamicPropertySource
     static void registerPgProperties(DynamicPropertyRegistry registry) {
@@ -73,15 +81,18 @@ public class MeasRepositoryTest {
         registry.add("S3_BUCKET", () -> "phaedra2-poc-measdata");
     }
 
-    @Test
-    public void contextLoads() {
-        assertThat(measRepository).isNotNull();
-    }
+    @BeforeEach
+    public void setUp() {
+        String baseUrl = "http://localhost:" + port + "/phaedra/measurement-service";
+        WebTestClient.Builder baseClientBuilder = WebTestClient
+                .bindToServer()
+                .baseUrl(baseUrl);
 
-    @Test
-    public void findAllByIdsTest() {
-        List<Measurement> measurements = measRepository.findAllByIds(new long[]{1000L,2000L,3000L});
-        assertThat(measurements.isEmpty()).isFalse();
-        assertThat(measurements.size()).isEqualTo(3);
+        this.restWebTestClient = baseClientBuilder.build();
+
+        WebTestClient graphqlWebTestClient = baseClientBuilder
+                .baseUrl(baseUrl + "/graphql")
+                .build();
+        this.httpGraphQlTester = HttpGraphQlTester.create(graphqlWebTestClient);
     }
 }

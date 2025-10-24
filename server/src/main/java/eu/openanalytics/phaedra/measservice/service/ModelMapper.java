@@ -40,15 +40,15 @@ public class ModelMapper {
                 .setPropertyCondition(Conditions.isNotNull());
     }
 
-    MeasurementDTO map(Measurement measurement) {
+    public MeasurementDTO map(Measurement measurement) {
         return modelMapper.map(measurement, MeasurementDTO.class);
     }
 
-    Measurement map(MeasurementDTO measurementDTO) {
+    public Measurement map(MeasurementDTO measurementDTO) {
         return modelMapper.map(measurementDTO, Measurement.class);
     }
 
-    Measurement map(Measurement measurement, MeasurementDTO measurementDTO) {
+    public Measurement map(Measurement measurement, MeasurementDTO measurementDTO) {
         if (StringUtils.isNotBlank(measurementDTO.getName())
                 && !StringUtils.equals(measurement.getName(), measurementDTO.getName()))
             measurement.setName(measurementDTO.getName());

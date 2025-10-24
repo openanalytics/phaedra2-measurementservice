@@ -6,11 +6,6 @@ meas-service:
     username: ${S3_USERNAME}
     password: ${S3_PASSWORD}
     bucket-name: ${S3_BUCKET}
-  db:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    schema: ${DB_SCHEMA}
 
 cloud:
   aws:
