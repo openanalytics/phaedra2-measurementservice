@@ -46,151 +46,148 @@ import eu.openanalytics.phaedra.measservice.image.ImageCodestreamAccessorCache;
 @Service
 public class MeasImageService {
 
-	@Autowired
-	private MeasService measService;
+    @Autowired
+    private MeasService measService;
 
-	@Autowired
-	private ImageRenderConfigService renderConfigService;
+    @Autowired
+    private ImageRenderConfigService renderConfigService;
 
-	@Autowired
-	private ImageCodestreamAccessorCache codestreamAccessorCache;
+    @Autowired
+    private ImageCodestreamAccessorCache codestreamAccessorCache;
 
-	@Autowired
-	private ImageRenderService renderService;
+    @Autowired
+    private ImageRenderService renderService;
 
-	static Logger logger = org.slf4j.LoggerFactory.getLogger(MeasImageService.class);
+    static Logger logger = org.slf4j.LoggerFactory.getLogger(MeasImageService.class);
 
-	@CacheEvict(value = "meas_image", allEntries = true)
-	public void clearCache() {
-		logger.info("clearing cache");
-	}
+    @CacheEvict(value = "meas_image", allEntries = true)
+    public void clearCache() {
+        logger.info("clearing cache");
+    }
 
-//  @Cacheable(value = "meas_image",
-//    key = "T(java.lang.String).format('%d-%d-%s-%s', #measId, #wellNr, #channel, #renderConfigId ?: 'none')",
-//    condition = "#result != null && #result.length < 10485760")
-	public byte[] renderImage(long measId, int wellNr, String channel, Long renderConfigId, ImageRenderConfig renderConfig) throws IOException {
+    @Cacheable(value = "meas_image", key = "T(java.lang.String).format('%d-%d-%s-%s', #measId, #wellNr, #channel, #renderConfigId ?: 'none')", condition = "#result != null && #result.length < 10485760")
+    public byte[] renderImage(long measId, int wellNr, String channel, Long renderConfigId, ImageRenderConfig renderConfig) throws IOException {
 
-		MeasurementDTO meas = measService.findMeasById(measId).orElse(null);
-		if (meas == null) return null;
+        MeasurementDTO meas = measService.findMeasById(measId).orElse(null);
+        if (meas == null) return null;
 
-		ICodestreamSourceDescriptor source = createCodestreamSourceDescriptor(measId, wellNr, channel);
-		if (source == null) return null;
+        ICodestreamSourceDescriptor source = createCodestreamSourceDescriptor(measId, wellNr, channel);
+        if (source == null) return null;
 
-		ImageRenderConfig cfg = generateFullRenderConfig(Collections.singletonList(channel), renderConfigId, renderConfig);
-		return renderService.renderImage(new ICodestreamSourceDescriptor[] { source }, cfg);
-	}
+        ImageRenderConfig cfg = generateFullRenderConfig(Collections.singletonList(channel), renderConfigId, renderConfig);
+        return renderService.renderImage(new ICodestreamSourceDescriptor[]{source}, cfg);
+    }
 
-//  @Cacheable(value = "meas_image",
-//    key = "T(java.lang.String).format('%d-%d-%s-%s', #measId, #wellNr, #channels.hashCode(), #renderConfigId ?: 'none')",
-//    condition = "#result != null && #result.length < 10485760")
-	public byte[] renderImage(long measId, int wellNr, List<String> channels, Long renderConfigId, ImageRenderConfig renderConfig) throws IOException {
+    @Cacheable(value = "meas_image",
+            key = "T(java.lang.String).format('%d-%d-%s-%s', #measId, #wellNr, #channels.hashCode(), #renderConfigId ?: 'none')",
+            condition = "#result != null && #result.length < 10485760")
+    public byte[] renderImage(long measId, int wellNr, List<String> channels, Long renderConfigId, ImageRenderConfig renderConfig) throws IOException {
 
-		MeasurementDTO meas = measService.findMeasById(measId).orElse(null);
-		if (meas == null) return null;
+        MeasurementDTO meas = measService.findMeasById(measId).orElse(null);
+        if (meas == null) return null;
 
-		List<ICodestreamSourceDescriptor> sources = new ArrayList<>();
-		List<String> availableChannels = new ArrayList<>();
+        List<ICodestreamSourceDescriptor> sources = new ArrayList<>();
+        List<String> availableChannels = new ArrayList<>();
 
-		for (String channel: channels) {
-			ICodestreamSourceDescriptor source = createCodestreamSourceDescriptor(measId, wellNr, channel);
-			if (source == null) continue;
-			availableChannels.add(channel);
-			sources.add(source);
-		}
-		if (availableChannels.isEmpty()) return null;
+        for (String channel : channels) {
+            ICodestreamSourceDescriptor source = createCodestreamSourceDescriptor(measId, wellNr, channel);
+            if (source == null) continue;
+            availableChannels.add(channel);
+            sources.add(source);
+        }
+        if (availableChannels.isEmpty()) return null;
 
-		ImageRenderConfig cfg = generateFullRenderConfig(availableChannels, renderConfigId, renderConfig);
-		return renderService.renderImage(sources.stream().toArray(i -> new ICodestreamSourceDescriptor[i]), cfg);
-	}
+        ImageRenderConfig cfg = generateFullRenderConfig(availableChannels, renderConfigId, renderConfig);
+        return renderService.renderImage(sources.stream().toArray(i -> new ICodestreamSourceDescriptor[i]), cfg);
+    }
 
-//  @Cacheable(value = "meas_image",
-//    key = "T(java.lang.String).format('%d-%d-%s', #measId, #wellNr, #renderConfigId ?: 'none')",
-//    condition = "#result != null && #result.length < 10485760")
-	public byte[] renderImage(long measId, int wellNr, Long renderConfigId, ImageRenderConfig renderConfig) throws IOException {
+    @Cacheable(value = "meas_image",
+            key = "T(java.lang.String).format('%d-%d-%s', #measId, #wellNr, #renderConfigId ?: 'none')",
+            condition = "#result != null && #result.length < 10485760")
+    public byte[] renderImage(long measId, int wellNr, Long renderConfigId, ImageRenderConfig renderConfig) throws IOException {
 
-		MeasurementDTO meas = measService.findMeasById(measId).orElse(null);
-		if (meas == null) return null;
+        MeasurementDTO meas = measService.findMeasById(measId).orElse(null);
+        if (meas == null) return null;
 
-		List<ICodestreamSourceDescriptor> sources = new ArrayList<>();
-		List<String> availableChannels = new ArrayList<>();
+        List<ICodestreamSourceDescriptor> sources = new ArrayList<>();
+        List<String> availableChannels = new ArrayList<>();
 
-		String[] channels = meas.getImageChannels();
-		if (channels == null) return null;
+        String[] channels = meas.getImageChannels();
+        if (channels == null) return null;
 
-		for (int i = 0; i < channels.length; i++) {
-			String channel = channels[i];
-			ICodestreamSourceDescriptor source = createCodestreamSourceDescriptor(measId, wellNr, channel);
-			if (source == null) continue;
-			availableChannels.add(channel);
-			sources.add(source);
-		}
-		if (availableChannels.isEmpty()) return null;
+        for (int i = 0; i < channels.length; i++) {
+            String channel = channels[i];
+            ICodestreamSourceDescriptor source = createCodestreamSourceDescriptor(measId, wellNr, channel);
+            if (source == null) continue;
+            availableChannels.add(channel);
+            sources.add(source);
+        }
+        if (availableChannels.isEmpty()) return null;
 
-		ImageRenderConfig cfg = generateFullRenderConfig(availableChannels, renderConfigId, renderConfig);
-		return renderService.renderImage(sources.stream().toArray(i -> new ICodestreamSourceDescriptor[i]), cfg);
-	}
+        ImageRenderConfig cfg = generateFullRenderConfig(availableChannels, renderConfigId, renderConfig);
+        return renderService.renderImage(sources.stream().toArray(i -> new ICodestreamSourceDescriptor[i]), cfg);
+    }
 
-	private ImageRenderConfig generateFullRenderConfig(List<String> channelsToRender, Long baseConfigId, ImageRenderConfig additionalConfig) {
-		// Start from a default config
-		ImageRenderConfig cfg = new ImageRenderConfig(channelsToRender.stream().toArray(i -> new String[i])).withDefaults();
+    private ImageRenderConfig generateFullRenderConfig(List<String> channelsToRender, Long baseConfigId, ImageRenderConfig additionalConfig) {
+        // Start from a default config
+        ImageRenderConfig cfg = new ImageRenderConfig(channelsToRender.stream().toArray(i -> new String[i])).withDefaults();
 
-		// If there's a base config, load it and merge it into the default config.
-		if (baseConfigId != null) {
-			ImageRenderConfig baseConfig = renderConfigService.getConfigById(baseConfigId)
-					.map(c -> c.getConfig())
-					.orElseThrow(() -> new IllegalArgumentException("No image render config found with ID " + baseConfigId));
-			ImageRenderConfigUtils.merge(baseConfig, cfg);
-		}
+        // If there's a base config, load it and merge it into the default config.
+        if (baseConfigId != null) {
+            ImageRenderConfig baseConfig = renderConfigService.getConfigById(baseConfigId).map(c -> c.getConfig()).orElseThrow(() -> new IllegalArgumentException("No image render config found with ID " + baseConfigId));
+            ImageRenderConfigUtils.merge(baseConfig, cfg);
+        }
 
-		// Then, apply additionalConfig, if any.
-		if (additionalConfig != null) {
-			ImageRenderConfigUtils.merge(additionalConfig, cfg);
-		}
+        // Then, apply additionalConfig, if any.
+        if (additionalConfig != null) {
+            ImageRenderConfigUtils.merge(additionalConfig, cfg);
+        }
 
-		// Finally, filter and sort channel configs so they match the requested channels.
-		List<ChannelRenderConfig> filteredChannelConfigs = new ArrayList<>();
-		for (String channel: channelsToRender) {
-			ChannelRenderConfig channelConfig = Arrays.stream(cfg.channelConfigs).filter(c -> channel.equalsIgnoreCase(c.name)).findAny().orElse(new ChannelRenderConfig(channel).withDefaults());
-			filteredChannelConfigs.add(channelConfig);
-		}
-		cfg.channelConfigs = filteredChannelConfigs.stream().toArray(i -> new ChannelRenderConfig[i]);
+        // Finally, filter and sort channel configs so they match the requested channels.
+        List<ChannelRenderConfig> filteredChannelConfigs = new ArrayList<>();
+        for (String channel : channelsToRender) {
+            ChannelRenderConfig channelConfig = Arrays.stream(cfg.channelConfigs).filter(c -> channel.equalsIgnoreCase(c.name)).findAny().orElse(new ChannelRenderConfig(channel).withDefaults());
+            filteredChannelConfigs.add(channelConfig);
+        }
+        cfg.channelConfigs = filteredChannelConfigs.stream().toArray(i -> new ChannelRenderConfig[i]);
 
-		System.out.println("Resulting config: " + cfg.toString());
+        System.out.println("Resulting config: " + cfg.toString());
 
-		return cfg;
-	}
+        return cfg;
+    }
 
-	private ICodestreamSourceDescriptor createCodestreamSourceDescriptor(long measId, int wellNr, String channel) {
-		long codestreamSize = measService.getImageDataSize(measId, wellNr, channel);
-		if (codestreamSize <= 0) return null;
+    private ICodestreamSourceDescriptor createCodestreamSourceDescriptor(long measId, int wellNr, String channel) {
+        long codestreamSize = measService.getImageDataSize(measId, wellNr, channel);
+        if (codestreamSize <= 0) return null;
 
-		ImageCodestreamAccessor codestreamAccessor = codestreamAccessorCache.getCodestreamAccessor(measId, wellNr, channel);
-		return new CodestreamSourceDescriptor(codestreamSize, codestreamAccessor);
-	}
+        ImageCodestreamAccessor codestreamAccessor = codestreamAccessorCache.getCodestreamAccessor(measId, wellNr, channel);
+        return new CodestreamSourceDescriptor(codestreamSize, codestreamAccessor);
+    }
 
-	private static class CodestreamSourceDescriptor implements ICodestreamSourceDescriptor {
+    private static class CodestreamSourceDescriptor implements ICodestreamSourceDescriptor {
 
-		private long codestreamSize;
-		private ImageCodestreamAccessor codestreamAccessor;
+        private long codestreamSize;
+        private ImageCodestreamAccessor codestreamAccessor;
 
-		public CodestreamSourceDescriptor(long codestreamSize, ImageCodestreamAccessor codestreamAccessor) {
-			this.codestreamSize = codestreamSize;
-			this.codestreamAccessor = codestreamAccessor;
-		}
+        public CodestreamSourceDescriptor(long codestreamSize, ImageCodestreamAccessor codestreamAccessor) {
+            this.codestreamSize = codestreamSize;
+            this.codestreamAccessor = codestreamAccessor;
+        }
 
-		@Override
-		public ICodestreamSource create() throws IOException {
-			return new ICodestreamSource() {
-				@Override
-				public long getSize() throws IOException {
-					return codestreamSize;
-				}
-				@Override
-				public byte[] getBytes(long pos, int len) throws IOException {
-					return codestreamAccessor.getBytes(pos, len);
-				}
-			};
-		}
+        @Override
+        public ICodestreamSource create() throws IOException {
+            return new ICodestreamSource() {
+                @Override
+                public long getSize() throws IOException {
+                    return codestreamSize;
+                }
 
-	}
+                @Override
+                public byte[] getBytes(long pos, int len) throws IOException {
+                    return codestreamAccessor.getBytes(pos, len);
+                }
+            };
+        }
+
+    }
 }

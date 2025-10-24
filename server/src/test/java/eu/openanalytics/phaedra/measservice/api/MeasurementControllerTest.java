@@ -30,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class MeasurementControllerTest extends AbstractControllerTest {
 
-//    @Test
+    @Test
     public void measurementsGetTest() throws Exception {
         restWebTestClient
                 .get().uri("/measurements")
@@ -42,7 +42,7 @@ public class MeasurementControllerTest extends AbstractControllerTest {
                 });
     }
 
-//    @Test
+    @Test
     public void measurementGetTest() throws Exception {
         restWebTestClient
                 .get().uri("/measurements/{measId}", 1000L)
@@ -55,7 +55,7 @@ public class MeasurementControllerTest extends AbstractControllerTest {
                 });
     }
 
-//    @Test
+    @Test
     public void measurementPostTest() throws Exception {
         Measurement measurement = new Measurement();
         measurement.setName("test");
@@ -83,7 +83,7 @@ public class MeasurementControllerTest extends AbstractControllerTest {
                 });
     }
 
-//    @Test
+    @Test
     public void measurementPutTest() throws Exception {
         Long measurementId = 1000L;
         MeasurementDTO measurementDTO = restWebTestClient
@@ -110,7 +110,7 @@ public class MeasurementControllerTest extends AbstractControllerTest {
                 });
     }
 
-//    @Test
+    @Test
     public void measurementDeleteTest() throws Exception {
         Long measurementId = 1000L;
         restWebTestClient

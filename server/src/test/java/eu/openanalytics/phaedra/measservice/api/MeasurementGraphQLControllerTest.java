@@ -42,7 +42,7 @@ public class MeasurementGraphQLControllerTest extends AbstractControllerTest {
     @MockBean
     private MetadataServiceGraphQlClient metadataServiceGraphQlClient;
 
-//    @Test
+    @Test
     public void getMeasurementsTest() {
         List<Long> testMeasurementIds = createTestMeasurementIds();
         when(metadataServiceGraphQlClient.getMetadata(testMeasurementIds, ObjectClass.MEASUREMENT))
