@@ -39,7 +39,6 @@ public class CachingConfig {
         environment.getProperty("PHAEDRA2_MEASUREMENT_CACHE_MAX_BYTES", "500000000")); // 500MB
 
     return Caffeine.newBuilder()
-        .maximumWeight(maxBytes)
         .weigher((key, value) -> estimateSizeInBytes(value))
         .expireAfterAccess(
             Integer.parseInt(environment.getProperty("PHAEDRA2_MEASUREMENT_CACHE_TTL", "5")),
