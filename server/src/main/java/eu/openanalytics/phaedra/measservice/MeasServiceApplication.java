@@ -68,7 +68,7 @@ public class MeasServiceApplication {
 
 		// Propagate the Spring property to a System property for phaedra2-imaging to use
 		int decodeThreads = Integer.parseInt(environment.getProperty("PHAEDRA2_IMAGING_OPENJPEG_DECODE_THREADS", "2"));
-		System.setProperty("phaedra2.imaging.openjpeg.decode.threads", String.valueOf(decodeThreads));
+		System.setProperty("phaedra2.imaging.openjpeg.decode.threads", String.valueOf(1));
 	}
 
 	public static void main(String[] args) {
