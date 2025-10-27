@@ -65,7 +65,7 @@ public class MeasImageService {
         logger.info("clearing cache");
     }
 
-    @Cacheable(value = "meas_image", key = "T(java.lang.String).format('%d-%d-%s-%s', #measId, #wellNr, #channel, #renderConfigId ?: 'none')", condition = "#result != null && #result.length < 10485760")
+    @Cacheable(value = "meas_image", key = "T(java.lang.String).format('%d-%d-%s-%s', #measId, #wellNr, #channel, #renderConfigId ?: 'none')", condition = "#result != null")
     public byte[] renderImage(long measId, int wellNr, String channel, Long renderConfigId, ImageRenderConfig renderConfig) throws IOException {
 
         MeasurementDTO meas = measService.findMeasById(measId).orElse(null);
@@ -80,7 +80,7 @@ public class MeasImageService {
 
     @Cacheable(value = "meas_image",
             key = "T(java.lang.String).format('%d-%d-%s-%s', #measId, #wellNr, #channels.hashCode(), #renderConfigId ?: 'none')",
-            condition = "#result != null && #result.length < 10485760")
+            condition = "#result != null")
     public byte[] renderImage(long measId, int wellNr, List<String> channels, Long renderConfigId, ImageRenderConfig renderConfig) throws IOException {
 
         MeasurementDTO meas = measService.findMeasById(measId).orElse(null);
@@ -103,7 +103,7 @@ public class MeasImageService {
 
     @Cacheable(value = "meas_image",
             key = "T(java.lang.String).format('%d-%d-%s', #measId, #wellNr, #renderConfigId ?: 'none')",
-            condition = "#result != null && #result.length < 10485760")
+            condition = "#result != null")
     public byte[] renderImage(long measId, int wellNr, Long renderConfigId, ImageRenderConfig renderConfig) throws IOException {
 
         MeasurementDTO meas = measService.findMeasById(measId).orElse(null);
