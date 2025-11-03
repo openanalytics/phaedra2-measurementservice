@@ -31,10 +31,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import eu.openanalytics.phaedra.imaging.render.ImageRenderConfig;
 import eu.openanalytics.phaedra.imaging.util.ImageRenderConfigUtils;
@@ -77,4 +74,21 @@ public class MeasImageController {
     		throw new RuntimeException("Image render failed", e);
     	}
     }
+
+	@PutMapping(value = "/clearcache")
+	public ResponseEntity<Void> clearCache() {
+		measImageService.clearCache();
+		return ResponseEntity.ok().build();
+	}
+
+	@GetMapping(value = "memoryusage")
+	public ResponseEntity<Long> getCacheMemoryUsage() {
+		// Get the Java runtime
+		Runtime runtime = Runtime.getRuntime();
+		// Run the garbage collector
+		runtime.gc();
+		// Calculate the used memory
+		long usage = runtime.totalMemory() - runtime.freeMemory();
+		return ResponseEntity.ok(usage/1000000);
+	}
 }

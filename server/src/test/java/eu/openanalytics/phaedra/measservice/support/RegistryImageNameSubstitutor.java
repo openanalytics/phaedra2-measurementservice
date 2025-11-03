@@ -25,39 +25,39 @@ import org.testcontainers.utility.ImageNameSubstitutor;
 
 public class RegistryImageNameSubstitutor extends ImageNameSubstitutor {
 
-	private static final String REGISTRY_NAME = "registry.openanalytics.eu";
+    private static final String REGISTRY_NAME = "registry.openanalytics.eu";
 
-	@Override
-	public DockerImageName apply(DockerImageName original) {
-		String newName = original.asCanonicalNameString();
-		if (newName.toLowerCase().startsWith(REGISTRY_NAME)) return original;
+    @Override
+    public DockerImageName apply(DockerImageName original) {
+        String newName = original.asCanonicalNameString();
+        if (newName.toLowerCase().startsWith(REGISTRY_NAME)) return original;
 
-		String[] nameParts = newName.split("/");
-		int slashCount = nameParts.length - 1;
-		if (slashCount == 0) {
-			newName = REGISTRY_NAME + "/proxy/library/" + newName;
-		} else {
-			String firstPart = nameParts[0];
-			boolean firstPartIsReg = firstPart.contains(".");
+        String[] nameParts = newName.split("/");
+        int slashCount = nameParts.length - 1;
+        if (slashCount == 0) {
+            newName = REGISTRY_NAME + "/proxy/library/" + newName;
+        } else {
+            String firstPart = nameParts[0];
+            boolean firstPartIsReg = firstPart.contains(".");
 
-			if (firstPartIsReg) {
-				newName = newName.substring(firstPart.length() + 1);
-				slashCount--;
-			}
+            if (firstPartIsReg) {
+                newName = newName.substring(firstPart.length() + 1);
+                slashCount--;
+            }
 
-			if (slashCount == 0) {
-				newName = REGISTRY_NAME + "/proxy/library/" + newName;
-			} else {
-				newName = REGISTRY_NAME + "/proxy/" + newName;
-			}
-		}
+            if (slashCount == 0) {
+                newName = REGISTRY_NAME + "/proxy/library/" + newName;
+            } else {
+                newName = REGISTRY_NAME + "/proxy/" + newName;
+            }
+        }
 
-		return DockerImageName.parse(newName);
-	}
+        return DockerImageName.parse(newName);
+    }
 
-	@Override
-	protected String getDescription() {
-		return String.format("Modifies image names to include %s", REGISTRY_NAME);
-	}
+    @Override
+    protected String getDescription() {
+        return String.format("Modifies image names to include %s", REGISTRY_NAME);
+    }
 
 }

@@ -20,22 +20,6 @@
  */
 package eu.openanalytics.phaedra.measservice;
 
-import javax.sql.DataSource;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.env.Environment;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.web.SecurityFilterChain;
-
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -43,7 +27,6 @@ import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-
 import eu.openanalytics.phaedra.imaging.render.ImageRenderService;
 import eu.openanalytics.phaedra.metadataservice.client.config.MetadataServiceClientAutoConfiguration;
 import eu.openanalytics.phaedra.util.PhaedraRestTemplate;
@@ -54,28 +37,49 @@ import eu.openanalytics.phaedra.util.auth.IAuthorizationService;
 import eu.openanalytics.phaedra.util.jdbc.JDBCUtils;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.servers.Server;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.core.env.Environment;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.web.SecurityFilterChain;
 
-@EnableScheduling
+import javax.sql.DataSource;
+
 @EnableCaching
 @EnableWebSecurity
 @SpringBootApplication
+@EnableDiscoveryClient
+@EnableScheduling
 @Import({MetadataServiceClientAutoConfiguration.class})
-@PropertySource("classpath:application.yaml")
 public class MeasServiceApplication {
-	@Value("${phaedra2.imaging.openjpeg.decode.threads:4}")
-	private int decode_threads;
 
 	private final Environment environment;
 
 	public MeasServiceApplication(Environment environment) {
 		this.environment = environment;
+
+		// Propagate the Spring property to a System property for phaedra2-imaging to use
+		int decodeThreads = Integer.parseInt(environment.getProperty("PHAEDRA2_IMAGING_OPENJPEG_DECODE_THREADS", "2"));
+		System.setProperty("phaedra2.imaging.openjpeg.decode.threads", String.valueOf(1));
 	}
 
 	public static void main(String[] args) {
-		System.setProperty("phaedra2.imaging.openjpeg.decode.threads", "4");
-		SpringApplication app = new SpringApplication(MeasServiceApplication.class);
-		app.run(args);
+		SpringApplication.run(MeasServiceApplication.class, args);
 	}
+
+    @Bean
+    @LoadBalanced
+    public PhaedraRestTemplate restTemplate() {
+        return new PhaedraRestTemplate();
+    }
 
 	@Bean
 	public DataSource dataSource() {
@@ -109,10 +113,10 @@ public class MeasServiceApplication {
 		return new OpenAPI().addServersItem(server);
 	}
 
-	@Bean
-	public ImageRenderService renderService() {
-		return new ImageRenderService();
-	}
+    @Bean(destroyMethod = "close")
+    public ImageRenderService renderService() {
+        return new ImageRenderService();
+    }
 
 	@Bean
     public ClientCredentialsTokenGenerator ccTokenGenerator(ClientRegistrationRepository clientRegistrationRepository) {
@@ -127,10 +131,5 @@ public class MeasServiceApplication {
 	@Bean
 	public SecurityFilterChain httpSecurity(HttpSecurity http) throws Exception {
 		return AuthenticationConfigHelper.configure(http);
-	}
-
-	@Bean
-	public PhaedraRestTemplate restTemplate() {
-		return new PhaedraRestTemplate();
 	}
 }

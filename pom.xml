@@ -2,16 +2,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>eu.openanalytics.phaedra</groupId>
         <artifactId>phaedra2-parent</artifactId>
-        <version>2.10.0</version>
+        <version>2.11.0</version>
     </parent>
     <packaging>pom</packaging>
 
     <artifactId>phaedra2-measurementservice</artifactId>
     <name>Phaedra2 Measurement Service</name>
-	<version>2.10.0</version>
+	<version>2.11.0</version>
 
     <modules>
         <module>dto/</module>
@@ -27,6 +28,7 @@
             </plugin>
         </plugins>
     </build>
+
 
     <!-- We cannot specify this in the parent POM, as the repositories are needed to fetch the parent pom.    -->
     <repositories>

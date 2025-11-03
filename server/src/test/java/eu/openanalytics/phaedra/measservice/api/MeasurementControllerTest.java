@@ -20,102 +20,105 @@
  */
 package eu.openanalytics.phaedra.measservice.api;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.util.Date;
-import java.util.List;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.testcontainers.junit.jupiter.Testcontainers;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import eu.openanalytics.phaedra.measservice.dto.MeasurementDTO;
 import eu.openanalytics.phaedra.measservice.model.Measurement;
-import eu.openanalytics.phaedra.measservice.support.Containers;
+import eu.openanalytics.phaedra.measservice.support.AbstractControllerTest;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.MediaType;
 
-@Testcontainers
-@SpringBootTest
-@Sql({"/jdbc/test-data.sql"})
-@AutoConfigureMockMvc(addFilters = false)
-@TestPropertySource(locations = "classpath:application-test.properties")
-public class MeasurementControllerTest {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    @Autowired
-    private MockMvc mockMvc;
+public class MeasurementControllerTest extends AbstractControllerTest {
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @DynamicPropertySource
-    static void registerPgProperties(DynamicPropertyRegistry registry) {
-        registry.add("DB_URL", Containers.postgreSQLContainer::getJdbcUrl);
-        registry.add("DB_USERNAME", Containers.postgreSQLContainer::getUsername);
-        registry.add("DB_PASSWORD", Containers.postgreSQLContainer::getPassword);
-        registry.add("DB_SCHEMA", () -> "measservice");
-
-        registry.add("S3_ENDPOINT", () -> "https://s3.amazonaws.com");
-        registry.add("S3_REGION", () -> "eu-west-1");
-        registry.add("S3_USERNAME", () -> "test");
-        registry.add("S3_PASSWORD", () -> "test");
-        registry.add("S3_BUCKET", () -> "phaedra2-poc-measdata");
-    }
-
-//    @Test
+    @Test
     public void measurementsGetTest() throws Exception {
-        MvcResult mvcResult = this.mockMvc.perform(get("/measurements"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andReturn();
-        List<Measurement> measurements = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), List.class);
-        assertThat(measurements).isNotNull();
-        assertThat(measurements.size()).isEqualTo(4);
+        restWebTestClient
+                .get().uri("/measurements")
+                .exchange().expectStatus().isOk()
+                .expectBodyList(MeasurementDTO.class)
+                .value(measurements -> {
+                    assertThat(measurements).isNotNull();
+                    assertThat(measurements.size()).isEqualTo(4);
+                });
     }
 
-//    @Test
+    @Test
     public void measurementGetTest() throws Exception {
-        MvcResult mvcResult = this.mockMvc.perform(get("/measurements/{measId}", 1000L))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andReturn();
-        Measurement measurement = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), Measurement.class);
-        assertThat(measurement.getId()).isEqualTo(1000L);
-        assertThat(measurement.getBarcode()).isEqualTo("SBETST0001");
+        restWebTestClient
+                .get().uri("/measurements/{measId}", 1000L)
+                .exchange().expectStatus().isOk()
+                .expectBody(MeasurementDTO.class)
+                .value(measurement -> {
+                    assertThat(measurement).isNotNull();
+                    assertThat(measurement.getId()).isEqualTo(1000L);
+                    assertThat(measurement.getBarcode()).isEqualTo("SBETST0001");
+                });
     }
 
-//    @Test
+    @Test
     public void measurementPostTest() throws Exception {
         Measurement measurement = new Measurement();
         measurement.setName("test");
         measurement.setBarcode("barcode");
         measurement.setRows(20);
         measurement.setColumns(30);
-        measurement.setCreatedBy("smarien");
-        measurement.setCreatedOn(new Date());
 
         String requestBody = objectMapper.writeValueAsString(measurement);
 
-        MvcResult mvcResult = this.mockMvc.perform(post("/measurements").contentType(MediaType.APPLICATION_JSON).content(requestBody))
-                .andDo(print())
-                .andExpect(status().isCreated())
-                .andReturn();
+        restWebTestClient
+                .post().uri("/measurements")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(requestBody)
+                .exchange().expectStatus().isCreated()
+                .expectBody(MeasurementDTO.class)
+                .value(newMeasurement -> {
+                    assertThat(newMeasurement).isNotNull();
+                    assertThat(newMeasurement.getId()).isNotNull();
+                    assertThat(newMeasurement.getName()).isEqualTo("test");
+                    assertThat(newMeasurement.getBarcode()).isEqualTo("barcode");
+                    assertThat(newMeasurement.getRows()).isEqualTo(20);
+                    assertThat(newMeasurement.getColumns()).isEqualTo(30);
+                    assertThat(newMeasurement.getCreatedBy()).isEqualTo("testuser");
+                    assertThat(newMeasurement.getCreatedOn()).isNotNull();
+                });
+    }
 
-        MeasurementDTO measurementDTO = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), MeasurementDTO.class);
-        assertThat(measurementDTO).isNotNull();
-        assertThat(measurementDTO.getId()).isEqualTo(1L);
+    @Test
+    public void measurementPutTest() throws Exception {
+        Long measurementId = 1000L;
+        MeasurementDTO measurementDTO = restWebTestClient
+                .get().uri("/measurements/{measId}", measurementId)
+                .exchange().expectStatus().isOk()
+                .expectBody(MeasurementDTO.class)
+                .returnResult().getResponseBody();
+
+        measurementDTO.setName("changed");
+
+        String requestBody = objectMapper.writeValueAsString(measurementDTO);
+        restWebTestClient
+                .put().uri("/measurements/{measId}", measurementId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(requestBody)
+                .exchange().expectStatus().isOk()
+                .expectBody(MeasurementDTO.class)
+                .value(updatedMeasurement -> {
+                    assertThat(updatedMeasurement).isNotNull();
+                    assertThat(updatedMeasurement.getId()).isEqualTo(measurementId);
+                    assertThat(updatedMeasurement.getName()).isEqualTo("changed");
+                    assertThat(updatedMeasurement.getUpdatedBy()).isEqualTo("testuser");
+                    assertThat(updatedMeasurement.getUpdatedOn()).isNotNull();
+                });
+    }
+
+    @Test
+    public void measurementDeleteTest() throws Exception {
+        Long measurementId = 1000L;
+        restWebTestClient
+                .delete().uri("/measurements/{measId}", measurementId)
+                .exchange().expectStatus().isNoContent();
+
+        restWebTestClient
+                .get().uri("/measurements/{measId}", measurementId)
+                .exchange().expectStatus().isNotFound();
     }
 }
